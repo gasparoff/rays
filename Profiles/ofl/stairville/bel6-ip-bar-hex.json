@@ -1,0 +1,88 @@
+[
+  {
+    "id": "ofl.stairville.bel6-ip-bar-hex.6ch",
+    "name": "BEL6 IP Bar HEX",
+    "manufacturer": "Stairville",
+    "mode": "6-channel · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture stairville/bel6-ip-bar-hex at commit accf408. Not verified on hardware. UV (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.stairville.bel6-ip-bar-hex.10ch",
+    "name": "BEL6 IP Bar HEX",
+    "manufacturer": "Stairville",
+    "mode": "10-channel · 10 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture stairville/bel6-ip-bar-hex at commit accf408. Not verified on hardware. Strobe kept at 0 (shutter open); UV (UV) kept at 0; Function Selection kept at 0; Function Speed kept at 0.",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

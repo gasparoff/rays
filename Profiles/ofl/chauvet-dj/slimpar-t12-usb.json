@@ -1,0 +1,68 @@
+[
+  {
+    "id": "ofl.chauvet-dj.slimpar-t12-usb.3ch",
+    "name": "SlimPAR T12 USB",
+    "manufacturer": "Chauvet DJ",
+    "mode": "3-channel · 3 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture chauvet-dj/slimpar-t12-usb at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.chauvet-dj.slimpar-t12-usb.8ch",
+    "name": "SlimPAR T12 USB",
+    "manufacturer": "Chauvet DJ",
+    "mode": "8-channel · 8 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture chauvet-dj/slimpar-t12-usb at commit accf408. Not verified on hardware. Color Macros kept at 0; Strobe / Speed / Sensitivity kept at 0; Mode kept at 0; Dimmer Speed kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

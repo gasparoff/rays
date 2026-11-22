@@ -1,0 +1,123 @@
+[
+  {
+    "id": "ofl.chauvet-dj.slimpar-pro-qz12.11ch",
+    "name": "SlimPAR Pro QZ12",
+    "manufacturer": "Chauvet DJ",
+    "mode": "11-channel · 11 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture chauvet-dj/slimpar-pro-qz12 at commit accf408. Not verified on hardware. Color Macros kept at 0; Strobe kept at 0; Auto Programs kept at 0; Program Speed / Sound Sensitivity kept at 0; Dimmer Speed kept at 0; Zoom kept at 0.",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.chauvet-dj.slimpar-pro-qz12.6ch",
+    "name": "SlimPAR Pro QZ12",
+    "manufacturer": "Chauvet DJ",
+    "mode": "6-channel · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture chauvet-dj/slimpar-pro-qz12 at commit accf408. Not verified on hardware. Strobe kept at 0.",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.chauvet-dj.slimpar-pro-qz12.5ch",
+    "name": "SlimPAR Pro QZ12",
+    "manufacturer": "Chauvet DJ",
+    "mode": "5-channel · 5 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture chauvet-dj/slimpar-pro-qz12 at commit accf408. Not verified on hardware. Zoom kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

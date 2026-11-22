@@ -1,0 +1,620 @@
+[
+  {
+    "id": "ofl.elation.sixbar-1000.6ch",
+    "name": "Sixbar 1000",
+    "manufacturer": "Elation",
+    "mode": "6-channel · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture elation/sixbar-1000 at commit accf408. Not verified on hardware. UV Master (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.elation.sixbar-1000.7ch",
+    "name": "Sixbar 1000",
+    "manufacturer": "Elation",
+    "mode": "7-channel · 7 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture elation/sixbar-1000 at commit accf408. Not verified on hardware. UV Master (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.elation.sixbar-1000.36ch",
+    "name": "Sixbar 1000",
+    "manufacturer": "Elation",
+    "mode": "36-channel · 36 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture elation/sixbar-1000 at commit accf408. Not verified on hardware. UV 1+2 (UV) kept at 0; UV 3+4 (UV) kept at 0; UV 5+6 (UV) kept at 0; UV 7+8 (UV) kept at 0; UV 9+10 (UV) kept at 0; UV 11+12 (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.elation.sixbar-1000.72ch",
+    "name": "Sixbar 1000",
+    "manufacturer": "Elation",
+    "mode": "72-channel · 72 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture elation/sixbar-1000 at commit accf408. Not verified on hardware. UV 1 (UV) kept at 0; UV 2 (UV) kept at 0; UV 3 (UV) kept at 0; UV 4 (UV) kept at 0; UV 5 (UV) kept at 0; UV 6 (UV) kept at 0; UV 7 (UV) kept at 0; UV 8 (UV) kept at 0; UV 9 (UV) kept at 0; UV 10 (UV) kept at 0; UV 11 (UV) kept at 0; UV 12 (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 6
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 6
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 6
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 6
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 6
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 7
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 7
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 7
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 7
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 7
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 8
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 8
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 8
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 8
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 8
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 9
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 9
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 9
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 9
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 9
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 10
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 10
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 10
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 10
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 10
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 11
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 11
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 11
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 11
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 11
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

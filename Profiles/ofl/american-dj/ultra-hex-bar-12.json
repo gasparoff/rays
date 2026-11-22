@@ -1,0 +1,304 @@
+[
+  {
+    "id": "ofl.american-dj.ultra-hex-bar-12.6ch",
+    "name": "Ultra Hex Bar 12",
+    "manufacturer": "American DJ",
+    "mode": "6-channel · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/ultra-hex-bar-12 at commit accf408. Not verified on hardware. UV Master (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.ultra-hex-bar-12.7ch",
+    "name": "Ultra Hex Bar 12",
+    "manufacturer": "American DJ",
+    "mode": "7-channel · 7 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/ultra-hex-bar-12 at commit accf408. Not verified on hardware. UV Master (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.ultra-hex-bar-12.8ch",
+    "name": "Ultra Hex Bar 12",
+    "manufacturer": "American DJ",
+    "mode": "8-channel · 8 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/ultra-hex-bar-12 at commit accf408. Not verified on hardware. UV Master (UV) kept at 0; Strobe fixed at 47 (shutter open).",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "constant",
+        "value": 47
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.ultra-hex-bar-12.36ch",
+    "name": "Ultra Hex Bar 12",
+    "manufacturer": "American DJ",
+    "mode": "36-channel · 36 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/ultra-hex-bar-12 at commit accf408. Not verified on hardware. UV 1/6 (UV) kept at 0; UV 2/6 (UV) kept at 0; UV 3/6 (UV) kept at 0; UV 4/6 (UV) kept at 0; UV 5/6 (UV) kept at 0; UV 6/6 (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

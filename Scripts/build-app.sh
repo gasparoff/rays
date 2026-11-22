@@ -36,8 +36,8 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/Licenses" "$APP/Contents/Resources/Profiles" \
   "$APP/Contents/Resources/Controllers"
 cp "$BIN_DIR/LightSystem" "$APP/Contents/MacOS/LightSystem"
-# Community fixture profiles (Profiles/*.json), loaded at startup next to the built-in ones.
-find "$ROOT/Profiles" -maxdepth 1 -name '*.json' -exec cp {} "$APP/Contents/Resources/Profiles/" \; 2>/dev/null || true
+# Community fixture profiles (Profiles/**/*.json, subfolders kept), loaded at startup next to the built-in ones.
+/usr/bin/rsync -a --include='*/' --include='*.json' --exclude='*' "$ROOT/Profiles/" "$APP/Contents/Resources/Profiles/"
 # Controller layouts (Controllers/*.json), same loading rules.
 find "$ROOT/Controllers" -maxdepth 1 -name '*.json' -exec cp {} "$APP/Contents/Resources/Controllers/" \; 2>/dev/null || true
 

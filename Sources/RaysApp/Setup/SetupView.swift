@@ -228,8 +228,15 @@ struct PatchEditor: View {
 
     /// Verified manufacturer profiles first, generic ones after.
     private var orderedProfiles: [FixtureProfile] {
+        // Verified first, then built-in and generic profiles, then community/OFL profiles by brand.
         let all = library.profiles
-        return all.filter(\.isVerified) + all.filter { !$0.isVerified }
+        let builtIn = Set(ProfileLibrary.builtIn.map(\.id))
+        let rest = all.filter { !$0.isVerified }
+        let first = rest.filter { builtIn.contains($0.id) || $0.isGeneric }
+        let others = rest.filter { !builtIn.contains($0.id) && !$0.isGeneric }.sorted {
+            ($0.manufacturer.lowercased(), $0.name.lowercased(), $0.footprint) < ($1.manufacturer.lowercased(), $1.name.lowercased(), $1.footprint)
+        }
+        return all.filter(\.isVerified) + first + others
     }
 
     /// Universe the ENTTEC in use actually outputs (both ODE ports are on 1 here).

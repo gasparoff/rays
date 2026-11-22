@@ -1,0 +1,169 @@
+[
+  {
+    "id": "ofl.stairville.z120m-par-64-led-rgbw-120w.3ch",
+    "name": "Z120M Par 64 LED RGBW 120W",
+    "manufacturer": "Stairville",
+    "mode": "3-channel · 3 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture stairville/z120m-par-64-led-rgbw-120w at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.stairville.z120m-par-64-led-rgbw-120w.4ch",
+    "name": "Z120M Par 64 LED RGBW 120W",
+    "manufacturer": "Stairville",
+    "mode": "4-channel · 4 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture stairville/z120m-par-64-led-rgbw-120w at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.stairville.z120m-par-64-led-rgbw-120w.5ch",
+    "name": "Z120M Par 64 LED RGBW 120W",
+    "manufacturer": "Stairville",
+    "mode": "5-channel · 5 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture stairville/z120m-par-64-led-rgbw-120w at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.stairville.z120m-par-64-led-rgbw-120w.6ch",
+    "name": "Z120M Par 64 LED RGBW 120W",
+    "manufacturer": "Stairville",
+    "mode": "6-channel · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture stairville/z120m-par-64-led-rgbw-120w at commit accf408. Not verified on hardware. Strobe fixed at 23 (shutter open).",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "constant",
+        "value": 23
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.stairville.z120m-par-64-led-rgbw-120w.10ch",
+    "name": "Z120M Par 64 LED RGBW 120W",
+    "manufacturer": "Stairville",
+    "mode": "10-channel · 10 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture stairville/z120m-par-64-led-rgbw-120w at commit accf408. Not verified on hardware. Strobe fixed at 23 (shutter open); Color Macros kept at 0; Color Temperature kept at 0; Auto Programs kept at 0; Program Speed / Sound Control kept at 0.",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "constant",
+        "value": 23
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

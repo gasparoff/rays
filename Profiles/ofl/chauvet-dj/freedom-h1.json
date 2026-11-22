@@ -1,0 +1,139 @@
+[
+  {
+    "id": "ofl.chauvet-dj.freedom-h1.12ch",
+    "name": "Freedom H1",
+    "manufacturer": "Chauvet DJ",
+    "mode": "12-channel · 12 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture chauvet-dj/freedom-h1 at commit accf408. Not verified on hardware. UV (UV) kept at 0; Strobe kept at 0; Color Macros kept at 0; Programs kept at 0; Program Speed / Sound Sensitivity kept at 0; Dimmer Speed kept at 0.",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.chauvet-dj.freedom-h1.8ch",
+    "name": "Freedom H1",
+    "manufacturer": "Chauvet DJ",
+    "mode": "8-channel · 8 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture chauvet-dj/freedom-h1 at commit accf408. Not verified on hardware. UV (UV) kept at 0; Strobe kept at 0.",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.chauvet-dj.freedom-h1.6ch",
+    "name": "Freedom H1",
+    "manufacturer": "Chauvet DJ",
+    "mode": "6-channel · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture chauvet-dj/freedom-h1 at commit accf408. Not verified on hardware. UV (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

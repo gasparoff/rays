@@ -1,0 +1,174 @@
+[
+  {
+    "id": "ofl.american-dj.mod-hex100.6ch",
+    "name": "MOD HEX100",
+    "manufacturer": "American DJ",
+    "mode": "6-channel · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/mod-hex100 at commit accf408. Not verified on hardware. UV (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.mod-hex100.7ch",
+    "name": "MOD HEX100",
+    "manufacturer": "American DJ",
+    "mode": "7-channel · 7 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/mod-hex100 at commit accf408. Not verified on hardware. UV (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.mod-hex100.8ch",
+    "name": "MOD HEX100",
+    "manufacturer": "American DJ",
+    "mode": "8-channel · 8 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/mod-hex100 at commit accf408. Not verified on hardware. UV (UV) kept at 0; Strobe fixed at 47 (shutter open).",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "constant",
+        "value": 47
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.mod-hex100.11ch",
+    "name": "MOD HEX100",
+    "manufacturer": "American DJ",
+    "mode": "11-channel · 11 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/mod-hex100 at commit accf408. Not verified on hardware. UV (UV) kept at 0; Strobe fixed at 47 (shutter open); Program Mode kept at 0; Color Macros / Programs kept at 0; Program Speed / Sound Sensitivity kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "constant",
+        "value": 47
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

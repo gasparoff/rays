@@ -1,0 +1,162 @@
+[
+  {
+    "id": "ofl.cameo.flat-pro-flood-600-ip65.3ch2",
+    "name": "Flat Pro Flood 600 IP65",
+    "manufacturer": "cameo",
+    "mode": "3-channel 2 · 3 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture cameo/flat-pro-flood-600-ip65 at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.cameo.flat-pro-flood-600-ip65.6ch",
+    "name": "Flat Pro Flood 600 IP65",
+    "manufacturer": "cameo",
+    "mode": "6-channel · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture cameo/flat-pro-flood-600-ip65 at commit accf408. Not verified on hardware. UV (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.cameo.flat-pro-flood-600-ip65.9ch",
+    "name": "Flat Pro Flood 600 IP65",
+    "manufacturer": "cameo",
+    "mode": "9-channel · 9 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture cameo/flat-pro-flood-600-ip65 at commit accf408. Not verified on hardware. Strobe kept at 0 (shutter open); Flash Duration kept at 0; UV (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.cameo.flat-pro-flood-600-ip65.11ch",
+    "name": "Flat Pro Flood 600 IP65",
+    "manufacturer": "cameo",
+    "mode": "11-channel · 11 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture cameo/flat-pro-flood-600-ip65 at commit accf408. Not verified on hardware. Strobe kept at 0 (shutter open); Flash Duration kept at 0; UV (UV) kept at 0; Color Macros kept at 0; Color Temperature kept at 0.",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

@@ -1,0 +1,25 @@
+[
+  {
+    "id": "ofl.cameo.outdoor-par-tri-12.3ch2",
+    "name": "Outdoor PAR Tri 12",
+    "manufacturer": "cameo",
+    "mode": "3-channel 2 · 3 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture cameo/outdoor-par-tri-12 at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      }
+    ]
+  }
+]

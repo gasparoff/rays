@@ -1,0 +1,37 @@
+[
+  {
+    "id": "ofl.eurolite.led-party-spot.6ch",
+    "name": "LED PARty Spot",
+    "manufacturer": "Eurolite",
+    "mode": "6-Channel · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture eurolite/led-party-spot at commit accf408. Not verified on hardware. Effects kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

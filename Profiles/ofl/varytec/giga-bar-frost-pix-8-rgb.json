@@ -1,0 +1,156 @@
+[
+  {
+    "id": "ofl.varytec.giga-bar-frost-pix-8-rgb.3ch",
+    "name": "Giga Bar Frost Pix 8 RGB",
+    "manufacturer": "Varytec",
+    "mode": "3-channel · 3 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture varytec/giga-bar-frost-pix-8-rgb at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.varytec.giga-bar-frost-pix-8-rgb.24ch",
+    "name": "Giga Bar Frost Pix 8 RGB",
+    "manufacturer": "Varytec",
+    "mode": "24-channel · 24 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture varytec/giga-bar-frost-pix-8-rgb at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 6
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 6
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 6
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 7
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 7
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 7
+      }
+    ]
+  }
+]

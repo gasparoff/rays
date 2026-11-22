@@ -1,0 +1,134 @@
+[
+  {
+    "id": "ofl.american-dj.vbar-pak.4ch",
+    "name": "VBar Pak",
+    "manufacturer": "American DJ",
+    "mode": "4-channel · 4 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/vbar-pak at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.vbar-pak.5ch",
+    "name": "VBar Pak",
+    "manufacturer": "American DJ",
+    "mode": "5-channel · 5 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/vbar-pak at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.vbar-pak.6ch",
+    "name": "VBar Pak",
+    "manufacturer": "American DJ",
+    "mode": "6-channel · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/vbar-pak at commit accf408. Not verified on hardware. Color Macros kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.vbar-pak.7ch",
+    "name": "VBar Pak",
+    "manufacturer": "American DJ",
+    "mode": "7-channel · 7 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/vbar-pak at commit accf408. Not verified on hardware. Strobe kept at 0 (shutter open); Color Macros kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

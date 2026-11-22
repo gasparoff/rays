@@ -1,0 +1,80 @@
+[
+  {
+    "id": "ofl.martin.rush-par-2-rgbw-zoom.5ch",
+    "name": "Rush PAR 2 RGBW Zoom",
+    "manufacturer": "Martin",
+    "mode": "5-channel · 5 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture martin/rush-par-2-rgbw-zoom at commit accf408. Not verified on hardware. Zoom kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.martin.rush-par-2-rgbw-zoom.9ch",
+    "name": "Rush PAR 2 RGBW Zoom",
+    "manufacturer": "Martin",
+    "mode": "9-channel · 9 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture martin/rush-par-2-rgbw-zoom at commit accf408. Not verified on hardware. Shutter / Strobe fixed at 11 (shutter open); Color Presets kept at 0; Zoom kept at 0.",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "constant",
+        "value": 11
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

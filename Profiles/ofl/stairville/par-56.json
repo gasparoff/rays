@@ -1,0 +1,33 @@
+[
+  {
+    "id": "ofl.stairville.par-56.5ch",
+    "name": "PAR 56",
+    "manufacturer": "Stairville",
+    "mode": "5-channel · 5 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture stairville/par-56 at commit accf408. Not verified on hardware. Mode kept at 0; Effect Speed kept at 0.",
+    "channels": [
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

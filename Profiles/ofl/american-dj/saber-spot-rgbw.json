@@ -1,0 +1,212 @@
+[
+  {
+    "id": "ofl.american-dj.saber-spot-rgbw.rgbw",
+    "name": "Saber Spot RGBW",
+    "manufacturer": "American DJ",
+    "mode": "RGBW · 4 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/saber-spot-rgbw at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.saber-spot-rgbw.rgbwd",
+    "name": "Saber Spot RGBW",
+    "manufacturer": "American DJ",
+    "mode": "RGBWD · 5 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/saber-spot-rgbw at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.saber-spot-rgbw.rgbw-strb",
+    "name": "Saber Spot RGBW",
+    "manufacturer": "American DJ",
+    "mode": "RGBWD Strobe · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/saber-spot-rgbw at commit accf408. Not verified on hardware. Shutter / Strobe fixed at 47 (shutter open).",
+    "channels": [
+      {
+        "kind": "constant",
+        "value": 47
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.saber-spot-rgbw.rgbwd-fine",
+    "name": "Saber Spot RGBW",
+    "manufacturer": "American DJ",
+    "mode": "RGBWD fine · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/saber-spot-rgbw at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.saber-spot-rgbw.rgbwd-fine-strb",
+    "name": "Saber Spot RGBW",
+    "manufacturer": "American DJ",
+    "mode": "RGBWD fine Strobe · 7 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/saber-spot-rgbw at commit accf408. Not verified on hardware. Shutter / Strobe fixed at 47 (shutter open).",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "constant",
+        "value": 47
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.saber-spot-rgbw.rgbw-fine",
+    "name": "Saber Spot RGBW",
+    "manufacturer": "American DJ",
+    "mode": "RGBW fine · 8 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/saber-spot-rgbw at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

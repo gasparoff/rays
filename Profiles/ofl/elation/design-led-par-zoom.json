@@ -1,0 +1,45 @@
+[
+  {
+    "id": "ofl.elation.design-led-par-zoom.8ch",
+    "name": "Design LED Par Zoom",
+    "manufacturer": "Elation",
+    "mode": "8-channel · 8 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture elation/design-led-par-zoom at commit accf408. Not verified on hardware. Color Macros kept at 0; Internal Programs kept at 0; Shutter / Strobe fixed at 47 (shutter open); Zoom kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "constant",
+        "value": 47
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

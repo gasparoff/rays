@@ -1,0 +1,123 @@
+[
+  {
+    "id": "ofl.showtec.accent-spot-q4-rgbw.4ch",
+    "name": "Accent Spot Q4 RGBW",
+    "manufacturer": "Showtec",
+    "mode": "4-channel · 4 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture showtec/accent-spot-q4-rgbw at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.showtec.accent-spot-q4-rgbw.6ch",
+    "name": "Accent Spot Q4 RGBW",
+    "manufacturer": "Showtec",
+    "mode": "6-channel · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture showtec/accent-spot-q4-rgbw at commit accf408. Not verified on hardware. Linear Strobe kept at 0 (shutter open).",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.showtec.accent-spot-q4-rgbw.12ch",
+    "name": "Accent Spot Q4 RGBW",
+    "manufacturer": "Showtec",
+    "mode": "12-channel · 12 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture showtec/accent-spot-q4-rgbw at commit accf408. Not verified on hardware. Linear Strobe kept at 0 (shutter open); FX Strobe kept at 0 (shutter open); CCT kept at 0; Color Presets kept at 0; Effect kept at 0; Effect Speed kept at 0; Sound Control kept at 0.",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      }
+    ]
+  }
+]

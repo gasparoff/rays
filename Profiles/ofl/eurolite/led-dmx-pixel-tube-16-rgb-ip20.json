@@ -1,0 +1,253 @@
+[
+  {
+    "id": "ofl.eurolite.led-dmx-pixel-tube-16-rgb-ip20.48ch",
+    "name": "LED DMX Pixel Tube 16 RGB IP20",
+    "manufacturer": "Eurolite",
+    "mode": "48-channel · 48 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture eurolite/led-dmx-pixel-tube-16-rgb-ip20 at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 6
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 6
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 6
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 7
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 7
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 7
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 8
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 8
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 8
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 9
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 9
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 9
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 10
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 10
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 10
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 11
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 11
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 11
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 12
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 12
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 12
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 13
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 13
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 13
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 14
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 14
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 14
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 15
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 15
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 15
+      }
+    ]
+  }
+]

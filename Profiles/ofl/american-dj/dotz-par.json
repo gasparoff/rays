@@ -1,0 +1,52 @@
+[
+  {
+    "id": "ofl.american-dj.dotz-par.3ch",
+    "name": "Dotz Par",
+    "manufacturer": "American DJ",
+    "mode": "3-channel · 3 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/dotz-par at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.american-dj.dotz-par.4ch",
+    "name": "Dotz Par",
+    "manufacturer": "American DJ",
+    "mode": "4-channel · 4 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture american-dj/dotz-par at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      }
+    ]
+  }
+]

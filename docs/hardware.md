@@ -30,6 +30,11 @@ their own processor (DMX USB Pro protocol, Art-Net, sACN) are recommended.
 All fixture profiles are JSON files in `Profiles/` (see [Add a fixture](adding-a-fixture.md)).
 Strobe, macro, programme, sound and UV channels are always kept at 0.
 
+The Open Fixture Library import (`Scripts/import-ofl.py`) only takes modes with RGB channels
+whose other channels are harmless at 0 (or a shutter with a documented "open" value, which is
+held there). Modes where 0 would select a colour macro, an effect or an undocumented strobe are
+skipped, as are moving heads, scanners, lasers and fog machines.
+
 | Fixture | Modes | Status |
 |---|---|---|
 | Varytec Retro Blinder TRI 180 | 5 ch, 8 ch | ✅ Verified |
@@ -38,6 +43,7 @@ Strobe, macro, programme, sound and UV channels are always kept at 0.
 | Varytec LED Pad 7 7x10W 5in1 RGBWA | 5, 6, 9 ch | 🟡 Unverified (official manual) |
 | Varytec LED Pad 7 7x10W 6in1 RGBWAUV | 6, 7, 10 ch | 🟡 Unverified (official manual; UV kept at 0) |
 | Generic RGB, RGBW, Dimmer+RGB, Dimmer+RGBW | | ✅ Built in |
+| ~110 fixtures from American DJ, Ayra, BeamZ, Cameo, Chauvet DJ, Elation, Eurolite, Fun Generation, Martin, Showtec, Stairville, Varytec | ~320 modes | 🟡 Unverified, converted from the [Open Fixture Library](https://open-fixture-library.org) (`Profiles/ofl/`) |
 | Generic RGBA, Dimmer+RGBA, RGBWA, Dimmer+RGBWA, Dimmer+RGBWA+UV, 2-zone RGB bar | | 🟡 Generic profiles |
 
 ## MIDI controllers

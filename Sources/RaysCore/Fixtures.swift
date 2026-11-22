@@ -135,20 +135,28 @@ public struct ProfileLibrary: Sendable {
 
     public func adding(_ more: [FixtureProfile]) -> ProfileLibrary { ProfileLibrary(extra: Array(profiles.dropFirst(Self.builtIn.count)) + more) }
 
-    /// Loads every `*.json` FixtureProfile in `directory`; invalid files are reported, not fatal.
+    /// Loads every `*.json` FixtureProfile in `directory` and its subfolders (e.g. one folder per
+    /// manufacturer), in path order; invalid files are reported, not fatal.
     public static func loadProfiles(in directory: URL) -> (profiles: [FixtureProfile], errors: [String]) {
-        guard let files = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) else {
+        let base = directory.standardizedFileURL.path
+        guard let enumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil,
+                                                              options: [.skipsHiddenFiles]) else {
             return ([], [])
         }
+        let files = enumerator.compactMap { $0 as? URL }
+            .filter { $0.pathExtension.lowercased() == "json" }
+            .sorted { $0.path < $1.path }
         var result: [FixtureProfile] = []
         var errors: [String] = []
-        for file in files where file.pathExtension.lowercased() == "json" {
+        for file in files {
+            let path = file.standardizedFileURL.path
+            let relative = path.hasPrefix(base + "/") ? String(path.dropFirst(base.count + 1)) : file.lastPathComponent
             do {
                 let data = try Data(contentsOf: file)
                 if let list = try? JSONDecoder().decode([FixtureProfile].self, from: data) { result += list }
                 else { result.append(try JSONDecoder().decode(FixtureProfile.self, from: data)) }
             } catch {
-                errors.append("\(file.lastPathComponent): \(error.localizedDescription)")
+                errors.append("\(relative): \(error.localizedDescription)")
             }
         }
         return (result, errors)

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "ofl.varytec.bat-par-6-rgbuv.4ch",
+    "name": "BAT.PAR 6 RGBUV",
+    "manufacturer": "Varytec",
+    "mode": "4-channel · 4 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture varytec/bat-par-6-rgbuv at commit accf408. Not verified on hardware. UV (UV) kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

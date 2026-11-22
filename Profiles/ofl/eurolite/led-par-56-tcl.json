@@ -1,0 +1,56 @@
+[
+  {
+    "id": "ofl.eurolite.led-par-56-tcl.5ch",
+    "name": "LED PAR-56 TCL",
+    "manufacturer": "Eurolite",
+    "mode": "5-channel · 5 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture eurolite/led-par-56-tcl at commit accf408. Not verified on hardware. Shutter kept at 0 (shutter open).",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.eurolite.led-par-56-tcl.3ch",
+    "name": "LED PAR-56 TCL",
+    "manufacturer": "Eurolite",
+    "mode": "3-channel · 3 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture eurolite/led-par-56-tcl at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      }
+    ]
+  }
+]

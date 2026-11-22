@@ -1,0 +1,77 @@
+[
+  {
+    "id": "ofl.stairville.xbrick-full-colour.13ch",
+    "name": "xBrick Full-Colour",
+    "manufacturer": "Stairville",
+    "mode": "13-channel · 13 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture stairville/xbrick-full-colour at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      }
+    ]
+  }
+]

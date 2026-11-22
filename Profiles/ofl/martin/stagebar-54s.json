@@ -1,0 +1,570 @@
+[
+  {
+    "id": "ofl.martin.stagebar-54s.rgb-all",
+    "name": "Stagebar 54S",
+    "manufacturer": "Martin",
+    "mode": "RGB All · 3 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture martin/stagebar-54s at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.martin.stagebar-54s.rgbaw-all",
+    "name": "Stagebar 54S",
+    "manufacturer": "Martin",
+    "mode": "RGBAW All · 5 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture martin/stagebar-54s at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.martin.stagebar-54s.rgb-halves",
+    "name": "Stagebar 54S",
+    "manufacturer": "Martin",
+    "mode": "RGB Halves · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture martin/stagebar-54s at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 1
+      }
+    ]
+  },
+  {
+    "id": "ofl.martin.stagebar-54s.rgbaw-halves",
+    "name": "Stagebar 54S",
+    "manufacturer": "Martin",
+    "mode": "RGBAW Halves · 10 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture martin/stagebar-54s at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 1
+      }
+    ]
+  },
+  {
+    "id": "ofl.martin.stagebar-54s.rgb-thirds",
+    "name": "Stagebar 54S",
+    "manufacturer": "Martin",
+    "mode": "RGB Thirds · 9 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture martin/stagebar-54s at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 2
+      }
+    ]
+  },
+  {
+    "id": "ofl.martin.stagebar-54s.rgbaw-thirds",
+    "name": "Stagebar 54S",
+    "manufacturer": "Martin",
+    "mode": "RGBAW Thirds · 15 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture martin/stagebar-54s at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 2
+      }
+    ]
+  },
+  {
+    "id": "ofl.martin.stagebar-54s.rgb-individual",
+    "name": "Stagebar 54S",
+    "manufacturer": "Martin",
+    "mode": "RGB Individual · 18 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture martin/stagebar-54s at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 5
+      }
+    ]
+  },
+  {
+    "id": "ofl.martin.stagebar-54s.rgbaw-individual",
+    "name": "Stagebar 54S",
+    "manufacturer": "Martin",
+    "mode": "RGBAW Individual · 30 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture martin/stagebar-54s at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 0
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 1
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 2
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 3
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 4
+      },
+      {
+        "kind": "red",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "green",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "blue",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "amber",
+        "value": 0,
+        "segment": 5
+      },
+      {
+        "kind": "white",
+        "value": 0,
+        "segment": 5
+      }
+    ]
+  }
+]

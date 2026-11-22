@@ -1,0 +1,64 @@
+[
+  {
+    "id": "ofl.chauvet-dj.led-par-64-tri-b.7ch",
+    "name": "LED PAR 64 TRI-B",
+    "manufacturer": "Chauvet DJ",
+    "mode": "7-channel · 7 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture chauvet-dj/led-par-64-tri-b at commit accf408. Not verified on hardware. Color Macros kept at 0; Strobe / Effect Speed kept at 0 (shutter open); Operating Mode kept at 0.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      },
+      {
+        "kind": "dimmer",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.chauvet-dj.led-par-64-tri-b.3ch",
+    "name": "LED PAR 64 TRI-B",
+    "manufacturer": "Chauvet DJ",
+    "mode": "3-channel · 3 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture chauvet-dj/led-par-64-tri-b at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      }
+    ]
+  }
+]

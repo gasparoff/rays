@@ -1,0 +1,29 @@
+[
+  {
+    "id": "ofl.showtec.club-par-12-4-rgbw.rgbw",
+    "name": "Club PAR 12/4 RGBW",
+    "manufacturer": "Showtec",
+    "mode": "RGBW · 4 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture showtec/club-par-12-4-rgbw at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      }
+    ]
+  }
+]

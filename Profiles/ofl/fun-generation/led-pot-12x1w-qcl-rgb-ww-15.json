@@ -1,0 +1,64 @@
+[
+  {
+    "id": "ofl.fun-generation.led-pot-12x1w-qcl-rgb-ww-15.4ch",
+    "name": "LED Pot 12x1W QCL RGB WW 15°",
+    "manufacturer": "Fun Generation",
+    "mode": "4-channel · 4 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture fun-generation/led-pot-12x1w-qcl-rgb-ww-15 at commit accf408. Not verified on hardware.",
+    "channels": [
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "ofl.fun-generation.led-pot-12x1w-qcl-rgb-ww-15.6ch",
+    "name": "LED Pot 12x1W QCL RGB WW 15°",
+    "manufacturer": "Fun Generation",
+    "mode": "6-channel · 6 CH",
+    "isGeneric": false,
+    "isVerified": false,
+    "notes": "Converted from the Open Fixture Library (MIT, (c) Florian & Felix Edelmann and contributors), fixture fun-generation/led-pot-12x1w-qcl-rgb-ww-15 at commit accf408. Not verified on hardware. Strobe kept at 0 (shutter open).",
+    "channels": [
+      {
+        "kind": "dimmer",
+        "value": 0
+      },
+      {
+        "kind": "red",
+        "value": 0
+      },
+      {
+        "kind": "green",
+        "value": 0
+      },
+      {
+        "kind": "blue",
+        "value": 0
+      },
+      {
+        "kind": "white",
+        "value": 0
+      },
+      {
+        "kind": "ignore",
+        "value": 0
+      }
+    ]
+  }
+]

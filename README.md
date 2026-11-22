@@ -67,6 +67,7 @@ No hardware yet? Launch the app anyway: the stage preview runs without any light
 | Fixtures | Generic RGB, RGBW, Dimmer+RGB, Dimmer+RGBW | ✅ built in |
 | Fixtures | Varytec Event Par IP65 4in1 (4/7/9 ch), LED Pad 7 RGBWA (5/6/9 ch), LED Pad 7 RGBWAUV (6/7/10 ch) | 🟡 from the official manuals, not yet tested on hardware |
 | Fixtures | Generic RGBA, RGBWA, RGBWA+UV PARs, 2-zone RGB bar | 🟡 generic profiles in `Profiles/` |
+| Fixtures | ~110 PARs, bars and washes from 12 brands (Chauvet DJ, ADJ, Cameo, Eurolite, Stairville, Showtec, BeamZ, Martin, Elation…) | 🟡 converted from the [Open Fixture Library](https://open-fixture-library.org), not yet tested on hardware |
 | Controllers | Allen & Heath Xone:K2 (Classic and Live v2 layouts) | ✅ |
 | Controllers | Any controller with a layout in `Controllers/` | 🟡 routed from JSON, LED feedback if described |
 | Controllers | Any MIDI controller | ✅ via MIDI Learn |

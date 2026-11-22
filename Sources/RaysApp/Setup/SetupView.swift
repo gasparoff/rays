@@ -68,6 +68,13 @@ struct NetworkSetup: View {
     @State private var manualError: String?
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            OutputDriverSetup()
+            if model.prefs.output.driverID == OutputDriverRegistry.defaultDriverID { artNetSetup }
+        }
+    }
+
+    @ViewBuilder private var artNetSetup: some View {
         let net = live.snapshot.network
         VStack(alignment: .leading, spacing: 18) {
             Panel {

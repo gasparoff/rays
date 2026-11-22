@@ -92,9 +92,23 @@ public final class SACNDriver: OutputDriver {
         public var priority: UInt8 = SACN.defaultPriority
         public var sourceName = "RAYS"
         public var universeOffset = 1
-        /// Component identifier; keep it stable per installation (persist it).
-        public var cid = UUID()
+        /// Component identifier; keep it stable per installation (persist it). nil = a new one per driver.
+        public var cid: UUID?
         public init() {}
+
+        enum CodingKeys: String, CodingKey { case mode, unicastIP, priority, sourceName, universeOffset, cid }
+
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            let d = Configuration()
+            mode = (try? c.decodeIfPresent(Mode.self, forKey: .mode)) ?? d.mode
+            unicastIP = (try? c.decodeIfPresent(IPv4Address.self, forKey: .unicastIP)) ?? nil
+            priority = min((try? c.decodeIfPresent(UInt8.self, forKey: .priority)) ?? d.priority, SACN.maxPriority)
+            sourceName = (try? c.decodeIfPresent(String.self, forKey: .sourceName)) ?? d.sourceName
+            let offset = (try? c.decodeIfPresent(Int.self, forKey: .universeOffset)) ?? d.universeOffset
+            universeOffset = (0...1).contains(offset) ? offset : d.universeOffset
+            cid = (try? c.decodeIfPresent(UUID.self, forKey: .cid)) ?? nil
+        }
     }
 
     public static let driverID = "sacn"
@@ -102,6 +116,7 @@ public final class SACNDriver: OutputDriver {
     public var reopenInterval: TimeInterval { 3 }
 
     public var configuration: Configuration
+    private let cid: UUID
     private let transport: DatagramTransport
     private let interfaceProvider: () -> [NetworkInterface]
     private var sequences: [UInt16: UInt8] = [:]
@@ -122,6 +137,7 @@ public final class SACNDriver: OutputDriver {
         self.transport = transport
         self.interfaceProvider = interfaces
         self.configuration = configuration
+        self.cid = configuration.cid ?? UUID()
     }
 
     public var isOpen: Bool { transport.isOpen }
@@ -181,7 +197,7 @@ public final class SACNDriver: OutputDriver {
             sequences[universe] = seq
             let destination = configuration.mode == .multicast ? SACN.multicastAddress(universe: universe) : target.ip
             do {
-                let packet = try SACN.dataPacket(cid: configuration.cid, sourceName: configuration.sourceName,
+                let packet = try SACN.dataPacket(cid: cid, sourceName: configuration.sourceName,
                                                  priority: configuration.priority, sequence: seq,
                                                  universe: universe, data: data)
                 try transport.send(packet, to: destination, port: SACN.port)

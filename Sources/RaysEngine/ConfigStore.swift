@@ -1,6 +1,36 @@
 import Foundation
+import RaysOutput
 import RaysCore
 import RaysControl
+
+/// Which output driver the engine uses and each driver's settings. Old preferences
+/// (no `output` key) keep Art-Net.
+public struct OutputSettings: Codable, Equatable, Sendable {
+    public var driverID = OutputDriverRegistry.defaultDriverID
+    public var sacn = SACNDriver.Configuration()
+    public var dmxUSBPro = DMXUSBProDriver.Configuration()
+
+    public init() {}
+
+    enum CodingKeys: String, CodingKey { case driverID, sacn, dmxUSBPro }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = OutputSettings()
+        driverID = (try? c.decodeIfPresent(String.self, forKey: .driverID)) ?? d.driverID
+        sacn = (try? c.decodeIfPresent(SACNDriver.Configuration.self, forKey: .sacn)) ?? d.sacn
+        dmxUSBPro = (try? c.decodeIfPresent(DMXUSBProDriver.Configuration.self, forKey: .dmxUSBPro)) ?? d.dmxUSBPro
+    }
+
+    /// Registry with every driver the app offers, configured from these settings.
+    public var registry: OutputDriverRegistry {
+        var r = OutputDriverRegistry.builtIn
+        let sacn = self.sacn, usb = self.dmxUSBPro
+        r.register(.init(id: SACNDriver.driverID, name: "sACN (E1.31)") { SACNDriver(transport: $0, interfaces: $1, configuration: sacn) })
+        r.register(.init(id: DMXUSBProDriver.driverID, name: "ENTTEC DMX USB Pro") { _, _ in DMXUSBProDriver(configuration: usb) })
+        return r
+    }
+}
 
 /// Ableton Link is always active. Auto/xdj adds the bundled Beat Link master follower.
 public enum BeatSource: String, Codable, CaseIterable, Sendable {
@@ -22,6 +52,7 @@ public struct Preferences: Codable, Equatable, Sendable {
     /// Restore output after discovery on launch. Old preferences remain preview-only until enabled.
     public var outputEnabled = false
     public var blackout = false
+    public var output = OutputSettings()
 
     public init() {}
 
@@ -40,6 +71,7 @@ public struct Preferences: Codable, Equatable, Sendable {
         xdjDeck = (0...4).contains(deck) ? deck : d.xdjDeck
         outputEnabled = (try? c.decodeIfPresent(Bool.self, forKey: .outputEnabled)) ?? d.outputEnabled
         blackout = (try? c.decodeIfPresent(Bool.self, forKey: .blackout)) ?? d.blackout
+        output = (try? c.decodeIfPresent(OutputSettings.self, forKey: .output)) ?? d.output
     }
 }
 

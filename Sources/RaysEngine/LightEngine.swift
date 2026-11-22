@@ -164,7 +164,9 @@ public final class LightEngine: @unchecked Sendable {
     public var onPreferredNodeChanged: ((String?) -> Void)?
 
     private let tempo: TempoSource
-    private let artnet: OutputDriver
+    private var artnet: OutputDriver
+    private let transport: DatagramTransport
+    private let interfaces: () -> [NetworkInterface]
     private let clock: () -> TimeInterval
     private var baseLibrary: ProfileLibrary
     private var timer: DispatchSourceTimer?
@@ -221,6 +223,8 @@ public final class LightEngine: @unchecked Sendable {
                 outputDriverID: String = OutputDriverRegistry.defaultDriverID) {
         self.runsTimer = runsTimer
         self.tempo = tempo
+        self.transport = transport
+        self.interfaces = interfaces
         self.artnet = outputDrivers.make(id: outputDriverID, transport: transport, interfaces: interfaces)
         self.baseLibrary = library
         self.clock = clock
@@ -554,6 +558,27 @@ public final class LightEngine: @unchecked Sendable {
             self.artnet.forcePoll(now: self.clock())
         }
     }
+
+    /// Switches the output driver. Output is disarmed first (black frames on the old driver),
+    /// so changing the driver never turns lights on.
+    public func useOutputDriver(_ id: String, registry: OutputDriverRegistry) {
+        queue.async {
+            self.outputRequested = false
+            if self.armed { self.sendBlackFramesLocked(); self.armed = false }
+            self.outputActivity.update(active: false)
+            self.artnet.close()
+            self.artnet = registry.make(id: id, transport: self.transport, interfaces: self.interfaces)
+            self.artnet.onPreferredIdentityChanged = { [weak self] id in self?.onPreferredNodeChanged?(id) }
+            self.lastSocketAttempt = -.infinity
+            if self.running, !self.suspended {
+                self.lastSocketAttempt = self.clock()
+                self.artnet.open(queue: self.queue, now: self.clock)
+                self.artnet.forcePoll(now: self.clock())
+            }
+        }
+    }
+
+    public var outputDriverID: String { sync { artnet.driverID } }
 
     public func setPreferredIdentity(_ identity: String?) { queue.async { self.artnet.preferredIdentity = identity } }
 

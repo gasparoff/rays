@@ -89,6 +89,14 @@ public final class DMXUSBProDriver: OutputDriver {
         /// Patch universe (Art-Net Port-Address) sent to the widget; nil = lowest in the patch.
         public var universe: Int?
         public init() {}
+
+        enum CodingKeys: String, CodingKey { case devicePath, universe }
+
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            devicePath = (try? c.decodeIfPresent(String.self, forKey: .devicePath)) ?? nil
+            universe = (try? c.decodeIfPresent(Int.self, forKey: .universe)) ?? nil
+        }
     }
 
     public static let driverID = "dmxusbpro"

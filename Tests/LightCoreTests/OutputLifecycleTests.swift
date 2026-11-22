@@ -229,3 +229,53 @@ final class OutputLifecycleTests: XCTestCase {
         XCTAssertEqual(reply.outputPorts.map(\.portAddress), [PortAddress(1)!])
     }
 }
+
+final class OutputSettingsTests: XCTestCase {
+    func testOldPreferencesKeepArtNetAndSettingsRoundTrip() throws {
+        let old = #"{"master":0.4,"outputEnabled":true}"#
+        let prefs = try JSONDecoder().decode(Preferences.self, from: Data(old.utf8))
+        XCTAssertEqual(prefs.output.driverID, "artnet")
+        XCTAssertEqual(prefs.output, OutputSettings())
+        XCTAssertEqual(Preferences(), Preferences(), "defaults must stay comparable (no random CID)")
+
+        var s = OutputSettings()
+        s.driverID = "sacn"
+        s.sacn.mode = .unicast
+        s.sacn.unicastIP = IPv4Address(10, 0, 0, 9)
+        s.sacn.priority = 150
+        s.sacn.cid = UUID()
+        s.dmxUSBPro.devicePath = "/dev/cu.usbserial-X"
+        var p = Preferences(); p.output = s
+        XCTAssertEqual(try JSONDecoder().decode(Preferences.self, from: JSONEncoder().encode(p)).output, s)
+
+        let partial = #"{"output":{"driverID":"dmxusbpro","sacn":{"priority":250,"universeOffset":7}}}"#
+        let q = try JSONDecoder().decode(Preferences.self, from: Data(partial.utf8))
+        XCTAssertEqual(q.output.driverID, "dmxusbpro")
+        XCTAssertEqual(q.output.sacn.priority, 200)
+        XCTAssertEqual(q.output.sacn.universeOffset, 1)
+        XCTAssertNil(q.output.dmxUSBPro.devicePath)
+    }
+
+    func testRegistryFromSettingsBuildsEveryDriverAndUnknownFallsBackToArtNet() {
+        let r = OutputSettings().registry
+        XCTAssertEqual(Set(r.descriptors.map(\.id)), ["artnet", "sacn", "dmxusbpro"])
+        XCTAssertTrue(r.make(id: "sacn", transport: FakeTransport(), interfaces: { [] }) is SACNDriver)
+        XCTAssertTrue(r.make(id: "dmxusbpro", transport: FakeTransport(), interfaces: { [] }) is DMXUSBProDriver)
+        XCTAssertTrue(r.make(id: "nope", transport: FakeTransport(), interfaces: { [] }) is ArtNetController)
+    }
+
+    func testSwitchingDriverDisarmsAndSendsBlackOnTheOldDriver() throws {
+        let t = FakeTransport()
+        let clock = ManualClock()
+        let engine = LightEngine(tempo: LocalTempoClock(), transport: t, interfaces: { [Fixture.lan] },
+                                 clock: { clock.now }, runsTimer: false)
+        engine.start()
+        XCTAssertEqual(engine.outputDriverID, "artnet")
+        engine.useOutputDriver("sacn", registry: OutputSettings().registry)
+        XCTAssertEqual(engine.outputDriverID, "sacn")
+        XCTAssertTrue(t.isOpen, "the new driver is opened while the engine runs")
+        engine.useOutputDriver("artnet", registry: OutputSettings().registry)
+        XCTAssertEqual(engine.outputDriverID, "artnet")
+        engine.stop()
+    }
+}

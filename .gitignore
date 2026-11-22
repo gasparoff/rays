@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# SwiftPM / Xcode
+.build/
+.swiftpm/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+Package.resolved.orig
+
+# Built apps (publish them as GitHub Releases, never commit them)
+dist/
+dist-*/
+*.app/
+*.dmg
+*.zip
+
+# Third-party components fetched by Scripts/bootstrap.sh
+Vendor/BeatLinkHelper/
+
+# Private research material: manuals, client documents, logs, screenshots
+Research/
+
+# Local configuration and logs
+*.log
+*.pending
+*.local.json

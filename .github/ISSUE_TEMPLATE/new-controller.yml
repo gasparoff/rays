@@ -1,0 +1,18 @@
+name: Controller layout
+description: Propose a built-in layout for a MIDI controller
+labels: [controller]
+body:
+  - type: input
+    id: model
+    attributes: { label: Controller, placeholder: "Novation Launch Control XL" }
+    validations: { required: true }
+  - type: textarea
+    id: mapping
+    attributes: { label: Proposed mapping, description: "Which pad/fader/encoder does what (scenes, levels, Flash, Build → Drop, Blackout…)" }
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Contribution
+      options:
+        - label: I own this controller and can test
+        - label: I'll open the PR

@@ -1,0 +1,17 @@
+{
+  "id": "community.generic.par-rgbw-6ch",
+  "name": "Generic LED PAR RGBW",
+  "manufacturer": "Generico",
+  "mode": "6 CH",
+  "isGeneric": true,
+  "isVerified": false,
+  "notes": "Example profile: Dimmer, R, G, B, W, Strobe (kept at 0). Copy this file to add your light.",
+  "channels": [
+    { "kind": "dimmer", "value": 0 },
+    { "kind": "red", "value": 0 },
+    { "kind": "green", "value": 0 },
+    { "kind": "blue", "value": 0 },
+    { "kind": "white", "value": 0 },
+    { "kind": "ignore", "value": 0 }
+  ]
+}

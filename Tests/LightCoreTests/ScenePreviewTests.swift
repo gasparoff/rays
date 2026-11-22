@@ -1,0 +1,28 @@
+import XCTest
+@testable import LightCore
+
+final class ScenePreviewTests: XCTestCase {
+    func testCancelRestoresStoppedShowWithoutArmingOutput() {
+        let clock = ManualClock(), transport = FakeTransport()
+        let tempo = LocalTempoClock(bpm: 120, now: { clock.now })
+        let engine = LightEngine(tempo: tempo, transport: transport, interfaces: { [Fixture.lan] }, clock: { clock.now }, runsTimer: false)
+        var snapshot = EngineSnapshot()
+        engine.onSnapshot = { snapshot = $0 }
+        engine.start()
+        engine.stop()
+        clock.now = 1; engine.stepForTesting()
+        XCTAssertTrue(snapshot.stopped)
+        engine.beginScenePreview()
+        engine.setScene(.chase, immediate: true)
+        clock.now = 1.5; engine.stepForTesting()
+        XCTAssertFalse(snapshot.stopped)
+        engine.finishScenePreview(restore: true)
+        clock.now = 2; engine.stepForTesting()
+        XCTAssertTrue(snapshot.stopped)
+        clock.now = 2.4; engine.stepForTesting()
+        XCTAssertTrue(snapshot.fixtures.allSatisfy(\.isDark))
+        XCTAssertFalse(snapshot.armed)
+        XCTAssertTrue(transport.dmxPackets.isEmpty)
+        engine.shutdown()
+    }
+}

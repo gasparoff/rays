@@ -1,0 +1,15 @@
+name: Hardware report
+description: Tell us RAYS works (or not) with your gear
+labels: [hardware-report]
+body:
+  - type: textarea
+    id: gear
+    attributes: { label: Gear, description: "Art-Net node, fixtures + DMX modes, controller, console" }
+    validations: { required: true }
+  - type: dropdown
+    id: result
+    attributes: { label: Result, options: [Works, Partially works, Doesn't work] }
+    validations: { required: true }
+  - type: textarea
+    id: notes
+    attributes: { label: Notes }

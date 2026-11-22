@@ -58,6 +58,7 @@ public struct ConfigStore: Sendable {
     public var patchURL: URL { directory.appendingPathComponent("patch.json") }
     public var preferencesURL: URL { directory.appendingPathComponent("preferences.json") }
     public var profilesDirectory: URL { directory.appendingPathComponent("Profiles", isDirectory: true) }
+    public var controllersDirectory: URL { directory.appendingPathComponent("Controllers", isDirectory: true) }
     public var midiURL: URL { directory.appendingPathComponent("midi.json") }
 
     /// False on a fresh machine: the app then shows the unconfirmed TRI 180 test preset without saving it.

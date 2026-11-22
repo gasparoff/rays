@@ -316,6 +316,8 @@ public struct MIDIRouter: Sendable {
     public static let relativeStep = 1.0 / 100
     /// Soft takeover window (±2/127).
     public static let pickupWindow = 2.0 / 127
+    /// One detent of an encoder bound by the Live v2 preset (full sweep in 127 detents).
+    public static let livePresetEncoderStep = 1.0 / 127
 
     struct Takeover: Sendable { var pickedUp = false; var lastHardware: Double? }
 
@@ -390,7 +392,7 @@ public struct MIDIRouter: Sendable {
                 guard raw != 0, raw != 64 else { return .none }
                 let delta = raw < 64 ? raw : raw - 128
                 let isLivePresetEncoder = fromK2 && map.k2Layout == .liveV2 && map.binding(for: control) == nil
-                let step = isLivePresetEncoder ? 1.0 / 127 : Self.relativeStep
+                let step = isLivePresetEncoder ? Self.livePresetEncoderStep : Self.relativeStep
                 let v = clamp01(current(action) + Double(delta) * step)
                 return MIDICommand.continuous(action, v).map(Result.command) ?? .none
             }

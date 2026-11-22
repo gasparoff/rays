@@ -1,0 +1,152 @@
+{
+  "id": "akai.apc40-mk2",
+  "name": "APC40 mkII",
+  "manufacturer": "Akai Professional",
+  "portNamePattern": "apc40 mkii|apc40mkii|apc40 mk2|apc40mk2",
+  "midiChannel": 1,
+  "bindings": [
+    {
+      "action": "levelLeft",
+      "type": "cc",
+      "number": 7,
+      "channel": 1
+    },
+    {
+      "action": "levelCenter",
+      "type": "cc",
+      "number": 7,
+      "channel": 2
+    },
+    {
+      "action": "levelRight",
+      "type": "cc",
+      "number": 7,
+      "channel": 3
+    },
+    {
+      "action": "master",
+      "type": "cc",
+      "number": 14
+    },
+    {
+      "action": "energy",
+      "type": "cc",
+      "number": 48
+    },
+    {
+      "action": "accentLevel",
+      "type": "cc",
+      "number": 49
+    },
+    {
+      "action": "scene1",
+      "type": "note",
+      "number": 0
+    },
+    {
+      "action": "scene2",
+      "type": "note",
+      "number": 1
+    },
+    {
+      "action": "scene3",
+      "type": "note",
+      "number": 2
+    },
+    {
+      "action": "scene4",
+      "type": "note",
+      "number": 3
+    },
+    {
+      "action": "scene5",
+      "type": "note",
+      "number": 4
+    },
+    {
+      "action": "scene6",
+      "type": "note",
+      "number": 5
+    },
+    {
+      "action": "bankHouse",
+      "type": "note",
+      "number": 6
+    },
+    {
+      "action": "bankClub",
+      "type": "note",
+      "number": 7
+    },
+    {
+      "action": "accent",
+      "type": "note",
+      "number": 8
+    },
+    {
+      "action": "buildDrop",
+      "type": "note",
+      "number": 9
+    },
+    {
+      "action": "sceneFirstBeat",
+      "type": "note",
+      "number": 10
+    },
+    {
+      "action": "cancelPending",
+      "type": "note",
+      "number": 11
+    },
+    {
+      "action": "blackout",
+      "type": "note",
+      "number": 15
+    },
+    {
+      "action": "rateQuarter",
+      "type": "note",
+      "number": 82
+    },
+    {
+      "action": "rateHalf",
+      "type": "note",
+      "number": 83
+    },
+    {
+      "action": "rateNormal",
+      "type": "note",
+      "number": 84
+    },
+    {
+      "action": "rateDouble",
+      "type": "note",
+      "number": 85
+    },
+    {
+      "action": "stop",
+      "type": "note",
+      "number": 81
+    }
+  ],
+  "leds": {
+    "style": "velocity",
+    "notes": {
+      "from": 0,
+      "to": 39
+    },
+    "extraNotes": [
+      82,
+      83,
+      84,
+      85,
+      86
+    ],
+    "colors": {
+      "red": 5,
+      "amber": 9,
+      "green": 21
+    }
+  },
+  "notes": "Generic Mode (Mode 0, the power-up default), per Akai's APC40 Mk2 Communications Protocol v1.2. Track faders 1–3 (CC 7 on channels 1–3) = left / centre / right, master fader (CC 14) = master; track knobs 1–2 (CC 48–49) = energy and Flash level. Clip launch 1–6 (notes 0–5) = scenes, 7–8 = House/Club bank, 9 = Flash (hold), 10 = Build → Drop, 11 = first beat, 12 = cancel queue, 16 = Blackout; scene launch 1–4 = rates ¼×…2×; Stop All Clips = Stop. Unverified on hardware."
+}

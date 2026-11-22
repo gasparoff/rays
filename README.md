@@ -69,6 +69,7 @@ No hardware yet? Launch the app anyway: the stage preview runs without any light
 | Fixtures | Generic RGBA, RGBWA, RGBWA+UV PARs, 2-zone RGB bar | 🟡 generic profiles in `Profiles/` |
 | Fixtures | ~110 PARs, bars and washes from 12 brands (Chauvet DJ, ADJ, Cameo, Eurolite, Stairville, Showtec, BeamZ, Martin, Elation…) | 🟡 converted from the [Open Fixture Library](https://open-fixture-library.org), not yet tested on hardware |
 | Controllers | Allen & Heath Xone:K2 (Classic and Live v2 layouts) | ✅ |
+| Controllers | Akai APC40 mkII | 🟡 layout from Akai's published protocol, not yet tested on hardware |
 | Controllers | Any controller with a layout in `Controllers/` | 🟡 routed from JSON, LED feedback if described |
 | Controllers | Any MIDI controller | ✅ via MIDI Learn |
 | Tempo | Ableton Link, Pioneer Pro DJ Link (CDJ/XDJ) | ✅ |

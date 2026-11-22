@@ -51,7 +51,17 @@ skipped, as are moving heads, scanners, lasers and fog machines.
 | Controller | Status | Notes |
 |---|---|---|
 | Allen & Heath Xone:K2 (Classic, Live v2) | ✅ Verified | Built-in layouts, LED feedback, on-screen guide |
+| Akai APC40 mkII | 🟡 Unverified | Layout from Akai's APC40 Mk2 Communications Protocol v1.2 (Generic Mode, RGB pad feedback) |
 | Controllers with a layout in `Controllers/` | 🟡 Unverified | Routed from JSON; LED feedback when described ([guide](adding-a-controller.md)) |
+
+Not shipped yet, and why (contributions with a hardware test are welcome):
+
+| Controller | Reason |
+|---|---|
+| Novation Launchpad Mini mk3, Launchpad X | Pads only send a fixed note grid in Programmer mode, which a host must select with SysEx when it connects; layouts cannot send SysEx yet |
+| Novation Launch Control XL mk2 | The official programmer's reference documents the LED protocol, not the factory-template CC/note numbers |
+| Korg nanoKONTROL2 | Korg's MIDI implementation documents the scene format, not the factory CC assignments |
+| Akai APC mini mk2, MIDImix; Behringer X-Touch Mini; Allen & Heath Xone:K1/K3 | No official MIDI specification found that we could check the numbers against |
 | Any other MIDI controller | ✅ | MIDI Learn; enable "listen to all MIDI inputs" in Setup |
 
 ## Tempo

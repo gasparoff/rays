@@ -62,10 +62,10 @@ array of objects is also accepted).
 | `name`, `manufacturer` | yes | Shown in the app. |
 | `portNamePattern` | yes | Case-insensitive regular expression matched against the CoreMIDI port name. |
 | `midiChannel` | yes | 1…16, as printed in manuals. |
-| `bindings` | yes | `action` + `type` (`note` or `cc`) + `number` (0…127). One control per action, one action per control. |
+| `bindings` | yes | `action` + `type` (`note` or `cc`) + `number` (0…127), optional `channel` (1…16) when this control sends on another channel than `midiChannel` (e.g. per-track faders). One control per action, one action per control. |
 | `relativeEncoders` | no | CC numbers of endless encoders sending two's-complement deltas (1 = +1, 127 = −1). |
 | `encoderResolution` | no | Detents for a full 0…1 sweep on a bound encoder (default 100). |
-| `leds` | no | Pads in `notes.from…to` light colour *c* by sending note `base + colors.c`. `special` lists buttons with their own `[red, amber, green]` addresses. |
+| `leds` | no | `style` `offset` (default, Xone:K2): pads in `notes.from…to` light colour *c* by sending note `base + colors.c`; `special` lists buttons with their own `[red, amber, green]` addresses. `style` `velocity` (Akai APC, Novation): the pad's own note with velocity `colors.c`; `extraNotes` adds LED notes outside the range. LEDs are sent on each binding's channel. |
 | `notes` | recommended | One or two lines describing the layout. |
 
 ### Actions

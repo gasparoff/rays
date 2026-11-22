@@ -112,6 +112,7 @@ struct TopBar: View {
     }
 
     private func tempoColor(_ t: TempoSnapshot) -> Color {
+        if model.prefs.beatSource == .midiClock { return t.externalClock ? Theme.good : Theme.warn }
         if model.prefs.beatSource != .link {
             if xdj.isLive || (model.prefs.beatSource == .auto && t.peers > 0) { return Theme.good }
             return model.prefs.beatSource == .auto ? Theme.secondary : Theme.warn
@@ -256,6 +257,9 @@ struct TempoReadout: View {
 enum TempoWording {
     @MainActor
     static func status(_ t: TempoSnapshot, source: BeatSource, xdj: XDJBeatListener) -> String {
+        if source == .midiClock {
+            return t.externalClock ? String(format: "MIDI Clock · %.1f BPM", t.bpm) : "MIDI Clock · in attesa"
+        }
         if source != .link {
             if xdj.isLive, let b = xdj.lastBeat {
                 return String(format: "Console · deck %d · %.1f BPM", b.deck, b.bpm)

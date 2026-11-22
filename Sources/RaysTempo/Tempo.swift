@@ -3,6 +3,7 @@ import Foundation
 public enum TempoSourceKind: String, Sendable {
     case link
     case local
+    case midiClock
 }
 
 public struct TempoSnapshot: Equatable, Sendable {
@@ -124,8 +125,8 @@ public struct TapTempo: Sendable {
     }
 }
 
-/// Positive modulo, finite-safe (same definition as in RaysCore, kept private to avoid a dependency).
-@inline(__always) private func pmod(_ a: Double, _ m: Double) -> Double {
+/// Positive modulo, finite-safe (same definition as in RaysCore, module-internal to avoid a dependency).
+@inline(__always) func pmod(_ a: Double, _ m: Double) -> Double {
     guard a.isFinite, m > 0 else { return 0 }
     let r = a.truncatingRemainder(dividingBy: m)
     return r < 0 ? r + m : r

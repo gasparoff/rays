@@ -42,6 +42,7 @@ final class AppModel: ObservableObject {
     let cable = DirectCableNetwork()
     let midi: MIDIService
     let xdj = XDJBeatListener()
+    let midiClock = MIDIClockListener()
 
     let store = ConfigStore(directory: ConfigStore.defaultDirectory)
     private let link: LinkTempoSource
@@ -140,6 +141,7 @@ final class AppModel: ObservableObject {
         usingDefaultPatch = fresh && !store.hasSavedPatch
         let link = self.link
         xdj.onBeat = { beat in link.followBeat(bpm: beat.bpm, beatInBar: beat.beatWithinBar) }
+        midiClock.onBeat = { bpm, beatInBar in link.followBeat(bpm: bpm, beatInBar: beatInBar) }
         xdj.deck = p.xdjDeck
         showSettings = store.loadShowSettings()
         engine.setShowSettings(showSettings)
@@ -191,7 +193,8 @@ final class AppModel: ObservableObject {
         DispatchQueue.main.async { [weak self] in self?.refreshPreviewVisibility() }
         installKeyMonitor()
         midi.start()
-        if prefs.beatSource != .link { xdj.start() }
+        if prefs.beatSource.usesProDJLink { xdj.start() }
+        if prefs.beatSource == .midiClock { midiClock.start() }
         // Cheap local check (getifaddrs); never changes settings by itself.
         cableTimer = Timer.scheduledTimer(withTimeInterval: 4, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated {
@@ -225,6 +228,7 @@ final class AppModel: ObservableObject {
         visibilityObservers.removeAll()
         midi.stop()
         xdj.stop()
+        midiClock.stop()
         engine.shutdown()  // synchronous zero frames + close
         let tempo = link.capture()
         if tempo.peers == 0 && !tempo.externalClock {
@@ -377,7 +381,9 @@ final class AppModel: ObservableObject {
 
     func setBeatSource(_ source: BeatSource) {
         prefs.beatSource = source
-        if source != .link { xdj.start() } else { xdj.stop(); link.clearExternalClock() }
+        if source.usesProDJLink { xdj.start() } else { xdj.stop() }
+        if source == .midiClock { midiClock.start() } else { midiClock.stop() }
+        if !source.usesProDJLink && source != .midiClock { link.clearExternalClock() }
         scheduleSave()
     }
 

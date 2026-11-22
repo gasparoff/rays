@@ -45,9 +45,9 @@ let package = Package(
             path: "Sources/RaysApp"
         ),
         .testTarget(
-            name: "LightCoreTests",
+            name: "RaysTests",
             dependencies: ["RaysEngine", "RaysCore", "RaysOutput", "RaysTempo", "RaysControl", "LinkBridge"],
-            path: "Tests/LightCoreTests"
+            path: "Tests/RaysTests"
         ),
     ],
     cxxLanguageStandard: .cxx17

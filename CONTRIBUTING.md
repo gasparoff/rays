@@ -39,7 +39,7 @@ Foundation-only and fully covered by unit tests, and the app's stage preview wor
 - **Formatting:** `.swift-format` describes the house style. Run
   `swift format lint --configuration .swift-format <files you touched>`; don't reformat files you
   didn't change.
-- **Every behavior change comes with a test** in `Tests/LightCoreTests`.
+- **Every behavior change comes with a test** in `Tests/RaysTests`.
 - **Never break saved user data.** Scene, patch and MIDI files in
   `~/Library/Application Support/Light System/` must keep loading. If you change a `Codable`
   type, add a compatibility test with an old JSON sample.

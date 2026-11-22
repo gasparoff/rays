@@ -6,7 +6,7 @@ import XCTest
 final class CommunityControllersTests: XCTestCase {
     private var controllersDirectory: URL {
         URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()   // LightCoreTests
+            .deletingLastPathComponent()   // RaysTests
             .deletingLastPathComponent()   // Tests
             .deletingLastPathComponent()   // repository root
             .appendingPathComponent("Controllers", isDirectory: true)

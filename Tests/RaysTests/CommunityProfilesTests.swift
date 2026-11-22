@@ -6,7 +6,7 @@ import RaysCore
 final class CommunityProfilesTests: XCTestCase {
     private var profilesDirectory: URL {
         URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()   // LightCoreTests
+            .deletingLastPathComponent()   // RaysTests
             .deletingLastPathComponent()   // Tests
             .deletingLastPathComponent()   // repository root
             .appendingPathComponent("Profiles", isDirectory: true)

@@ -1,0 +1,23 @@
+name: Fixture request
+description: Ask for a light to be supported (or tell us you're adding it)
+labels: [fixture, good first issue]
+body:
+  - type: input
+    id: model
+    attributes: { label: Manufacturer and model, placeholder: "Varytec PAD7 RGBWA" }
+    validations: { required: true }
+  - type: input
+    id: mode
+    attributes: { label: DMX mode, placeholder: "10 CH" }
+    validations: { required: true }
+  - type: input
+    id: manual
+    attributes: { label: Link to the official manual }
+    validations: { required: true }
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Contribution
+      options:
+        - label: I'll write the profile myself (see docs/adding-a-fixture.md)
+        - label: I own this light and can test a profile

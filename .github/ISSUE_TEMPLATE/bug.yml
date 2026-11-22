@@ -1,0 +1,18 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes: { label: What happened?, description: And what did you expect? }
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes: { label: Steps to reproduce }
+  - type: input
+    id: version
+    attributes: { label: RAYS version, placeholder: "1.5.5" }
+    validations: { required: true }
+  - type: textarea
+    id: setup
+    attributes: { label: Setup, description: "macOS version, Mac model, Art-Net node, fixtures, controller, console" }

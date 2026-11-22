@@ -35,8 +35,9 @@ jobs:
           gh release download $BEAT_LINK_TRIGGER_TAG --repo Deep-Symmetry/beat-link-trigger \
             --pattern '*.dmg' --dir "$RUNNER_TEMP/blt"
           ls "$RUNNER_TEMP/blt"
-          dmg=$(ls "$RUNNER_TEMP/blt"/*.dmg | grep -Ei 'arm64|aarch64' | head -n1 || true)
-          [ -n "$dmg" ] || dmg=$(ls "$RUNNER_TEMP/blt"/*.dmg | head -n1)
+          # Apple silicon build: the DMG without an Intel/x86_64 suffix.
+          dmg=$(ls "$RUNNER_TEMP/blt"/*.dmg | grep -viE 'intel|x86_64' | head -n1 || true)
+          [ -n "$dmg" ] || { echo "No Apple silicon Beat Link Trigger DMG found" >&2; exit 1; }
           echo "Using $dmg"
           hdiutil attach -nobrowse -readonly -mountpoint "$RUNNER_TEMP/blt/mnt" "$dmg"
           cp -R "$RUNNER_TEMP/blt/mnt/Beat Link Trigger.app" "$RUNNER_TEMP/Beat Link Trigger.app"

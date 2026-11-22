@@ -59,7 +59,9 @@ builds also look in `Vendor/BeatLinkHelper` of the source checkout.
 
 - CI runs on `pull_request`, never `pull_request_target`, with a read-only token, so code from
   a fork can't reach secrets or write to the repository.
-- Dependabot keeps GitHub Actions and the Ableton Link submodule up to date.
+- Every GitHub Action is pinned to a commit SHA, and checkouts don't keep the token
+  (`persist-credentials: false`). Dependabot keeps the actions and the Ableton Link
+  submodule up to date.
 - The release workflow pins the Beat Link Trigger version and checks the SHA-256 of its DMG
   before using it, and publishes a build provenance attestation for the zip.
 - Release builds are not yet signed with a Developer ID or notarized by Apple. Until they

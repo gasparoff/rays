@@ -30,6 +30,7 @@ project uses [Semantic Versioning](https://semver.org/).
 - The Art-Net node list is capped at 64 entries, so a flood of fake ArtPollReply packets can't grow memory; fresh and selected nodes are never evicted.
 - The adapter name in the administrator command for the direct cable is checked byte by byte (a trailing newline used to pass the old pattern).
 - Release builds launch the Beat Link helper only from their own bundle.
+- GitHub Actions are pinned to commit SHAs (Dependabot keeps them current) and checkouts don't keep the token.
 - `SECURITY.md` explains scope and how to verify a release; `docs/security.md` describes the security model.
 
 ## [1.5.5] - 2026-10-31

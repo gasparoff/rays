@@ -72,7 +72,7 @@ struct PatchEditor: View {
                         if live.snapshot.isTesting { Button("Termina prova") { model.engine.cancelDiagnostic() } }
                     }
                     .buttonStyle(.bordered)
-                    .disabled(live.snapshot.readiness != .ready)
+                    .disabled(live.snapshot.readiness != .ready || live.snapshot.blackout)
                     Text(
                         "Usa il rig salvato e la luminosità generale. Al termine riprende la scena, oppure spegne le luci se prima erano spente."
                     )

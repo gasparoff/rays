@@ -55,6 +55,35 @@ final class OutputLifecycleTests: XCTestCase {
         XCTAssertFalse(state(engine).armed, "Clearing blackout must not arm a cancelled diagnostic")
     }
 
+    func testDiagnosticIsIgnoredDuringBlackout() {
+        let (engine, transport, clock) = rig()
+        engine.setArmed(true)
+        engine.setBlackout(true)
+        XCTAssertTrue(state(engine).blackout)
+        engine.runDiagnostic(.init(1, 1, 1), duration: 5)
+        let during = state(engine)
+        XCTAssertTrue(during.blackout, "A diagnostic must never clear blackout")
+        XCTAssertFalse(during.isTesting)
+        XCTAssertTrue(transport.dmxPackets.last!.bytes[18...].allSatisfy { $0 == 0 })
+        clock.now += 5.1
+        let after = state(engine)
+        XCTAssertTrue(after.blackout)
+        XCTAssertTrue(after.armed, "The output the user turned on stays on, still blacked out")
+        XCTAssertTrue(transport.dmxPackets.last!.bytes[18...].allSatisfy { $0 == 0 })
+    }
+
+    func testDiagnosticIsIgnoredDuringBlackoutWithOutputOff() {
+        let (engine, transport, _) = rig()
+        engine.setBlackout(true)
+        let sentBefore = transport.dmxPackets.count
+        engine.runDiagnostic(.init(1, 0, 0))
+        let s = state(engine)
+        XCTAssertTrue(s.blackout)
+        XCTAssertFalse(s.armed, "A diagnostic during blackout must not arm the output")
+        XCTAssertFalse(s.isTesting)
+        XCTAssertTrue(transport.dmxPackets.dropFirst(sentBefore).allSatisfy { $0.bytes[18...].allSatisfy { $0 == 0 } })
+    }
+
     func testStaleNodePausesAndAttemptsFinalZeroFrame() {
         let (engine, transport, clock) = rig()
         engine.setArmed(true)

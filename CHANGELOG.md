@@ -21,6 +21,10 @@ project uses [Semantic Versioning](https://semver.org/).
 - `Scripts/build-app.sh` builds without the Beat Link helper (Pro DJ Link then unavailable) instead of failing; the bundled license notice now covers public distribution.
 - Bundle identifier is now `io.github.gasparoff.rays`. Saved patches and scenes are kept; the remembered scene bank and internal BPM reset once.
 
+### Fixed
+- A light test (Setup → Lights) no longer clears an active blackout or arms the output during blackout; the test buttons are disabled while blacked out.
+- DMX USB Pro writes are bounded (20 ms per frame): a stalled widget can no longer hold the engine queue and delay blackout or shutdown.
+
 ## [1.5.5] - 2026-10-31
 
 Last private build before open-sourcing: House and Club 130–138 scene banks, full-screen scene editor

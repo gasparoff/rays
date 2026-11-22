@@ -39,9 +39,23 @@ public protocol SerialPort: AnyObject {
 }
 
 /// POSIX termios serial port: raw 8N1, no flow control. USB widgets ignore the baud rate.
+///
+/// Writes run on the engine's queue, so they never block for long: the descriptor stays
+/// non-blocking and a frame that can't be written within `writeTimeout` fails with
+/// `ETIMEDOUT`. The driver then closes the port and the engine reopens it later, so a stalled
+/// widget can't delay blackout, other commands or shutdown.
 public final class POSIXSerialPort: SerialPort, @unchecked Sendable {
     private var fd: Int32 = -1
-    public init() {}
+    /// Longest time one frame may wait for the device. A full frame is 518 bytes, well under a
+    /// millisecond on a healthy USB link; the engine ticks every 33 ms.
+    public let writeTimeout: TimeInterval
+    public init(writeTimeout: TimeInterval = 0.02) { self.writeTimeout = writeTimeout }
+    /// Adopts an already open descriptor (tests use a pipe). It is switched to non-blocking.
+    init(adopting descriptor: Int32, writeTimeout: TimeInterval = 0.02) {
+        self.writeTimeout = writeTimeout
+        _ = fcntl(descriptor, F_SETFL, fcntl(descriptor, F_GETFL) | O_NONBLOCK)
+        fd = descriptor
+    }
     deinit { close() }
 
     public var isOpen: Bool { fd >= 0 }
@@ -57,20 +71,28 @@ public final class POSIXSerialPort: SerialPort, @unchecked Sendable {
         t.c_cflag &= ~tcflag_t(CSTOPB | CRTSCTS | PARENB)
         cfsetspeed(&t, speed_t(B57600))
         guard tcsetattr(f, TCSANOW, &t) == 0 else { let e = errno; Darwin.close(f); throw SocketError(operation: "tcsetattr", code: e) }
-        _ = fcntl(f, F_SETFL, fcntl(f, F_GETFL) & ~O_NONBLOCK)  // blocking writes from here on
-        fd = f
+        fd = f  // stays O_NONBLOCK: `write` bounds every wait with poll(2)
     }
 
     public func write(_ bytes: [UInt8]) throws {
         guard fd >= 0 else { throw SocketError(operation: "write", code: EBADF) }
+        let deadline = Date().addingTimeInterval(writeTimeout)
         var offset = 0
         while offset < bytes.count {
             let n = bytes[offset...].withUnsafeBytes { Darwin.write(fd, $0.baseAddress, $0.count) }
-            if n < 0 {
-                if errno == EINTR { continue }
-                throw SocketError(operation: "write", code: errno)
+            if n >= 0 {
+                offset += n
+                continue
             }
-            offset += n
+            let e = errno
+            if e == EINTR { continue }
+            guard e == EAGAIN || e == EWOULDBLOCK else { throw SocketError(operation: "write", code: e) }
+            let remaining = deadline.timeIntervalSinceNow
+            guard remaining > 0 else { throw SocketError(operation: "write", code: ETIMEDOUT) }
+            var p = pollfd(fd: fd, events: Int16(POLLOUT), revents: 0)
+            let ready = Darwin.poll(&p, 1, Int32(max(1, (remaining * 1000).rounded(.up))))
+            if ready < 0, errno != EINTR { throw SocketError(operation: "write", code: errno) }
+            if ready == 0 { throw SocketError(operation: "write", code: ETIMEDOUT) }
         }
     }
 

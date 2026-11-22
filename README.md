@@ -60,6 +60,8 @@ No hardware yet? Launch the app anyway: the stage preview runs without any light
 |---|---|---|
 | Art-Net nodes | ENTTEC ODE MK3 | ✅ tested on hardware |
 | Art-Net nodes | Any Art-Net 4 node | 🟡 should work, [report it](../../issues/new?template=hardware-report.yml) |
+| sACN (E1.31) | Any E1.31 receiver, multicast or unicast | 🟡 implemented from the spec, not yet tested on hardware |
+| USB DMX | ENTTEC DMX USB Pro and compatible (DMXking ultraDMX Pro/Micro) | 🟡 implemented from the protocol, not yet tested on hardware |
 | Fixtures | Varytec Retro Blinder TRI 180 (5/8 ch), TRI 380 (5/25 ch) | ✅ verified profiles |
 | Fixtures | Generic RGB, RGBW, Dimmer+RGB, Dimmer+RGBW | ✅ built in |
 | Fixtures | Varytec Event Par IP65 4in1 (4/7/9 ch), LED Pad 7 RGBWA (5/6/9 ch), LED Pad 7 RGBWAUV (6/7/10 ch) | 🟡 from the official manuals, not yet tested on hardware |
@@ -68,6 +70,9 @@ No hardware yet? Launch the app anyway: the stage preview runs without any light
 | Controllers | Any controller with a layout in `Controllers/` | 🟡 routed from JSON, LED feedback if described |
 | Controllers | Any MIDI controller | ✅ via MIDI Learn |
 | Tempo | Ableton Link, Pioneer Pro DJ Link (CDJ/XDJ) | ✅ |
+| Tempo | MIDI Clock (opt-in) | 🟡 not yet tested on hardware |
+
+Full matrix, including what is not supported and why: [docs/hardware.md](docs/hardware.md).
 
 **Your light or controller is missing?** Adding it takes one JSON file and no Swift:
 see [Add a fixture](docs/adding-a-fixture.md) and [Add a controller](docs/adding-a-controller.md).

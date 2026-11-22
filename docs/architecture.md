@@ -36,8 +36,8 @@ RaysApp  ◄── LinkBridge       SwiftUI app, executable "LightSystem"
 
 | Target | Depends on | Responsibility |
 |---|---|---|
-| `RaysOutput` | Foundation | Art-Net packets, `ArtNetController`, `NodeRegistry`, UDP transport, direct-cable policy, `OutputActivity`, `LatestMailbox`, `OutputDriver` + registry |
-| `RaysTempo` | Foundation | `TempoSource`, `TempoSnapshot`, internal clock, downbeat alignment, tap tempo, Pro DJ Link beat types, `TempoSourceRegistry` |
+| `RaysOutput` | Foundation | Art-Net packets, `ArtNetController`, sACN, DMX USB Pro + serial port, `NodeRegistry`, UDP transport, direct-cable policy, `OutputActivity`, `LatestMailbox`, `OutputDriver` + registry |
+| `RaysTempo` | Foundation | `TempoSource`, `TempoSnapshot`, internal clock, downbeat alignment, tap tempo, Pro DJ Link beat types, MIDI Clock, `TempoSourceRegistry` |
 | `RaysCore` | RaysOutput | Fixtures, patch, profiles, Varytec rig, scenes, choreography, scene programs and editing, custom scenes, sequencer, DMX composer, stage geometry |
 | `RaysControl` | RaysCore | MIDI decoder, `ControlAction`, `MIDIRouter` (Learn, soft takeover, relative encoders), `XoneK2`, LED feedback, `ControllerProfile` |
 | `RaysEngine` | all of the above | `LightEngine` (30 Hz), `ConfigStore`, `Preferences`, `ShowSettings` |
@@ -61,16 +61,21 @@ Cross-module helpers that are not public API use Swift's `package` access level.
 
 `OutputDriver` is the surface `LightEngine` uses: open/close, discovery (`pollIfDue`, `nodes`),
 target selection (`preferredIdentity`, `manualIP`), `sendDMX` per universe and status strings
-for Setup. `ArtNetController` is the first driver. `LightEngine(…, outputDrivers:, outputDriverID:)`
-builds its driver from a registry; unknown ids fall back to Art-Net. Drivers are only ever called
-from the engine's serial queue.
+for Setup. Drivers: `ArtNetController` (default), `SACNDriver` (E1.31 multicast/unicast) and
+`DMXUSBProDriver` (ENTTEC DMX USB Pro protocol over a POSIX serial port). `LightEngine(…,
+outputDrivers:, outputDriverID:)` builds its driver from a registry; unknown ids fall back to
+Art-Net. `useOutputDriver(_:registry:)` swaps it at runtime after disarming output.
+`OutputSettings` (in `Preferences`) stores the choice and each driver's settings and builds the
+registry. Drivers are only ever called from the engine's serial queue.
 
 ### Tempo sources
 
 `TempoSource` is `capture()` + `setTempo` + `setStartStopSync`. `TempoSourceRegistry.builtIn`
 holds the internal clock; the app registers Ableton Link (`LinkTempoSource`, which needs
-`LinkBridge`). Pro DJ Link is deliberately not a separate source: console beats are fed into the
-Link timeline so the lights, Ableton Live and other Link peers share one grid.
+`LinkBridge`). Pro DJ Link and MIDI Clock are deliberately not separate grids: their beats are
+fed into the Link timeline (`followBeat`) so the lights, Ableton Live and other Link peers share
+one grid. `MIDIClockParser` / `MIDIClockTempoSource` (RaysTempo) decode 24 ppqn clock; the app's
+`MIDIClockListener` runs only when the beat source is MIDI Clock.
 
 ### Controllers
 
@@ -93,9 +98,11 @@ Contributions welcome on any of these. Open an issue to coordinate before large 
 - [x] `ControllerProfile` JSON format and loader, Xone:K2 layouts as data
 - [x] Route non-K2 controllers from their `ControllerProfile` (MIDI ports, LED feedback, on-screen guide)
 - [x] `OutputDriver` protocol and registry (Art-Net)
-- [ ] More drivers: sACN (E1.31), ENTTEC DMX USB Pro, driver choice in Setup
+- [x] More drivers: sACN (E1.31), ENTTEC DMX USB Pro, driver choice in Setup
+- [ ] sACN universe discovery and synchronization; DMX USB Pro Mk2 second universe
 - [x] `TempoSource` registry (internal clock, Ableton Link)
-- [ ] More sources: MIDI clock, audio onset as fallback
+- [x] MIDI Clock beat source
+- [ ] Audio onset as fallback
 - [ ] Scene sharing: export/import a `.rays-scene` file, community scene gallery
 - [ ] Larger rigs: more than three positions, multiple universes, pixel bars
 - [ ] Signed and notarized releases, Homebrew cask

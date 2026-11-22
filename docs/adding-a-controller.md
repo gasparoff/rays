@@ -5,11 +5,21 @@ and Learn bindings always override a layout. A **controller layout** goes furthe
 file in `Controllers/` that says which note or CC drives each action, which knobs are endless
 encoders and how the pad LEDs are addressed. No Swift needed.
 
-> **Status.** The format, loader and validation are in place, and the Xone:K2 Classic and
-> Live v2 layouts ship as JSON. The K2 is still routed by the built-in `XoneK2` code (tests
-> prove the JSON files are identical to it). Routing other controllers straight from their
-> layout file is the next step on the [roadmap](architecture.md#roadmap). Layouts you add now
-> are validated by CI and will work as soon as that lands.
+## How a layout is used
+
+- RAYS connects every MIDI input whose name matches a layout's `portNamePattern` and routes its
+  messages through that layout, on the layout's channel. Learned bindings always win.
+- If the layout has `leds`, pads light up with the same colour rules as the K2 (amber = preview
+  or selection, green = real output, red = blackout), sent to the MIDI output with a matching name.
+- Setup → Controller shows the mapping of each connected layout.
+- Inputs that match no layout are ignored, unless **"Ascolta tutti gli ingressi MIDI per
+  «Impara»"** is switched on in Setup (off by default): then they can be mapped with Learn.
+- The Xone:K2 always uses the built-in layouts (`XoneK2.classicProfile` / `liveV2Profile`),
+  which also work when no layout files are present. `Controllers/xone-k2-*.json` are tested to
+  be identical to them, so they double as reference examples.
+
+Layouts other than the K2 are community contributions and are not verified on hardware unless
+the README's hardware table says so.
 
 ## 1. Agree on the mapping
 

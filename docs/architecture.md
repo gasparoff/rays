@@ -8,7 +8,7 @@ Tempo sources                Engine (30 Hz, serial queue)              Outputs
 Ableton Link ──┐
 Pro DJ Link ───┼─► Tempo ─► SceneSequencer ─► Choreography/SceneProgram ─► DMXComposer ─► OutputDriver (Art-Net) ─► node
 Internal clock ┘                 ▲                                         │
-MIDI (K2, Learn) ─► MIDIRouter ──┘                                         └─► LatestMailbox ─► Stage preview
+MIDI controllers ─► MIDIRouter ──┘                                         └─► LatestMailbox ─► Stage preview
 ```
 
 - **One source of truth for light.** The preview decodes the same composed DMX universes that
@@ -76,8 +76,14 @@ Link timeline so the lights, Ableton Live and other Link peers share one grid.
 
 Layouts are data: `Controllers/*.json` is bundled into `Resources/Controllers`, and
 `Application Support/Light System/Controllers/*.json` is loaded on top (same id = user file wins).
-Invalid files appear in Setup like invalid fixture profiles. The Xone:K2 files are tested to be
-identical to the built-in `XoneK2` presets, which still drive the K2.
+Invalid files appear in Setup like invalid fixture profiles.
+
+`MIDIService` connects K2 inputs (built-in `XoneK2` profiles), inputs whose name matches a loaded
+layout, and, only when the user enables Learn from all inputs, every other input. Each CoreMIDI
+connection carries a tag, so `MIDIRouter.handle(_:fromK2:profile:)` gets the layout of the port
+a message came from. LED feedback (`K2Feedback.leds(map:profile:state:)`) uses the same colour
+rules for every layout. The K2 layouts stay built into Swift so the app works without any
+resource files; `Controllers/xone-k2-*.json` are tested to match them.
 
 ## Roadmap
 
@@ -85,7 +91,7 @@ Contributions welcome on any of these. Open an issue to coordinate before large 
 
 - [ ] English UI and String Catalog localization (it, en, then community languages)
 - [x] `ControllerProfile` JSON format and loader, Xone:K2 layouts as data
-- [ ] Route non-K2 controllers from their `ControllerProfile` (MIDI ports, LED feedback, on-screen guide)
+- [x] Route non-K2 controllers from their `ControllerProfile` (MIDI ports, LED feedback, on-screen guide)
 - [x] `OutputDriver` protocol and registry (Art-Net)
 - [ ] More drivers: sACN (E1.31), ENTTEC DMX USB Pro, driver choice in Setup
 - [x] `TempoSource` registry (internal clock, Ableton Link)

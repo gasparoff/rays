@@ -510,6 +510,31 @@ struct ControllerSetup: View {
 
             Panel {
                 VStack(alignment: .leading, spacing: 10) {
+                    SectionLabel("Altri controller MIDI")
+                    let routed = midi.connectedControllers.compactMap { c in c.profile.map { (name: c.name, profile: $0) } }
+                    let learnOnly = midi.connectedControllers.filter { $0.profile == nil }.map(\.name)
+                    if routed.isEmpty && learnOnly.isEmpty {
+                        Text(midi.profiles.isEmpty
+                             ? "Nessun layout controller caricato."
+                             : "Nessun controller collegato tra quelli descritti: \(midi.profiles.map(\.name).joined(separator: ", ")).")
+                            .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+                    }
+                    ForEach(routed, id: \.name) { c in ProfileGuide(portName: c.name, profile: c.profile) }
+                    if !learnOnly.isEmpty {
+                        Label("Solo Impara · \(learnOnly.joined(separator: ", "))", systemImage: "dot.radiowaves.left.and.right")
+                            .font(small).foregroundStyle(Theme.secondary)
+                    }
+                    Toggle("Ascolta tutti gli ingressi MIDI per «Impara»", isOn: Binding(
+                        get: { midi.map.learnFromAllInputs }, set: { midi.setLearnFromAllInputs($0) }))
+                        .font(small)
+                        .help("Spento: RAYS ascolta solo la Xone K2 e i controller descritti in Controllers/. Acceso: anche ogni altro ingresso MIDI, per assegnargli funzioni con «Impara».")
+                    Text("I layout si trovano in Controllers/ dentro l’app e in Application Support/Light System/Controllers.")
+                        .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            Panel {
+                VStack(alignment: .leading, spacing: 10) {
                     SectionLabel("Sorgente del battito")
                     Picker("Sorgente", selection: Binding(get: { model.prefs.beatSource }, set: { model.setBeatSource($0) })) {
                         Text("Automatico").tag(BeatSource.auto)

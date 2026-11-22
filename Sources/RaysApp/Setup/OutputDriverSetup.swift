@@ -62,43 +62,65 @@ struct OutputDriverSetup: View {
             if let ipError { Text(ipError).foregroundStyle(Theme.bad).font(.system(size: 12)) }
         }
         HStack(spacing: 16) {
-            Stepper("Priority \(String(describing: output.sacn.priority))", value: Binding(
-                get: { Int(output.sacn.priority) }, set: { v in update { $0.sacn.priority = UInt8(min(200, max(0, v))) } }), in: 0...200)
-            Picker("Numbering", selection: Binding(
-                get: { output.sacn.universeOffset }, set: { v in update { $0.sacn.universeOffset = v } })) {
+            Stepper(
+                "Priority \(String(describing: output.sacn.priority))",
+                value: Binding(
+                    get: { Int(output.sacn.priority) }, set: { v in update { $0.sacn.priority = UInt8(min(200, max(0, v))) } }), in: 0...200
+            )
+            Picker(
+                "Numbering",
+                selection: Binding(
+                    get: { output.sacn.universeOffset }, set: { v in update { $0.sacn.universeOffset = v } })
+            ) {
                 Text("Art-Net 0 → sACN 1 (common convention)").tag(1)
                 Text("Art-Net 1 → sACN 1 (same number)").tag(0)
             }
             .frame(width: 380)
         }
-        Text("Source name “\(String(describing: output.sacn.sourceName))”. Multicast goes out on the Mac's default network interface. sACN has no discovery: RAYS can't tell whether a receiver is listening. Experimental, not yet tested on hardware.")
-            .font(.system(size: 11.5)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+        Text(
+            "Source name “\(String(describing: output.sacn.sourceName))”. Multicast goes out on the Mac's default network interface. sACN has no discovery: RAYS can't tell whether a receiver is listening. Experimental, not yet tested on hardware."
+        )
+        .font(.system(size: 11.5)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
     }
 
     private func applyIP() {
-        guard let ip = IPv4Address(string: ipText), !ip.isUnspecified, !ip.isLoopback else { ipError = String(localized: "Invalid IPv4 address."); return }
+        guard let ip = IPv4Address(string: ipText), !ip.isUnspecified, !ip.isLoopback else {
+            ipError = String(localized: "Invalid IPv4 address."); return
+        }
         ipError = nil
         update { $0.sacn.unicastIP = ip }
     }
 
     @ViewBuilder private var usbPro: some View {
         HStack {
-            Picker("Device", selection: Binding(
-                get: { output.dmxUSBPro.devicePath ?? "" }, set: { p in update { $0.dmxUSBPro.devicePath = p.isEmpty ? nil : p } })) {
+            Picker(
+                "Device",
+                selection: Binding(
+                    get: { output.dmxUSBPro.devicePath ?? "" }, set: { p in update { $0.dmxUSBPro.devicePath = p.isEmpty ? nil : p } })
+            ) {
                 Text("Automatic (first found)").tag("")
                 ForEach(devices, id: \.self) { Text($0).tag($0) }
                 if let p = output.dmxUSBPro.devicePath, !devices.contains(p) { Text("\(String(describing: p)) · disconnected").tag(p) }
             }
             .frame(width: 380)
-            Button { devices = DMXUSBPro.candidateDevices() } label: { Label("Refresh", systemImage: "arrow.clockwise") }
+            Button {
+                devices = DMXUSBPro.candidateDevices()
+            } label: {
+                Label("Refresh", systemImage: "arrow.clockwise")
+            }
         }
-        Picker("Patch universe", selection: Binding(
-            get: { output.dmxUSBPro.universe ?? -1 }, set: { u in update { $0.dmxUSBPro.universe = u < 0 ? nil : u } })) {
+        Picker(
+            "Patch universe",
+            selection: Binding(
+                get: { output.dmxUSBPro.universe ?? -1 }, set: { u in update { $0.dmxUSBPro.universe = u < 0 ? nil : u } })
+        ) {
             Text("The patch's lowest").tag(-1)
             ForEach(0...1, id: \.self) { Text("Art-Net universe \(String(describing: $0))").tag($0) }
         }
         .frame(width: 260)
-        Text("ENTTEC DMX USB Pro and compatible interfaces (DMXking ultraDMX Pro/Micro) through macOS's FTDI serial driver: one universe. Experimental, not yet tested on hardware. ENTTEC Open DMX USB is not supported.")
-            .font(.system(size: 11.5)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+        Text(
+            "ENTTEC DMX USB Pro and compatible interfaces (DMXking ultraDMX Pro/Micro) through macOS's FTDI serial driver: one universe. Experimental, not yet tested on hardware. ENTTEC Open DMX USB is not supported."
+        )
+        .font(.system(size: 11.5)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
     }
 }

@@ -26,17 +26,23 @@ struct LightsTab: View {
                 HStack(spacing: 6) {
                     ChipButton(title: String(localized: "Left"), symbol: "triangle", selected: t.left) { edit { $0.target.left.toggle() } }
                         .help("TRI 180 on the left")
-                    ChipButton(title: String(localized: "Center"), symbol: "triangle.fill", selected: t.center) { edit { $0.target.center.toggle() } }
-                        .help("TRI 380 in the center (segments and rays below)")
-                    ChipButton(title: String(localized: "Right"), symbol: "triangle", selected: t.right) { edit { $0.target.right.toggle() } }
-                        .help("TRI 180 on the right")
+                    ChipButton(title: String(localized: "Center"), symbol: "triangle.fill", selected: t.center) {
+                        edit { $0.target.center.toggle() }
+                    }
+                    .help("TRI 380 in the center (segments and rays below)")
+                    ChipButton(title: String(localized: "Right"), symbol: "triangle", selected: t.right) {
+                        edit { $0.target.right.toggle() }
+                    }
+                    .help("TRI 180 on the right")
                 }
             }
             VStack(alignment: .leading, spacing: 8) {
                 InspectorHeading(String(localized: "Light"), detail: String(localized: "color and warm white are independent"))
                 HStack(spacing: 6) {
-                    ChipButton(title: String(localized: "RGB color"), symbol: "paintpalette", selected: t.color) { edit { $0.target.color.toggle() } }
-                        .help("RGB groups")
+                    ChipButton(title: String(localized: "RGB color"), symbol: "paintpalette", selected: t.color) {
+                        edit { $0.target.color.toggle() }
+                    }
+                    .help("RGB groups")
                     ChipButton(title: String(localized: "COB warm white"), symbol: "sun.max", selected: t.warm, tint: Theme.amber) {
                         edit { $0.target.warm.toggle() }
                     }
@@ -79,7 +85,9 @@ struct LightsTab: View {
                 .accessibilityLabel("Spread, beats")
             }
             VStack(alignment: .leading, spacing: 8) {
-                InspectorHeading(String(localized: "Color"), detail: t.color ? String(localized: "from the scene's three colors") : String(localized: "RGB lights only"))
+                InspectorHeading(
+                    String(localized: "Color"),
+                    detail: t.color ? String(localized: "from the scene's three colors") : String(localized: "RGB lights only"))
                 HStack(spacing: 6) {
                     ForEach(TrackColor.allCases) { choice in
                         ColorChoiceChip(choice: choice, palette: palette, selected: track.color == choice) {
@@ -142,8 +150,13 @@ private struct CenterMaskPicker: View {
     let onChange: ((inout TrackTarget) -> Void) -> Void
 
     /// Segment k: 0,1 right edge top→bottom; 2,3 bottom edge right→left; 4,5 left edge bottom→top.
-    private static let names = [String(localized: "right top"), String(localized: "right bottom"), String(localized: "base right"), String(localized: "base left"), String(localized: "left bottom"), String(localized: "left top")]
-    private static let cobNames = [String(localized: "top ray"), String(localized: "bottom right ray"), String(localized: "bottom left ray")]
+    private static let names = [
+        String(localized: "right top"), String(localized: "right bottom"), String(localized: "base right"), String(localized: "base left"),
+        String(localized: "left bottom"), String(localized: "left top"),
+    ]
+    private static let cobNames = [
+        String(localized: "top ray"), String(localized: "bottom right ray"), String(localized: "bottom left ray"),
+    ]
 
     var body: some View {
         GeometryReader { geo in

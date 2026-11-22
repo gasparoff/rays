@@ -62,7 +62,10 @@ private struct RhythmMatrix: View {
             header(viewport)
             if tracks.isEmpty {
                 Text(
-                    String(localized: "No tracks: add one with “Add track”. Without tracks the original choreography underneath stays at \(String(describing: percentText(state.baseLevel))).")
+                    String(
+                        localized:
+                            "No tracks: add one with “Add track”. Without tracks the original choreography underneath stays at \(String(describing: percentText(state.baseLevel)))."
+                    )
                 )
                 .font(.system(size: 12)).foregroundStyle(Theme.secondary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -161,18 +164,27 @@ private struct RhythmMatrix: View {
             }
             Spacer(minLength: 6)
             if program.state.baseLevel > 0 {
-                Label("Original underneath \(String(describing: percentText(program.state.baseLevel)))", systemImage: "square.3.layers.3d.down.right")
-                    .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
-                    .help("The original \(String(describing: program.state.base.title)) choreography plays under the tracks. Adjust it in Scene settings.")
+                Label(
+                    "Original underneath \(String(describing: percentText(program.state.baseLevel)))",
+                    systemImage: "square.3.layers.3d.down.right"
+                )
+                .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
+                .help(
+                    "The original \(String(describing: program.state.base.title)) choreography plays under the tracks. Adjust it in Scene settings."
+                )
             }
         }
     }
 
-    private func spanTitle(_ span: Int) -> String { span == 4 ? String(localized: "1 bar") : String(localized: "\(String(describing: span / 4)) bars") }
+    private func spanTitle(_ span: Int) -> String {
+        span == 4 ? String(localized: "1 bar") : String(localized: "\(String(describing: span / 4)) bars")
+    }
 
     private func pageTitle(_ v: RhythmViewport) -> String {
         let first = v.start / 4 + 1, last = v.end / 4
-        return first == last ? String(localized: "bar \(String(describing: first)) of \(String(describing: v.total / 4))") : String(localized: "bars \(String(describing: first))–\(String(describing: last)) of \(String(describing: v.total / 4))")
+        return first == last
+            ? String(localized: "bar \(String(describing: first)) of \(String(describing: v.total / 4))")
+            : String(localized: "bars \(String(describing: first))–\(String(describing: last)) of \(String(describing: v.total / 4))")
     }
 
     private var footer: some View {
@@ -299,7 +311,10 @@ private struct TrackRow: View, Equatable {
             }
             .buttonStyle(.plain)
             .help(track.enabled ? String(localized: "Mute the track (it stays saved)") : String(localized: "Unmute the track"))
-            .accessibilityLabel(track.enabled ? String(localized: "Mute \(String(describing: track.name))") : String(localized: "Unmute \(String(describing: track.name))"))
+            .accessibilityLabel(
+                track.enabled
+                    ? String(localized: "Mute \(String(describing: track.name))")
+                    : String(localized: "Unmute \(String(describing: track.name))"))
 
             Button {
                 session.selection = track.id

@@ -74,7 +74,10 @@ struct PatchEditor: View {
                     .buttonStyle(.bordered)
                     .disabled(live.snapshot.readiness != .ready || live.snapshot.blackout)
                     Text(
-                        String(localized: "Uses the saved rig and the master brightness. Afterwards the scene resumes, or the lights turn off if they were off before.")
+                        String(
+                            localized:
+                                "Uses the saved rig and the master brightness. Afterwards the scene resumes, or the lights turn off if they were off before."
+                        )
                     )
                     .font(note).foregroundStyle(Theme.tertiary)
                 }
@@ -103,8 +106,10 @@ struct PatchEditor: View {
                 }
                 HStack {
                     if let p = library.profile(id: profileID) {
-                        Text("\(String(describing: p.footprint)) channels each · addresses \(String(describing: startAddress))–\(String(describing: startAddress + p.footprint * count - 1))")
-                            .font(note).foregroundStyle(Theme.tertiary).lineLimit(1)
+                        Text(
+                            "\(String(describing: p.footprint)) channels each · addresses \(String(describing: startAddress))–\(String(describing: startAddress + p.footprint * count - 1))"
+                        )
+                        .font(note).foregroundStyle(Theme.tertiary).lineLimit(1)
                     }
                     Spacer()
                     Button("Add") {
@@ -254,7 +259,10 @@ struct CustomProfileEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(
-                String(localized: "Map channel by channel following the light's manual. “Fixed value” is for things like an open shutter; unused channels stay at 0.")
+                String(
+                    localized:
+                        "Map channel by channel following the light's manual. “Fixed value” is for things like an open shutter; unused channels stay at 0."
+                )
             )
             .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
             TextField("Profile name", text: $name).textFieldStyle(.roundedBorder).frame(width: 260)
@@ -286,7 +294,8 @@ struct CustomProfileEditor: View {
                 Button("Create profile") {
                     let p = FixtureProfile(
                         id: "custom." + UUID().uuidString.prefix(8).lowercased(), name: name,
-                        manufacturer: String(localized: "Manual"), mode: String(localized: "\(String(describing: channels.count)) channels"),
+                        manufacturer: String(localized: "Manual"),
+                        mode: String(localized: "\(String(describing: channels.count)) channels"),
                         isGeneric: false, isVerified: false, channels: channels)
                     if p.problems.isEmpty { onAdd(p) }
                 }

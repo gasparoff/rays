@@ -55,10 +55,16 @@ enum InspectorTab: String, CaseIterable, Identifiable {
         case .timing:
             let shift =
                 abs(t.offset) < 0.005
-                ? String(localized: "On time") : (t.offset < 0 ? String(localized: "Early \(String(describing: signedBeatsText(t.offset)))") : String(localized: "Late \(String(describing: signedBeatsText(t.offset)))"))
-            return shift + " · " + (t.riseBeats == 0 ? String(localized: "no rise") : String(localized: "Rise \(String(describing: beatsTitle(t.riseBeats)))"))
+                ? String(localized: "On time")
+                : (t.offset < 0
+                    ? String(localized: "Early \(String(describing: signedBeatsText(t.offset)))")
+                    : String(localized: "Late \(String(describing: signedBeatsText(t.offset)))"))
+            return shift + " · "
+                + (t.riseBeats == 0
+                    ? String(localized: "no rise") : String(localized: "Rise \(String(describing: beatsTitle(t.riseBeats)))"))
         case .mix:
-            return "\(t.blend.title) · " + (t.softFollowsEnergy ? String(localized: "Weak hits follow Energy") : String(localized: "Weak hits fixed"))
+            return "\(t.blend.title) · "
+                + (t.softFollowsEnergy ? String(localized: "Weak hits follow Energy") : String(localized: "Weak hits fixed"))
                 + (t.enabled ? "" : String(localized: " · muted"))
         }
     }
@@ -156,7 +162,10 @@ struct TrackInspector: View {
             Text("Track parameters").font(.system(size: 17, weight: .semibold))
             Text(
                 !program.state.hasProgram
-                    ? String(localized: "The scene still uses the original choreography: there are no tracks to adjust. Choose how to start on the left, or change colors, energy and zones in Scene settings.")
+                    ? String(
+                        localized:
+                            "The scene still uses the original choreography: there are no tracks to adjust. Choose how to start on the left, or change colors, energy and zones in Scene settings."
+                    )
                     : String(localized: "No tracks. Add one below the rhythm grid.")
             )
             .font(.system(size: 12)).foregroundStyle(Theme.secondary)
@@ -186,14 +195,20 @@ private struct InspectorHeader: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(track.name).font(.system(size: 19, weight: .semibold)).lineLimit(1)
-                Text("Track parameters · \(String(describing: track.sound.title))").font(.system(size: 12)).foregroundStyle(Theme.secondary).lineLimit(1)
+                Text("Track parameters · \(String(describing: track.sound.title))").font(.system(size: 12)).foregroundStyle(Theme.secondary)
+                    .lineLimit(1)
             }
             Spacer(minLength: 6)
             iconButton("pencil", String(localized: "Rename and label")) { renaming = true }
                 .popover(isPresented: $renaming, arrowEdge: .bottom) {
                     RenamePopover(session: session, trackID: track.id)
                 }
-            iconButton("plus.square.on.square", canAddTrack ? String(localized: "Duplicate the track") : String(localized: "At most \(String(describing: SceneProgram.maxTracks)) tracks")) {
+            iconButton(
+                "plus.square.on.square",
+                canAddTrack
+                    ? String(localized: "Duplicate the track")
+                    : String(localized: "At most \(String(describing: SceneProgram.maxTracks)) tracks")
+            ) {
                 session.duplicateTrack(track.id)
             }
             .disabled(!canAddTrack)

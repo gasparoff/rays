@@ -32,8 +32,9 @@ struct SceneEditorView: View, Equatable {
             let inspectorWidth = min(450, max(370, geo.size.width * 0.3))
             let stageHeight = min(330, max(150, (geo.size.height - 130) * 0.34))
             VStack(spacing: 0) {
-                EditorHeader(session: session, chrome: session.chrome, controls: controls, window: window,
-                             confirmLeave: $confirmLeave)
+                EditorHeader(
+                    session: session, chrome: session.chrome, controls: controls, window: window,
+                    confirmLeave: $confirmLeave)
                 Divider().overlay(Theme.stroke)
                 // Exact sizes for the three panels. With flexible frames the stacks above measured the matrix and
                 // the inspector several times per layout pass, with different proposals; every draft change then
@@ -67,7 +68,9 @@ struct SceneEditorView: View, Equatable {
             Button("Leave without saving", role: .destructive) { session.cancel() }
             Button("Keep editing", role: .cancel) {}
         } message: {
-            Text("There are unsaved changes. If you leave without saving, the scene, tracks and lights go back to how they were before you opened the editor.")
+            Text(
+                "There are unsaved changes. If you leave without saving, the scene, tracks and lights go back to how they were before you opened the editor."
+            )
         }
     }
 }
@@ -75,7 +78,8 @@ struct SceneEditorView: View, Equatable {
 extension SceneEditorSession {
     /// Fixed for the whole session (preset slot, bank and "new" do not change while editing).
     var saveTitle: String {
-        presetTitle.map { String(localized: "Save to \(String(describing: $0))") } ?? (isNew ? String(localized: "Save scene") : String(localized: "Save changes"))
+        presetTitle.map { String(localized: "Save to \(String(describing: $0))") }
+            ?? (isNew ? String(localized: "Save scene") : String(localized: "Save changes"))
     }
 }
 
@@ -92,7 +96,9 @@ private struct EditorHeader: View {
     var body: some View {
         let state = chrome.state
         HStack(spacing: 12) {
-            Button { requestLeave() } label: {
+            Button {
+                requestLeave()
+            } label: {
                 Label("Scenes", systemImage: "chevron.left").font(.system(size: 14, weight: .medium))
             }
             .buttonStyle(.bordered)
@@ -105,12 +111,15 @@ private struct EditorHeader: View {
             VStack(alignment: .leading, spacing: 1) {
                 // Read live from the session (as before): a captured value could hand the field a stale name
                 // between a keystroke and the next update. `chrome` only decides when the header updates.
-                TextField(CustomScene.defaultName, text: Binding(get: { [session] in session.draft.name }, set: { [session] in session.setName($0) }))
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 22, weight: .semibold))
-                    .frame(minWidth: 140, maxWidth: 300)
-                    .accessibilityLabel("Scene name")
-                    .help("Scene name (at most \(String(describing: CustomScene.maxNameLength)) characters)")
+                TextField(
+                    CustomScene.defaultName,
+                    text: Binding(get: { [session] in session.draft.name }, set: { [session] in session.setName($0) })
+                )
+                .textFieldStyle(.plain)
+                .font(.system(size: 22, weight: .semibold))
+                .frame(minWidth: 140, maxWidth: 300)
+                .accessibilityLabel("Scene name")
+                .help("Scene name (at most \(String(describing: CustomScene.maxNameLength)) characters)")
                 Text("Scene editor · \(String(describing: session.contextTitle))")
                     .font(.system(size: 11.5)).foregroundStyle(Theme.secondary).lineLimit(1)
             }
@@ -118,7 +127,9 @@ private struct EditorHeader: View {
 
             Spacer(minLength: 8)
 
-            Button { showSettings.toggle() } label: {
+            Button {
+                showSettings.toggle()
+            } label: {
                 Label("Scene settings", systemImage: "slider.horizontal.3").font(.system(size: 13.5, weight: .medium))
             }
             .controlSize(.large)
@@ -130,22 +141,32 @@ private struct EditorHeader: View {
             Spacer(minLength: 8)
 
             HStack(spacing: 4) {
-                Button { session.undo() } label: { Image(systemName: "arrow.uturn.backward").frame(width: 26, height: 22) }
-                    .keyboardShortcut("z", modifiers: .command)
-                    .disabled(!state.canUndo)
-                    .help("Undo the last change (⌘Z)")
-                    .accessibilityLabel("Undo change")
-                Button { session.redo() } label: { Image(systemName: "arrow.uturn.forward").frame(width: 26, height: 22) }
-                    .keyboardShortcut("z", modifiers: [.command, .shift])
-                    .disabled(!state.canRedo)
-                    .help("Redo (⇧⌘Z)")
-                    .accessibilityLabel("Redo change")
+                Button {
+                    session.undo()
+                } label: {
+                    Image(systemName: "arrow.uturn.backward").frame(width: 26, height: 22)
+                }
+                .keyboardShortcut("z", modifiers: .command)
+                .disabled(!state.canUndo)
+                .help("Undo the last change (⌘Z)")
+                .accessibilityLabel("Undo change")
+                Button {
+                    session.redo()
+                } label: {
+                    Image(systemName: "arrow.uturn.forward").frame(width: 26, height: 22)
+                }
+                .keyboardShortcut("z", modifiers: [.command, .shift])
+                .disabled(!state.canRedo)
+                .help("Redo (⇧⌘Z)")
+                .accessibilityLabel("Redo change")
             }
             .controlSize(.large)
 
             Divider().frame(height: 26).overlay(Theme.stroke)
             EditorTempoBadge(state: controls)
-            Button { window.toggleFullScreen() } label: {
+            Button {
+                window.toggleFullScreen()
+            } label: {
                 Image(systemName: "arrow.up.left.and.arrow.down.right").frame(width: 24, height: 22)
             }
             .controlSize(.large)
@@ -171,8 +192,9 @@ private struct EditorStageHost: View {
     let controls: LiveState
 
     var body: some View {
-        EditorStagePanel(live: live, controls: controls, target: focus.state.target, trackName: focus.state.trackName,
-                         onToggleRole: { [session] role in session.toggleRole(role) })
+        EditorStagePanel(
+            live: live, controls: controls, target: focus.state.target, trackName: focus.state.trackName,
+            onToggleRole: { [session] role in session.toggleRole(role) })
     }
 }
 
@@ -193,8 +215,12 @@ private struct EditorFooter: View {
             Button("Cancel") { session.cancel() }
                 .keyboardShortcut(".", modifiers: .command)
                 .controlSize(.large)
-                .help("⌘. · Discards the draft and restores everything as it was before you opened the editor: scene, tracks, energy, speed and zones.")
-            Button { session.save() } label: {
+                .help(
+                    "⌘. · Discards the draft and restores everything as it was before you opened the editor: scene, tracks, energy, speed and zones."
+                )
+            Button {
+                session.save()
+            } label: {
                 Label(session.saveTitle, systemImage: "square.and.arrow.down").font(.system(size: 14, weight: .semibold))
                     .frame(minWidth: 140)
             }
@@ -202,9 +228,10 @@ private struct EditorFooter: View {
             .buttonStyle(.borderedProminent)
             .tint(Theme.amber.opacity(0.9))
             .controlSize(.large)
-            .help(session.draft.presetSlot != nil
-                  ? String(localized: "⌘S · Saves to the same key (1–6 and K2, Build → Drop included).")
-                  : String(localized: "⌘S · Adds or updates the scene in My scenes."))
+            .help(
+                session.draft.presetSlot != nil
+                    ? String(localized: "⌘S · Saves to the same key (1–6 and K2, Build → Drop included).")
+                    : String(localized: "⌘S · Adds or updates the scene in My scenes."))
         }
         .padding(.horizontal, 16)
         .frame(height: 60)
@@ -241,7 +268,12 @@ private struct EditorStatus: View {
     let dirty: Bool
     var body: some View {
         let s = state.snapshot
-        let output = s.blackout ? String(localized: "Blackout on") : (s.armed ? (s.sending ? String(localized: "On the lights") : String(localized: "Send error")) : String(localized: "Output off · preview only"))
+        let output =
+            s.blackout
+            ? String(localized: "Blackout on")
+            : (s.armed
+                ? (s.sending ? String(localized: "On the lights") : String(localized: "Send error"))
+                : String(localized: "Output off · preview only"))
         HStack(spacing: 8) {
             Circle().fill(dirty ? Theme.good : Theme.idle).frame(width: 9, height: 9)
                 .shadow(color: dirty ? Theme.good.opacity(0.6) : .clear, radius: 4)
@@ -276,7 +308,11 @@ private struct EditorBlackoutButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .help(on ? String(localized: "Click to resume. Your changes are kept.") : String(localized: "Esc always triggers blackout; it never discards the draft."))
+        .help(
+            on
+                ? String(localized: "Click to resume. Your changes are kept.")
+                : String(localized: "Esc always triggers blackout; it never discards the draft.")
+        )
         .accessibilityLabel(on ? String(localized: "Blackout on, press to resume") : "Blackout")
         .accessibilityHint("The Esc key always triggers blackout")
     }
@@ -302,35 +338,64 @@ struct SceneSettingsView: View {
                         .controlSize(.large)
                         .accessibilityLabel("Scene name")
                 }
-                group(String(localized: "Colors"), trailing: d.colors != session.originalColors ? AnyView(
-                    Button { session.resetColors() } label: { Label("Original colors", systemImage: "arrow.uturn.backward") }
-                        .buttonStyle(.link).font(.system(size: 11.5))
-                        .help("Back to the colors of \(String(describing: session.originalName))")) : nil) {
+                group(
+                    String(localized: "Colors"),
+                    trailing: d.colors != session.originalColors
+                        ? AnyView(
+                            Button {
+                                session.resetColors()
+                            } label: {
+                                Label("Original colors", systemImage: "arrow.uturn.backward")
+                            }
+                            .buttonStyle(.link).font(.system(size: 11.5))
+                            .help("Back to the colors of \(String(describing: session.originalName))")) : nil
+                ) {
                     HStack(spacing: 10) {
                         ForEach(0..<CustomScene.colorCount, id: \.self) { i in
-                            ColorWell(index: i, color: Binding(
-                                get: { i < session.draft.colors.count ? session.draft.colors[i].swiftUIColor : .black },
-                                set: { session.setColor(i, SceneRGB(color: $0)) }))
+                            ColorWell(
+                                index: i,
+                                color: Binding(
+                                    get: { i < session.draft.colors.count ? session.draft.colors[i].swiftUIColor : .black },
+                                    set: { session.setColor(i, SceneRGB(color: $0)) }))
                         }
                     }
-                    note(String(localized: "Brightness comes from the choreography and the tracks. Black = off. Tracks pick 1, 2, 3 or all in turn."))
+                    note(
+                        String(
+                            localized:
+                                "Brightness comes from the choreography and the tracks. Black = off. Tracks pick 1, 2, 3 or all in turn."))
                 }
                 group(String(localized: "Character")) {
-                    EditorSlider(title: String(localized: "Energy"), value: session.binding(\.energy, key: "energy"),
-                                 help: String(localized: "Movement and accents, not brightness. With tracks: weak hits can follow it."))
+                    EditorSlider(
+                        title: String(localized: "Energy"), value: session.binding(\.energy, key: "energy"),
+                        help: String(localized: "Movement and accents, not brightness. With tracks: weak hits can follow it."))
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Movement speed").font(.system(size: 12)).foregroundStyle(Theme.secondary)
-                        SegmentedChoice(options: Subdivision.rateOrder, selection: session.binding(\.subdivision, key: "subdivision"), label: \.label)
-                            .accessibilityLabel("Movement speed relative to the tempo")
+                        SegmentedChoice(
+                            options: Subdivision.rateOrder, selection: session.binding(\.subdivision, key: "subdivision"), label: \.label
+                        )
+                        .accessibilityLabel("Movement speed relative to the tempo")
                     }
-                    .help("×1 natural; ×2 speeds up, ×½ and ×¼ slow down, tracks included. Stays locked to the BPM. The Build → Drop gesture always uses the real tempo.")
-                    EditorSlider(title: String(localized: "Scene white (COB)"), value: session.binding(\.warmth, key: "warmth"),
-                                 help: String(localized: "Scales all the warm white of the scene, tracks included. RGB colors are untouched. Combines with COB white and Master brightness."))
+                    .help(
+                        "×1 natural; ×2 speeds up, ×½ and ×¼ slow down, tracks included. Stays locked to the BPM. The Build → Drop gesture always uses the real tempo."
+                    )
+                    EditorSlider(
+                        title: String(localized: "Scene white (COB)"), value: session.binding(\.warmth, key: "warmth"),
+                        help: String(
+                            localized:
+                                "Scales all the warm white of the scene, tracks included. RGB colors are untouched. Combines with COB white and Master brightness."
+                        ))
                 }
-                group(String(localized: "Zones"), trailing: AnyView(
-                    Button("All at 100%") { session.edit(nil) { $0.leftLevel = 1; $0.centerLevel = 1; $0.rightLevel = 1 } }
+                group(
+                    String(localized: "Zones"),
+                    trailing: AnyView(
+                        Button("All at 100%") {
+                            session.edit(nil) {
+                                $0.leftLevel = 1; $0.centerLevel = 1; $0.rightLevel = 1
+                            }
+                        }
                         .controlSize(.small)
-                        .disabled(d.leftLevel == 1 && d.centerLevel == 1 && d.rightLevel == 1))) {
+                        .disabled(d.leftLevel == 1 && d.centerLevel == 1 && d.rightLevel == 1))
+                ) {
                     EditorSlider(title: String(localized: "Left · TRI 180"), value: session.binding(\.leftLevel, key: "leftLevel"))
                     EditorSlider(title: String(localized: "Center · TRI 380"), value: session.binding(\.centerLevel, key: "centerLevel"))
                     EditorSlider(title: String(localized: "Right · TRI 180"), value: session.binding(\.rightLevel, key: "rightLevel"))
@@ -343,9 +408,12 @@ struct SceneSettingsView: View {
                                 BaseCard(scene: scene, selected: d.base == scene) { session.setBase(scene) }
                             }
                         }
-                        note(d.program == nil
-                             ? String(localized: "How the lights move in time. You can redraw it with tracks.")
-                             : String(localized: "Used for the starting colors, the start of the scene and the choreography under the tracks."))
+                        note(
+                            d.program == nil
+                                ? String(localized: "How the lights move in time. You can redraw it with tracks.")
+                                : String(
+                                    localized: "Used for the starting colors, the start of the scene and the choreography under the tracks."
+                                ))
                     }
                 } else {
                     group(String(localized: "Preset \(String(describing: session.presetTitle ?? ""))")) {
@@ -365,7 +433,10 @@ struct SceneSettingsView: View {
     private func presetNote(_ d: CustomScene) -> String {
         let gesture = d.presetSlot == .aurora || d.presetSlot == .respiro ? String(localized: ", including the Build → Drop gesture") : ""
         let bank = d.presetBank == .club ? String(localized: "the Club bank") : String(localized: "the House bank")
-        return String(localized: "Stays in \(String(describing: bank)) on its button and on the K2\(String(describing: gesture)). Rhythm, lights and hit shape remain editable.")
+        return String(
+            localized:
+                "Stays in \(String(describing: bank)) on its button and on the K2\(String(describing: gesture)). Rhythm, lights and hit shape remain editable."
+        )
     }
 
     @ViewBuilder
@@ -373,18 +444,36 @@ struct SceneSettingsView: View {
         let factory = session.factoryPreset
         group(String(localized: "Structure")) {
             if let program = d.program {
-                EditorSlider(title: factory == nil ? String(localized: "\(String(describing: d.base.title)) choreography under the tracks") : String(localized: "House bed · \(String(describing: d.base.title))"),
-                             value: Binding(get: { program.baseLevel }, set: { session.setBaseLevel($0) }),
-                             tint: Theme.lavender,
-                             help: String(localized: "Adds the House \(String(describing: d.base.title)) choreography under the tracks. 0%: tracks only. 100%: the untouched original with the tracks on top."))
-                note(String(localized: "\(String(describing: program.tracks.count)) tracks · original underneath at \(String(describing: percentText(program.baseLevel)))."))
+                EditorSlider(
+                    title: factory == nil
+                        ? String(localized: "\(String(describing: d.base.title)) choreography under the tracks")
+                        : String(localized: "House bed · \(String(describing: d.base.title))"),
+                    value: Binding(get: { program.baseLevel }, set: { session.setBaseLevel($0) }),
+                    tint: Theme.lavender,
+                    help: String(
+                        localized:
+                            "Adds the House \(String(describing: d.base.title)) choreography under the tracks. 0%: tracks only. 100%: the untouched original with the tracks on top."
+                    ))
+                note(
+                    String(
+                        localized:
+                            "\(String(describing: program.tracks.count)) tracks · original underneath at \(String(describing: percentText(program.baseLevel)))."
+                    ))
             } else {
-                note(String(localized: "No tracks: the original \(String(describing: d.base.title)) choreography plays as always. To draw hits, choose how to start in the Rhythm panel."))
+                note(
+                    String(
+                        localized:
+                            "No tracks: the original \(String(describing: d.base.title)) choreography plays as always. To draw hits, choose how to start in the Rhythm panel."
+                    ))
             }
             if d.program != nil || factory != nil {
-                Button { session.restoreOriginal() } label: {
-                    Label(factory.map { String(localized: "Restore factory \(String(describing: $0.name)) (tracks and colors)") } ?? String(localized: "Back to the original choreography (no tracks)"),
-                          systemImage: "arrow.uturn.backward")
+                Button {
+                    session.restoreOriginal()
+                } label: {
+                    Label(
+                        factory.map { String(localized: "Restore factory \(String(describing: $0.name)) (tracks and colors)") }
+                            ?? String(localized: "Back to the original choreography (no tracks)"),
+                        systemImage: "arrow.uturn.backward")
                 }
                 .disabled(session.structureIsOriginal)
                 .help("Changes only the draft: no file is written until you save. ⌘Z undoes.")
@@ -444,15 +533,19 @@ private struct BaseCard: View {
         Button(action: action) {
             ZStack(alignment: .bottomLeading) {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(LinearGradient(colors: CustomScene.defaultColors(for: scene).map { $0.swiftUIColor.opacity(0.55) },
-                                         startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .fill(
+                        LinearGradient(
+                            colors: CustomScene.defaultColors(for: scene).map { $0.swiftUIColor.opacity(0.55) },
+                            startPoint: .topLeading, endPoint: .bottomTrailing))
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(LinearGradient(colors: [.clear, .black.opacity(0.65)], startPoint: .top, endPoint: .bottom))
                 Text(scene.title).font(.system(size: 12.5, weight: .semibold, design: .rounded)).padding(8)
             }
             .frame(height: 44)
-            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(selected ? Theme.text.opacity(0.9) : Theme.stroke, lineWidth: selected ? 2 : 1))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(selected ? Theme.text.opacity(0.9) : Theme.stroke, lineWidth: selected ? 2 : 1)
+            )
             .contentShape(RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)

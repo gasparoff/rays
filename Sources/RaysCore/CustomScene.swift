@@ -276,7 +276,8 @@ public enum CustomSceneDocument {
         public var errorDescription: String? {
             switch self {
             case .unsupportedVersion(let v):
-                return String(localized: "The custom scenes file comes from a newer version (\(String(describing: v))): it was left unchanged.")
+                return String(
+                    localized: "The custom scenes file comes from a newer version (\(String(describing: v))): it was left unchanged.")
             case .unreadable(let detail):
                 return String(localized: "The custom scenes file can't be read and was left unchanged (\(String(describing: detail))).")
             }

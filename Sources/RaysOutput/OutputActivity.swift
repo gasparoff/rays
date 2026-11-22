@@ -27,7 +27,9 @@ public final class OutputActivity {
     public func update(active: Bool) {
         if active {
             if token == nil { token = begin() }
-        } else { stop() }
+        } else {
+            stop()
+        }
     }
 
     public func stop() {

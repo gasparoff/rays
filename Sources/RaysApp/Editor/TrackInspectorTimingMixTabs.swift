@@ -12,8 +12,10 @@ struct TimingTab: View {
             VStack(alignment: .leading, spacing: 8) {
                 InspectorHeading(String(localized: "Track offset"), detail: String(localized: "−0.5…+0.5 beats"))
                 NumberStepper(
-                    title: String(localized: "Shift"), value: track.offset, range: -ProgramTrack.maxOffset...ProgramTrack.maxOffset, step: 0.01,
-                    unit: "b", help: String(localized: "Negative moves the whole track earlier, positive later. 0.25 beats = one sixteenth.")
+                    title: String(localized: "Shift"), value: track.offset, range: -ProgramTrack.maxOffset...ProgramTrack.maxOffset,
+                    step: 0.01,
+                    unit: "b",
+                    help: String(localized: "Negative moves the whole track earlier, positive later. 0.25 beats = one sixteenth.")
                 ) { v in
                     session.editTrack(track.id, "offset") { $0.offset = v }
                 }
@@ -34,7 +36,9 @@ struct TimingTab: View {
                 .accessibilityValue(signedBeatsText(track.offset))
                 HStack(spacing: 6) {
                     ForEach([-0.1, 0, 0.05, 0.1], id: \.self) { v in
-                        ChipButton(title: v == 0 ? String(localized: "On time") : signedBeatsText(v), selected: abs(track.offset - v) < 0.005) {
+                        ChipButton(
+                            title: v == 0 ? String(localized: "On time") : signedBeatsText(v), selected: abs(track.offset - v) < 0.005
+                        ) {
                             session.editTrack(track.id, nil) { $0.offset = v }
                         }
                     }
@@ -53,7 +57,10 @@ struct TimingTab: View {
                 Text(
                     track.riseBeats == 0
                         ? String(localized: "No rise: the track plays at full level right away.")
-                        : String(localized: "When the scene starts, the track begins at 25% and reaches full level in \(String(describing: track.riseBeats)) beats. Only the level changes: the hits stay as drawn.")
+                        : String(
+                            localized:
+                                "When the scene starts, the track begins at 25% and reaches full level in \(String(describing: track.riseBeats)) beats. Only the level changes: the hits stay as drawn."
+                        )
                 )
                 .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -61,7 +68,10 @@ struct TimingTab: View {
             VStack(alignment: .leading, spacing: 4) {
                 InspectorHeading(String(localized: "Grid"), detail: String(localized: "changed below the grid"))
                 Text(
-                    String(localized: "Step \(String(describing: resolutionTitle(track.stepsPerBeat))) · cycle \(String(describing: beatsTitle(track.lengthBeats))) · \(String(describing: track.activeStepCount)) hits in \(String(describing: track.stepCount)) steps")
+                    String(
+                        localized:
+                            "Step \(String(describing: resolutionTitle(track.stepsPerBeat))) · cycle \(String(describing: beatsTitle(track.lengthBeats))) · \(String(describing: track.activeStepCount)) hits in \(String(describing: track.stepCount)) steps"
+                    )
                 )
                 .font(.system(size: 12).monospacedDigit()).foregroundStyle(Theme.secondary)
             }

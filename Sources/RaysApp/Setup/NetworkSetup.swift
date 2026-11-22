@@ -45,9 +45,11 @@ struct NetworkSetup: View {
                         }
                         Spacer()
                         if case .addAlias = cable.decision {
-                            Button(cable.busy ? String(localized: "Preparing…") : String(localized: "Prepare light network")) { model.prepareLightNetwork() }
-                                .buttonStyle(.borderedProminent).tint(Theme.amber.opacity(0.75))
-                                .disabled(cable.busy)
+                            Button(cable.busy ? String(localized: "Preparing…") : String(localized: "Prepare light network")) {
+                                model.prepareLightNetwork()
+                            }
+                            .buttonStyle(.borderedProminent).tint(Theme.amber.opacity(0.75))
+                            .disabled(cable.busy)
                         }
                     }
                     Label(cable.status, systemImage: cable.decision == .ready ? "checkmark.circle.fill" : "info.circle")
@@ -93,7 +95,9 @@ struct NetworkSetup: View {
                     if let ip = net.manualIP {
                         let verified = net.target?.verified == true
                         Label(
-                            verified ? String(localized: "\(String(describing: ip.description)) responds.") : String(localized: "\(String(describing: ip.description)) doesn't answer ArtPoll."),
+                            verified
+                                ? String(localized: "\(String(describing: ip.description)) responds.")
+                                : String(localized: "\(String(describing: ip.description)) doesn't answer ArtPoll."),
                             systemImage: verified ? "checkmark.seal" : "questionmark.circle"
                         )
                         .foregroundStyle(verified ? Theme.good : Theme.warn).font(small)
@@ -105,7 +109,10 @@ struct NetworkSetup: View {
             DisclosureGroup("Technical details") {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(
-                        String(localized: "Direct cable: the ENTTEC uses 192.168.0.10; the Mac only adds 192.168.0.20 on the Ethernet adapter. Wi-Fi, DHCP, DNS and the Internet don't change. Alternatively, connect the Mac and the ENTTEC to the same router or switch with DHCP.")
+                        String(
+                            localized:
+                                "Direct cable: the ENTTEC uses 192.168.0.10; the Mac only adds 192.168.0.20 on the Ethernet adapter. Wi-Fi, DHCP, DNS and the Internet don't change. Alternatively, connect the Mac and the ENTTEC to the same router or switch with DHCP."
+                        )
                     )
                     .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
                     ForEach(net.interfaces) { i in
@@ -150,7 +157,8 @@ struct NodeRow: View {
                     "\(node.ip.description) · "
                         + (node.outputUniverses.isEmpty
                             ? String(localized: "no outputs")
-                            : node.outputUniverses.map { String(localized: "Art-Net universe \(String(describing: $0))") }.joined(separator: ", "))
+                            : node.outputUniverses.map { String(localized: "Art-Net universe \(String(describing: $0))") }.joined(
+                                separator: ", "))
                 )
                 .font(.system(size: 11.5)).foregroundStyle(Theme.secondary)
             }

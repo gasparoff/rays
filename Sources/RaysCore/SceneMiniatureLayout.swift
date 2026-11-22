@@ -84,7 +84,8 @@ public struct SceneMiniatureLayout: Equatable, Sendable {
                 }
             }
             let palette = clean?.colors ?? CustomScene.defaultColors(for: scene)
-            lanes = zip([String(localized: "Left"), String(localized: "Center"), String(localized: "Right")], waves).enumerated().map { index, item in
+            lanes = zip([String(localized: "Left"), String(localized: "Center"), String(localized: "Right")], waves).enumerated().map {
+                index, item in
                 Lane(name: item.0, color: palette[index], enabled: true, marks: [], waveform: item.1)
             }
         }

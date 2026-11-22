@@ -106,7 +106,9 @@ final class XDJBeatListener: ObservableObject {
         case "status":
             state = event.state ?? "searching"
             if state == "online" { error = nil }
-            if state == "network" { error = String(localized: "Console detected: check that the Mac and the console are on the same Ethernet network.") }
+            if state == "network" {
+                error = String(localized: "Console detected: check that the Mac and the console are on the same Ethernet network.")
+            }
         case "device":
             guard let number = event.deck else { return }
             if event.present == true {
@@ -120,7 +122,10 @@ final class XDJBeatListener: ObservableObject {
             lastBeat = beat; lastBeatTime = Date(); error = nil
             onBeat?(beat)
         case "error":
-            error = String(localized: "Beat Link: \(String(describing: event.message ?? "connection unavailable")). Quit any other app that uses Pro DJ Link.")
+            error = String(
+                localized:
+                    "Beat Link: \(String(describing: event.message ?? "connection unavailable")). Quit any other app that uses Pro DJ Link."
+            )
         default: break
         }
     }

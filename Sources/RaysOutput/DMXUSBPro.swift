@@ -223,10 +223,15 @@ public final class DMXUSBProDriver: OutputDriver {
         if let socketError { out.append(socketError) }
         if availableDevices.isEmpty {
             out.append(
-                String(localized: "No /dev/cu.usbserial-* device found. FTDI interfaces (ENTTEC DMX USB Pro, DMXking ultraDMX) use the macOS serial driver.")
+                String(
+                    localized:
+                        "No /dev/cu.usbserial-* device found. FTDI interfaces (ENTTEC DMX USB Pro, DMXking ultraDMX) use the macOS serial driver."
+                )
             )
         }
-        out.append(String(localized: "DMX USB Pro: one universe only. The interface doesn't acknowledge what it receives, so RAYS can't verify it."))
+        out.append(
+            String(
+                localized: "DMX USB Pro: one universe only. The interface doesn't acknowledge what it receives, so RAYS can't verify it."))
         return out
     }
 }

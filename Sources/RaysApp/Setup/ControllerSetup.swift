@@ -24,8 +24,11 @@ struct ControllerSetup: View {
                         if midi.connectedNames.isEmpty {
                             Label("Xone K2 not connected", systemImage: "cable.connector.slash").font(small).foregroundStyle(Theme.tertiary)
                         } else {
-                            Label("Connected · \(String(describing: midi.connectedNames.joined(separator: ", ")))", systemImage: "checkmark.circle.fill")
-                                .font(small).foregroundStyle(Theme.good)
+                            Label(
+                                "Connected · \(String(describing: midi.connectedNames.joined(separator: ", ")))",
+                                systemImage: "checkmark.circle.fill"
+                            )
+                            .font(small).foregroundStyle(Theme.good)
                         }
                     }
                     Picker("Layout", selection: Binding(get: { midi.map.k2Layout }, set: { midi.setLayout($0) })) {
@@ -35,7 +38,10 @@ struct ControllerSetup: View {
                     .help("Live v2 follows the console's layout. Controls you assign with Learn take priority.")
                     K2Guide()
                     Text(
-                        String(localized: "Automatic preset · channel \(String(describing: midi.channel)). To customize: “Learn”, then move the control. Faders take over when they reach the value on screen.")
+                        String(
+                            localized:
+                                "Automatic preset · channel \(String(describing: midi.channel)). To customize: “Learn”, then move the control. Faders take over when they reach the value on screen."
+                        )
                     )
                     .font(note).foregroundStyle(Theme.tertiary)
                     if let error = midi.error { Text(error).font(note).foregroundStyle(Theme.warn) }
@@ -60,14 +66,20 @@ struct ControllerSetup: View {
                         Text(
                             midi.profiles.isEmpty
                                 ? String(localized: "No controller layouts loaded.")
-                                : String(localized: "None of the described controllers is connected: \(String(describing: midi.profiles.map(\.name).joined(separator: ", "))).")
+                                : String(
+                                    localized:
+                                        "None of the described controllers is connected: \(String(describing: midi.profiles.map(\.name).joined(separator: ", ")))."
+                                )
                         )
                         .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
                     }
                     ForEach(routed, id: \.name) { c in ProfileGuide(portName: c.name, profile: c.profile) }
                     if !learnOnly.isEmpty {
-                        Label("Learn only · \(String(describing: learnOnly.joined(separator: ", ")))", systemImage: "dot.radiowaves.left.and.right")
-                            .font(small).foregroundStyle(Theme.secondary)
+                        Label(
+                            "Learn only · \(String(describing: learnOnly.joined(separator: ", ")))",
+                            systemImage: "dot.radiowaves.left.and.right"
+                        )
+                        .font(small).foregroundStyle(Theme.secondary)
                     }
                     Toggle(
                         String(localized: "Listen to every MIDI input for “Learn”"),
@@ -76,7 +88,10 @@ struct ControllerSetup: View {
                     )
                     .font(small)
                     .help(
-                        String(localized: "Off: RAYS listens only to the Xone K2 and the controllers described in Controllers/. On: every other MIDI input too, so you can assign functions with “Learn”.")
+                        String(
+                            localized:
+                                "Off: RAYS listens only to the Xone K2 and the controllers described in Controllers/. On: every other MIDI input too, so you can assign functions with “Learn”."
+                        )
                     )
                     Text("Layouts live in Controllers/ inside the app and in Application Support/Light System/Controllers.")
                         .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
@@ -94,7 +109,10 @@ struct ControllerSetup: View {
                     }
                     .pickerStyle(.segmented).labelsHidden().frame(width: 360)
                     .help(
-                        String(localized: "Automatic looks for a Pro DJ Link console and sends its tempo and beats to Ableton Link. Without a console it uses Link or the internal tempo.")
+                        String(
+                            localized:
+                                "Automatic looks for a Pro DJ Link console and sends its tempo and beats to Ableton Link. Without a console it uses Link or the internal tempo."
+                        )
                     )
                     if model.prefs.beatSource == .midiClock {
                         MIDIClockStatus()
@@ -109,7 +127,10 @@ struct ControllerSetup: View {
                             Text(xdjStatus).font(small).foregroundStyle(xdj.isLive ? Theme.good : Theme.secondary)
                         }
                         Text(
-                            String(localized: "The built-in Beat Link detects the console and follows the playing master deck. BPM and beats go to Ableton Link without opening Beat Link Trigger or Carabiner. Connect the console, the Mac and the DMX node to the switch; Wi-Fi stays free for the Internet.")
+                            String(
+                                localized:
+                                    "The built-in Beat Link detects the console and follows the playing master deck. BPM and beats go to Ableton Link without opening Beat Link Trigger or Carabiner. Connect the console, the Mac and the DMX node to the switch; Wi-Fi stays free for the Internet."
+                            )
                         )
                         .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
                     } else {
@@ -125,9 +146,12 @@ struct ControllerSetup: View {
 
     private var xdjStatus: String {
         if let error = xdj.error { return error }
-        if xdj.isLive, let b = xdj.lastBeat { return String(format: String(localized: "%@ · %.1f BPM · beat %d"), b.deviceName, b.bpm, b.beatWithinBar) }
+        if xdj.isLive, let b = xdj.lastBeat {
+            return String(format: String(localized: "%@ · %.1f BPM · beat %d"), b.deviceName, b.bpm, b.beatWithinBar)
+        }
         let others = xdj.seenDecks.keys.sorted().map { "deck \($0)" }
-        return others.isEmpty ? String(localized: "Waiting") : String(localized: "Waiting · seen: \(String(describing: others.joined(separator: ", ")))")
+        return others.isEmpty
+            ? String(localized: "Waiting") : String(localized: "Waiting · seen: \(String(describing: others.joined(separator: ", ")))")
     }
 }
 

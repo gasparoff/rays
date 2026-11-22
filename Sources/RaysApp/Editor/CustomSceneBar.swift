@@ -10,44 +10,46 @@ struct CustomSceneBar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-        HStack(spacing: 10) {
-            Text("MY SCENES")
-                .font(.system(size: 10, weight: .semibold)).tracking(1.3)
-                .foregroundStyle(Theme.tertiary)
-            if store.personalScenes.isEmpty {
-                Text("No saved scenes")
-                    .font(.system(size: 12)).foregroundStyle(Theme.secondary)
-                Spacer(minLength: 4)
-            } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(store.personalScenes) { scene in
-                            sceneChip(scene)
+            HStack(spacing: 10) {
+                Text("MY SCENES")
+                    .font(.system(size: 10, weight: .semibold)).tracking(1.3)
+                    .foregroundStyle(Theme.tertiary)
+                if store.personalScenes.isEmpty {
+                    Text("No saved scenes")
+                        .font(.system(size: 12)).foregroundStyle(Theme.secondary)
+                    Spacer(minLength: 4)
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(store.personalScenes) { scene in
+                                sceneChip(scene)
+                            }
                         }
                     }
                 }
+                Button {
+                    model.beginSceneEditing(nil)
+                } label: {
+                    Label("New scene", systemImage: "plus")
+                        .font(.system(size: 12, weight: .semibold))
+                        .padding(.horizontal, 12).padding(.vertical, 8)
+                        .foregroundStyle(Theme.amber)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.04)))
+                        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.amber.opacity(0.6)))
+                }
+                .buttonStyle(.plain)
+                .help("Choreography, colors, movement and structure on the beat. The preview updates as you work.")
             }
-            Button { model.beginSceneEditing(nil) } label: {
-                Label("New scene", systemImage: "plus")
-                    .font(.system(size: 12, weight: .semibold))
-                    .padding(.horizontal, 12).padding(.vertical, 8)
-                    .foregroundStyle(Theme.amber)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.04)))
-                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.amber.opacity(0.6)))
+            .frame(height: 38)
+            .accessibilityElement(children: .contain)
+            if let error = store.error {
+                HStack {
+                    Text(error).font(.system(size: 11)).foregroundStyle(Theme.warn).lineLimit(1).help(error)
+                    Button(store.fileIsUnreadable ? String(localized: "Keep a copy and save") : String(localized: "Try again")) {
+                        if store.fileIsUnreadable { store.replaceUnreadableFile() } else { store.retrySave() }
+                    }.buttonStyle(.link)
+                }
             }
-            .buttonStyle(.plain)
-            .help("Choreography, colors, movement and structure on the beat. The preview updates as you work.")
-        }
-        .frame(height: 38)
-        .accessibilityElement(children: .contain)
-        if let error = store.error {
-            HStack {
-                Text(error).font(.system(size: 11)).foregroundStyle(Theme.warn).lineLimit(1).help(error)
-                Button(store.fileIsUnreadable ? String(localized: "Keep a copy and save") : String(localized: "Try again")) {
-                    if store.fileIsUnreadable { store.replaceUnreadableFile() } else { store.retrySave() }
-                }.buttonStyle(.link)
-            }
-        }
         }
         .confirmationDialog("Delete “\(String(describing: sceneToDelete?.name ?? ""))”?", isPresented: $showDeleteConfirmation) {
             Button("Delete", role: .destructive) {
@@ -63,7 +65,9 @@ struct CustomSceneBar: View {
     private func sceneChip(_ scene: CustomScene) -> some View {
         let active = model.activeCustomSceneID == scene.id
         return HStack(spacing: 0) {
-            Button { model.useCustomScene(scene) } label: {
+            Button {
+                model.useCustomScene(scene)
+            } label: {
                 HStack(spacing: 7) {
                     HStack(spacing: -3) {
                         ForEach(Array(scene.colors.prefix(3).enumerated()), id: \.offset) { _, color in
@@ -84,7 +88,9 @@ struct CustomSceneBar: View {
             .help("\(scene.name) · \(scene.base.title)")
             .accessibilityLabel("Scene \(String(describing: scene.name))")
             .accessibilityValue(active ? String(localized: "active") : "")
-            Button { model.beginSceneEditing(scene) } label: {
+            Button {
+                model.beginSceneEditing(scene)
+            } label: {
                 Image(systemName: "pencil").font(.system(size: 10.5, weight: .semibold))
                     .frame(width: 24, height: 24)
                     .background(Circle().fill(Color.white.opacity(0.06)))
@@ -102,7 +108,9 @@ struct CustomSceneBar: View {
             Button("Edit…") { model.beginSceneEditing(scene) }
             Button("Duplicate") { store.duplicate(id: scene.id) }
             Divider()
-            Button("Delete…", role: .destructive) { sceneToDelete = scene; showDeleteConfirmation = true }
+            Button("Delete…", role: .destructive) {
+                sceneToDelete = scene; showDeleteConfirmation = true
+            }
         }
     }
 }

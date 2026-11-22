@@ -66,14 +66,20 @@ struct K2Guide: View {
                     bottom("Encoder ↺↻", action(.cc, 21))
                     bottom("Exit", action(.note, 15))
                 }
-                Text("Same layout as on screen: I–L = ¼× · ½× · 1× · 2×. N restarts from the first beat of the whole scene; O cancels only the queued launch. Learned controls take priority.")
-                    .font(.system(size: 11)).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(
+                    "Same layout as on screen: I–L = ¼× · ½× · 1× · 2×. N restarts from the first beat of the whole scene; O cancels only the queued launch. Learned controls take priority."
+                )
+                .font(.system(size: 11)).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
             } else {
-                Text("H: hold to build, release on the drop · M: Flash · P: blackout. Bottom-right knob: Energy; the one above: Flash level.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(
+                    "H: hold to build, release on the drop · M: Flash · P: blackout. Bottom-right knob: Energy; the one above: Flash level."
+                )
+                .font(.system(size: 12)).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
             }
-            Text("Latching Layers OFF · amber LED = preview or selection, green = live output, red = blackout. The bank on output and the selected bank can differ.")
-                .font(.system(size: 11)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+            Text(
+                "Latching Layers OFF · amber LED = preview or selection, green = live output, red = blackout. The bank on output and the selected bank can differ."
+            )
+            .font(.system(size: 11)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
         }
         .padding(12).background(RoundedRectangle(cornerRadius: 12).fill(Color.black.opacity(0.18)))
     }

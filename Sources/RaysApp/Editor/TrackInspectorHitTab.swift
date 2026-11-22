@@ -28,7 +28,10 @@ struct HitTab: View {
                 times; levels
             }
             Text(
-                String(localized: "The attack ends exactly on the hit (it can start earlier), then hold and release. Times are in beats and follow the BPM; the color is chosen in Lights.")
+                String(
+                    localized:
+                        "The attack ends exactly on the hit (it can start earlier), then hold and release. Times are in beats and follow the BPM; the color is chosen in Lights."
+                )
             )
             .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
             .fixedSize(horizontal: false, vertical: true)
@@ -41,7 +44,10 @@ struct HitTab: View {
             NumberStepper(
                 title: String(localized: "Attack"), value: track.attack, range: 0...ProgramTrack.maxAttack, step: 0.05,
                 help:
-                    String(localized: "How long before the hit it starts rising: the peak lands on the step. Effective minimum 0.06 beats, against flicker.")
+                    String(
+                        localized:
+                            "How long before the hit it starts rising: the peak lands on the step. Effective minimum 0.06 beats, against flicker."
+                    )
             ) { v in
                 session.editTrack(track.id, "attack") { $0.attack = v }
             }
@@ -108,7 +114,10 @@ private struct PresetCard: View {
         }
         .buttonStyle(.plain)
         .help(
-            String(localized: "\(String(describing: preset.title)): attack \(String(describing: decimalText(preset.times.attack))), hold \(String(describing: decimalText(preset.times.hold))), release \(String(describing: decimalText(preset.times.release))) beats. Floor and peak are kept.")
+            String(
+                localized:
+                    "\(String(describing: preset.title)): attack \(String(describing: decimalText(preset.times.attack))), hold \(String(describing: decimalText(preset.times.hold))), release \(String(describing: decimalText(preset.times.release))) beats. Floor and peak are kept."
+            )
         )
         .accessibilityLabel("Shape \(String(describing: preset.title))")
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
@@ -210,7 +219,10 @@ private struct EnvelopeEditor: View {
         .background(RoundedRectangle(cornerRadius: 12).fill(Color.black.opacity(0.35)))
         .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.stroke))
         .help(
-            String(localized: "Drag the points: attack start (attack and floor), hit (peak), hold end (hold and peak), release end (release and floor).")
+            String(
+                localized:
+                    "Drag the points: attack start (attack and floor), hit (peak), hold end (hold and peak), release end (release and floor)."
+            )
         )
         .onChange(of: track.id) { _, _ in
             drag = nil; hover = nil
@@ -218,7 +230,10 @@ private struct EnvelopeEditor: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Hit shape")
         .accessibilityValue(
-            String(localized: "Attack \(String(describing: decimalText(track.attack))), hold \(String(describing: decimalText(track.hold))), release \(String(describing: decimalText(track.release))) beats; floor \(String(describing: percentText(track.floor))), peak \(String(describing: percentText(track.peak)))")
+            String(
+                localized:
+                    "Attack \(String(describing: decimalText(track.attack))), hold \(String(describing: decimalText(track.hold))), release \(String(describing: decimalText(track.release))) beats; floor \(String(describing: percentText(track.floor))), peak \(String(describing: percentText(track.peak)))"
+            )
         )
     }
 

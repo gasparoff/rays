@@ -22,7 +22,9 @@ struct AdvancedSetup: View {
                     SectionLabel("Ableton Link")
                     Text(
                         t.kind == .link
-                            ? (t.peers > 0 ? String(localized: "Connected · \(String(describing: t.peers)) peers") : String(localized: "On · no peers (internal tempo)"))
+                            ? (t.peers > 0
+                                ? String(localized: "Connected · \(String(describing: t.peers)) peers")
+                                : String(localized: "On · no peers (internal tempo)"))
                             : String(localized: "Unavailable: internal clock")
                     )
                     .font(.system(size: 14, weight: .semibold))
@@ -39,7 +41,10 @@ struct AdvancedSetup: View {
                     )
                     .toggleStyle(.switch)
                     Text(
-                        String(localized: "The session tempo changes only with TAP, + or − (or by following the XDJ, if chosen). With other peers connected the change applies to everyone.")
+                        String(
+                            localized:
+                                "The session tempo changes only with TAP, + or − (or by following the XDJ, if chosen). With other peers connected the change applies to everyone."
+                        )
                     )
                     .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
                 }
@@ -48,7 +53,10 @@ struct AdvancedSetup: View {
                 VStack(alignment: .leading, spacing: 6) {
                     SectionLabel("Shortcuts")
                     Text(
-                        String(localized: "Esc  instant blackout   ·   B  blackout on/off   ·   Space  lights on/off   ·   1–6  scenes   ·   R  align downbeat   ·   ⌘.  close")
+                        String(
+                            localized:
+                                "Esc  instant blackout   ·   B  blackout on/off   ·   Space  lights on/off   ·   1–6  scenes   ·   R  align downbeat   ·   ⌘.  close"
+                        )
                     )
                     .font(.system(size: 12.5, design: .monospaced)).foregroundStyle(Theme.secondary)
                 }
@@ -90,7 +98,10 @@ private struct MIDIClockStatusBody: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(statusText).font(.system(size: 12)).foregroundStyle(clock.isLive ? Theme.good : Theme.secondary)
             Text(
-                String(localized: "RAYS listens to MIDI Clock (24 pulses per beat, Start/Stop) on every MIDI input and passes it to Ableton Link, as it does with the console. The first beat after Start is the one of the bar. Experimental.")
+                String(
+                    localized:
+                        "RAYS listens to MIDI Clock (24 pulses per beat, Start/Stop) on every MIDI input and passes it to Ableton Link, as it does with the console. The first beat after Start is the one of the bar. Experimental."
+                )
             )
             .font(.system(size: 11.5)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
         }

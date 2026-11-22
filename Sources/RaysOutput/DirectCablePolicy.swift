@@ -52,13 +52,17 @@ public struct DirectCablePolicy {
         for item in addresses {
             guard let ip = ipv4(item.ip), ipv4(item.mask) != nil else { continue }
             if ip == target {
-                return .unavailable(String(localized: "A Mac interface is using the ENTTEC's address. Resolve the conflict before connecting."))
+                return .unavailable(
+                    String(localized: "A Mac interface is using the ENTTEC's address. Resolve the conflict before connecting."))
             }
             // Adding a connected /24 route must never divert an existing LAN,
             // Wi-Fi, VPN, or the Internet router to the lighting cable.
             if item.interface != interface && (ip & subnetMask) == (target & subnetMask) {
                 return .unavailable(
-                    String(localized: "The 192.168.0.x network is already used by \(String(describing: item.interface)). RAYS won't change it: connect the ODE to the same LAN or give the ODE a different address.")
+                    String(
+                        localized:
+                            "The 192.168.0.x network is already used by \(String(describing: item.interface)). RAYS won't change it: connect the ODE to the same LAN or give the ODE a different address."
+                    )
                 )
             }
             if item.interface != interface && ip == alias {

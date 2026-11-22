@@ -21,7 +21,9 @@ extension TrackTarget {
     /// "Centro", "Sinistra + Destra", … including custom combinations.
     var placeText: String {
         if let zone { return zone.title }
-        let parts = [left ? String(localized: "Left") : nil, center ? String(localized: "Center") : nil, right ? String(localized: "Right") : nil].compactMap { $0 }
+        let parts = [
+            left ? String(localized: "Left") : nil, center ? String(localized: "Center") : nil, right ? String(localized: "Right") : nil,
+        ].compactMap { $0 }
         return parts.isEmpty ? String(localized: "No lights") : parts.joined(separator: " + ")
     }
 
@@ -174,7 +176,10 @@ struct ColorChoiceChip: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(choice == .cycle ? String(localized: "Colors 1, 2 and 3 in turn") : String(localized: "Color \(String(describing: choice.title))"))
+        .accessibilityLabel(
+            choice == .cycle
+                ? String(localized: "Colors 1, 2 and 3 in turn") : String(localized: "Color \(String(describing: choice.title))")
+        )
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
     }
 }

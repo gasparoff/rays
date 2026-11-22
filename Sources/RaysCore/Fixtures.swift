@@ -79,7 +79,9 @@ public struct FixtureProfile: Codable, Hashable, Identifiable, Sendable {
         if channels.isEmpty { p.append(String(localized: "Profile “\(String(describing: name))” has no channels.")) }
         if channels.count > 512 { p.append(String(localized: "Profile “\(String(describing: name))” exceeds 512 channels.")) }
         let light: Set<ChannelKind> = [.dimmer, .red, .green, .blue, .white, .blinder, .amber]
-        if !channels.contains(where: { light.contains($0.kind) }) { p.append(String(localized: "Profile “\(String(describing: name))” has no light channels.")) }
+        if !channels.contains(where: { light.contains($0.kind) }) {
+            p.append(String(localized: "Profile “\(String(describing: name))” has no light channels."))
+        }
         return p
     }
 
@@ -277,23 +279,39 @@ public struct Patch: Codable, Equatable, Sendable {
         for profile in customProfiles { issues += profile.problems.map(PatchIssue.init) }
         for f in fixtures {
             guard let profile = lib.profile(id: f.profileID) else {
-                issues.append(PatchIssue(message: String(localized: "\(String(describing: f.label)): unknown profile “\(String(describing: f.profileID))”. No data will be sent.")))
+                issues.append(
+                    PatchIssue(
+                        message: String(
+                            localized:
+                                "\(String(describing: f.label)): unknown profile “\(String(describing: f.profileID))”. No data will be sent."
+                        )))
                 continue
             }
             if !allowedUniverses.contains(f.universe) {
                 issues.append(
                     PatchIssue(
                         message:
-                            String(localized: "\(String(describing: f.label)): universe \(String(describing: f.universe)) is not available (allowed \(String(describing: allowedUniverses.lowerBound))–\(String(describing: allowedUniverses.upperBound))).")
+                            String(
+                                localized:
+                                    "\(String(describing: f.label)): universe \(String(describing: f.universe)) is not available (allowed \(String(describing: allowedUniverses.lowerBound))–\(String(describing: allowedUniverses.upperBound)))."
+                            )
                     ))
             }
             guard (1...512).contains(f.address) else {
-                issues.append(PatchIssue(message: String(localized: "\(String(describing: f.label)): address \(String(describing: f.address)) is outside 1–512.")))
+                issues.append(
+                    PatchIssue(
+                        message: String(
+                            localized: "\(String(describing: f.label)): address \(String(describing: f.address)) is outside 1–512.")))
                 continue
             }
             let end = f.address + profile.footprint - 1
             if profile.footprint < 1 || end > 512 {
-                issues.append(PatchIssue(message: String(localized: "\(String(describing: f.label)): channels \(String(describing: f.address))–\(String(describing: end)) go past the 512 limit.")))
+                issues.append(
+                    PatchIssue(
+                        message: String(
+                            localized:
+                                "\(String(describing: f.label)): channels \(String(describing: f.address))–\(String(describing: end)) go past the 512 limit."
+                        )))
                 continue
             }
             let range = f.address...end
@@ -301,7 +319,10 @@ public struct Patch: Codable, Equatable, Sendable {
                 issues.append(
                     PatchIssue(
                         message:
-                            String(localized: "\(String(describing: f.label)) (\(String(describing: range.lowerBound))–\(String(describing: range.upperBound))) overlaps \(String(describing: other.fixture.label)) (\(String(describing: other.range.lowerBound))–\(String(describing: other.range.upperBound))) in universe \(String(describing: f.universe)).")
+                            String(
+                                localized:
+                                    "\(String(describing: f.label)) (\(String(describing: range.lowerBound))–\(String(describing: range.upperBound))) overlaps \(String(describing: other.fixture.label)) (\(String(describing: other.range.lowerBound))–\(String(describing: other.range.upperBound))) in universe \(String(describing: f.universe))."
+                            )
                     ))
             }
             ranges.append((f, range))

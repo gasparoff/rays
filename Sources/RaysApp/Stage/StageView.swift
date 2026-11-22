@@ -21,7 +21,10 @@ struct LiveStageView: NSViewRepresentable {
     func makeNSView(context: Context) -> StageRendererView {
         let view = StageRendererView()
         view.toolTip =
-            String(localized: "Colors and warm whites come from the same DMX values. The layout of the six center segments still has to be checked on the TRI 380.")
+            String(
+                localized:
+                    "Colors and warm whites come from the same DMX values. The layout of the six center segments still has to be checked on the TRI 380."
+            )
         view.follow(state)
         return view
     }
@@ -35,11 +38,14 @@ final class StageRendererView: NSView {
     func follow(_ state: LiveState) {
         setAccessibilityElement(true)
         setAccessibilityRole(.image)
-        setAccessibilityLabel("Preview of the \(String(describing: state.snapshot.fixtures.count)) lights: mirrored triangles, RGB zones and warm COB strips")
+        setAccessibilityLabel(
+            "Preview of the \(String(describing: state.snapshot.fixtures.count)) lights: mirrored triangles, RGB zones and warm COB strips")
         frames = state.$snapshot.sink { [weak self] snapshot in
             guard let self else { return }
             if fixtures.count != snapshot.fixtures.count {
-                setAccessibilityLabel("Preview of the \(String(describing: snapshot.fixtures.count)) lights: mirrored triangles, RGB zones and warm COB strips")
+                setAccessibilityLabel(
+                    "Preview of the \(String(describing: snapshot.fixtures.count)) lights: mirrored triangles, RGB zones and warm COB strips"
+                )
             }
             fixtures = snapshot.fixtures
         }
@@ -53,7 +59,8 @@ final class StageRendererView: NSView {
                     $0.label == $1.label && ($0.status == .previewOnly) == ($1.status == .previewOnly)
                 })
             {
-                let current = Set(fixtures.map { $0.status == .previewOnly ? String(localized: "\(String(describing: $0.label)) · preview") : $0.label })
+                let current = Set(
+                    fixtures.map { $0.status == .previewOnly ? String(localized: "\(String(describing: $0.label)) · preview") : $0.label })
                 labels = labels.filter { current.contains($0.key) }
             }
             needsDisplay = true

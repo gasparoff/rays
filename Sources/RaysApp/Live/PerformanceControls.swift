@@ -49,15 +49,20 @@ struct PerformanceControls: View {
                         LabeledSlider(title: String(localized: "Master brightness"), value: Binding(get: { state.master }, set: onMaster))
                             .help("Brightness of all the lights, warm light included. At 0% no light comes out.")
                         LabeledSlider(title: String(localized: "Warm light"), value: Binding(get: { state.show.whiteLevel }, set: onWhite))
-                            .help("Intensity of the COB white, independent of the RGB colors. Also affects Flash and Drop; it doesn't change the color temperature.")
+                            .help(
+                                "Intensity of the COB white, independent of the RGB colors. Also affects Flash and Drop; it doesn't change the color temperature."
+                            )
                         LabeledSlider(title: String(localized: "Energy"), value: Binding(get: { state.energy }, set: onEnergy))
                             .help("From calm to charged: sets accents, contrast and movement. Brightness is set with Master brightness.")
                     }
                     HStack(spacing: 18) {
                         ForEach(FixtureRole.allCases) { role in
-                            LabeledSlider(title: role.label,
-                                          value: Binding(get: { state.show.level(role) }, set: { onLevel(role, $0) }))
-                                .help("Brightness of the \(String(describing: role.label.lowercased())) light, combined with master brightness.")
+                            LabeledSlider(
+                                title: role.label,
+                                value: Binding(get: { state.show.level(role) }, set: { onLevel(role, $0) })
+                            )
+                            .help(
+                                "Brightness of the \(String(describing: role.label.lowercased())) light, combined with master brightness.")
                         }
                     }
                 }
@@ -68,8 +73,17 @@ struct PerformanceControls: View {
                 VStack(spacing: 8) {
                     HStack(spacing: 6) {
                         Circle().fill(state.blackout ? Theme.bad : (state.live ? Theme.good : Theme.tertiary)).frame(width: 5, height: 5)
-                        Text(state.blackout ? String(localized: "Blackout on") : (state.live ? String(localized: "Lights on") : (state.armed ? String(localized: "Output on") : (state.outputRequested ? String(localized: "Automatic reconnection") : String(localized: "Preview only")))))
-                            .foregroundStyle(state.blackout ? Theme.bad : (state.live ? Theme.good : Theme.secondary))
+                        Text(
+                            state.blackout
+                                ? String(localized: "Blackout on")
+                                : (state.live
+                                    ? String(localized: "Lights on")
+                                    : (state.armed
+                                        ? String(localized: "Output on")
+                                        : (state.outputRequested
+                                            ? String(localized: "Automatic reconnection") : String(localized: "Preview only"))))
+                        )
+                        .foregroundStyle(state.blackout ? Theme.bad : (state.live ? Theme.good : Theme.secondary))
                         Spacer(minLength: 4)
                         Text(state.readiness.shortText).foregroundStyle(Theme.tertiary)
                             .lineLimit(1).truncationMode(.tail)
@@ -93,11 +107,14 @@ struct PerformanceControls: View {
                         .buttonStyle(.plain)
                         .accessibilityLabel(state.blackout ? String(localized: "Blackout on, press to resume") : "Blackout")
                         .help("Esc always triggers blackout. B or click to resume.")
-                        OutputButton(armed: state.armed, outputRequested: state.outputRequested, readiness: state.readiness, action: onOutput)
+                        OutputButton(
+                            armed: state.armed, outputRequested: state.outputRequested, readiness: state.readiness, action: onOutput)
                     }
                     HStack(spacing: 8) {
-                        HoldControl(title: "Build → Drop", subtitle: String(localized: "hold · release"), color: Theme.lavender, onHold: onBuild)
-                            .help("Hold for the build, release on the drop. The musical grid stays locked to the console.")
+                        HoldControl(
+                            title: "Build → Drop", subtitle: String(localized: "hold · release"), color: Theme.lavender, onHold: onBuild
+                        )
+                        .help("Hold for the build, release on the drop. The musical grid stays locked to the console.")
                         HoldControl(title: "Flash", subtitle: String(localized: "hold"), color: Theme.amber, onHold: onFlash)
                             .help("A burst of warm light while you hold, 2 seconds at most.")
                         Button(action: onStop) {
@@ -154,20 +171,30 @@ struct OutputButton: View {
         let enabled = armed || outputRequested
         Button(action: action) {
             VStack(spacing: 2) {
-                Label(enabled ? String(localized: "Turn lights off") : String(localized: "Turn lights on"), systemImage: armed ? "lightbulb.fill" : "lightbulb")
-                    .font(.system(size: 12, weight: .semibold))
+                Label(
+                    enabled ? String(localized: "Turn lights off") : String(localized: "Turn lights on"),
+                    systemImage: armed ? "lightbulb.fill" : "lightbulb"
+                )
+                .font(.system(size: 12, weight: .semibold))
                 Text("Space").font(.system(size: 10)).opacity(0.7)
             }
             .frame(maxWidth: .infinity).frame(height: 44)
-            .background(RoundedRectangle(cornerRadius: 10).fill(armed ? Theme.good.opacity(0.85) : (ready ? Theme.amber.opacity(0.14) : Color.white.opacity(0.03))))
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(armed ? Theme.good : (ready ? Theme.amber.opacity(0.5) : Theme.stroke)))
+            .background(
+                RoundedRectangle(cornerRadius: 10).fill(
+                    armed ? Theme.good.opacity(0.85) : (ready ? Theme.amber.opacity(0.14) : Color.white.opacity(0.03)))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10).strokeBorder(armed ? Theme.good : (ready ? Theme.amber.opacity(0.5) : Theme.stroke))
+            )
             .foregroundStyle(armed ? Color.black : (enabled || ready ? Theme.amber : Theme.secondary))
             .contentShape(RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(enabled ? String(localized: "Turn DMX output off") : String(localized: "Turn DMX output on"))
         .accessibilityHint("Space bar")
-        .help("Remembered across restarts. If the interface disconnects, output resumes automatically when it's back. Turn lights off also cancels the reconnection; Blackout stays dark.")
+        .help(
+            "Remembered across restarts. If the interface disconnects, output resumes automatically when it's back. Turn lights off also cancels the reconnection; Blackout stays dark."
+        )
     }
 }
 
@@ -188,11 +215,15 @@ struct HoldControl: View {
         .background(RoundedRectangle(cornerRadius: 10).fill(color.opacity(held ? 0.35 : 0.10)))
         .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(color.opacity(held ? 1 : 0.4)))
         .contentShape(RoundedRectangle(cornerRadius: 10))
-        .gesture(DragGesture(minimumDistance: 0).onChanged { _ in
-            accessibilityRelease?.cancel()
-            if !held { held = true; onHold(true) }
-        }.onEnded { _ in release() })
-        .onDisappear { accessibilityRelease?.cancel(); release() }
+        .gesture(
+            DragGesture(minimumDistance: 0).onChanged { _ in
+                accessibilityRelease?.cancel()
+                if !held { held = true; onHold(true) }
+            }.onEnded { _ in release() }
+        )
+        .onDisappear {
+            accessibilityRelease?.cancel(); release()
+        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(title + String(localized: ", hold"))
         .accessibilityAddTraits(.isButton)

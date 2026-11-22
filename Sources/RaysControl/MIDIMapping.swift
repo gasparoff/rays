@@ -14,7 +14,12 @@ public struct MIDIControl: Codable, Hashable, Sendable {
         self.kind = kind; self.channel = channel & 0x0F; self.number = number & 0x7F
     }
 
-    public var label: String { String(localized: "\(String(describing: kind == .note ? "Note" : "CC")) \(String(describing: number)) · ch. \(String(describing: channel + 1))") }
+    public var label: String {
+        String(
+            localized:
+                "\(String(describing: kind == .note ? "Note" : "CC")) \(String(describing: number)) · ch. \(String(describing: channel + 1))"
+        )
+    }
 }
 
 /// One decoded note or CC message.

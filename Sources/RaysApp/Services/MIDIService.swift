@@ -27,7 +27,6 @@ final class MIDIService: ObservableObject {
     private var holdingBuild = false
     private var lastLEDChannel: UInt8?
 
-
     private var router: MIDIRouter
     private var client = MIDIClientRef()
     private var port = MIDIPortRef()
@@ -218,8 +217,10 @@ final class MIDIService: ObservableObject {
         router.map.control(for: action, in: profile)
     }
 
-    func feedback(_ snapshot: EngineSnapshot, sceneInBank: Bool = true,
-                  selectedBank: SceneBank = .house, playingBank: SceneBank? = nil) {
+    func feedback(
+        _ snapshot: EngineSnapshot, sceneInBank: Bool = true,
+        selectedBank: SceneBank = .house, playingBank: SceneBank? = nil
+    ) {
         guard !destinations.isEmpty || !profileLEDs.isEmpty, outPort != 0 else { return }
         var state = K2FeedbackState(scene: snapshot.scene)
         state.sceneInBank = sceneInBank
@@ -304,7 +305,7 @@ final class MIDIService: ObservableObject {
         var out: [UInt8] = []
         for packet in list.unsafeSequence() {
             let words = MIDIEventPacket.WordCollection(packet)
-            for word in words where word >> 28 == 0x2 {   // UMP type 2: MIDI 1.0 channel voice
+            for word in words where word >> 28 == 0x2 {  // UMP type 2: MIDI 1.0 channel voice
                 out.append(UInt8((word >> 16) & 0xFF))
                 out.append(UInt8((word >> 8) & 0x7F))
                 out.append(UInt8(word & 0x7F))

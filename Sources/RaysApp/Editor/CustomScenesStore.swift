@@ -106,7 +106,10 @@ final class CustomScenesStore: ObservableObject {
     private func save() {
         guard !fileIsUnreadable else {
             error =
-                String(localized: "The custom scenes file can't be read: changes stay in this session only until you choose to replace it (a copy will be kept).")
+                String(
+                    localized:
+                        "The custom scenes file can't be read: changes stay in this session only until you choose to replace it (a copy will be kept)."
+                )
             return
         }
         do {
@@ -125,12 +128,15 @@ final class CustomScenesStore: ObservableObject {
         let base = stem + suffix
         guard scenes.contains(where: { $0.name == base }) else { return base }
         var n = 2
-        while scenes.contains(where: { $0.name == String(localized: "\(String(describing: stem)) (copy \(String(describing: n)))") }) { n += 1 }
+        while scenes.contains(where: { $0.name == String(localized: "\(String(describing: stem)) (copy \(String(describing: n)))") }) {
+            n += 1
+        }
         return String(localized: "\(String(describing: stem)) (copy \(String(describing: n)))")
     }
 
     private func message(for error: Error) -> String {
         (error as? LocalizedError)?.errorDescription
-            ?? String(localized: "The custom scenes file can't be read and was left unchanged: \(String(describing: error.localizedDescription))")
+            ?? String(
+                localized: "The custom scenes file can't be read and was left unchanged: \(String(describing: error.localizedDescription))")
     }
 }

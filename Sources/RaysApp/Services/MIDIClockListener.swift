@@ -93,7 +93,7 @@ final class MIDIClockListener: ObservableObject {
         var out: [([UInt8], TimeInterval)] = []
         for packet in list.unsafeSequence() {
             var bytes: [UInt8] = []
-            for word in MIDIEventPacket.WordCollection(packet) where word >> 28 == 0x1 {   // UMP type 1: system
+            for word in MIDIEventPacket.WordCollection(packet) where word >> 28 == 0x1 {  // UMP type 1: system
                 let status = UInt8((word >> 16) & 0xFF)
                 bytes.append(status)
                 if status == 0xF2 { bytes += [UInt8((word >> 8) & 0x7F), UInt8(word & 0x7F)] }

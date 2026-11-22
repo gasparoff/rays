@@ -85,8 +85,12 @@ final class SceneEditorSession: ObservableObject {
     }
 
     var contextTitle: String {
-        guard let slot = draft.presetSlot else { return isNew ? String(localized: "New personal scene") : String(localized: "Personal scene") }
-        return draft.presetBank == .club ? String(localized: "Club preset · key \(String(describing: slotNumber(slot)))") : String(localized: "House preset · key \(String(describing: slotNumber(slot)))")
+        guard let slot = draft.presetSlot else {
+            return isNew ? String(localized: "New personal scene") : String(localized: "Personal scene")
+        }
+        return draft.presetBank == .club
+            ? String(localized: "Club preset · key \(String(describing: slotNumber(slot)))")
+            : String(localized: "House preset · key \(String(describing: slotNumber(slot)))")
     }
 
     /// Club factory scene for this slot (nil for House presets and personal scenes).

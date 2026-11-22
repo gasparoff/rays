@@ -87,8 +87,13 @@ struct StepGrid: View, Equatable {
         .accessibilityChildren {
             ForEach(0..<steps.count, id: \.self) { i in
                 Rectangle()
-                    .accessibilityLabel("Step \(String(describing: i + 1)) of \(String(describing: steps.count)), beat \(String(describing: i / track.stepsPerBeat + 1))")
-                    .accessibilityValue(steps[i] <= 0 ? String(localized: "off") : (steps[i] >= 0.999 ? String(localized: "strong") : String(localized: "weak")))
+                    .accessibilityLabel(
+                        "Step \(String(describing: i + 1)) of \(String(describing: steps.count)), beat \(String(describing: i / track.stepsPerBeat + 1))"
+                    )
+                    .accessibilityValue(
+                        steps[i] <= 0
+                            ? String(localized: "off") : (steps[i] >= 0.999 ? String(localized: "strong") : String(localized: "weak"))
+                    )
                     .accessibilityAddTraits(.isButton)
                     .accessibilityAction { session.cycleStep(track.id, i) }
             }
@@ -96,10 +101,16 @@ struct StepGrid: View, Equatable {
     }
 
     private var helpText: String {
-        var s = String(localized: "\(String(describing: track.name)): \(String(describing: rowCaption(track))). Click: strong → weak → off; drag to draw the same value.")
+        var s = String(
+            localized:
+                "\(String(describing: track.name)): \(String(describing: rowCaption(track))). Click: strong → weak → off; drag to draw the same value."
+        )
         if track.lengthBeats < viewport.total || viewport.start > 0 {
             s +=
-                String(localized: " The \(String(describing: beatsTitle(track.lengthBeats))) cycle repeats (dashed boxes): every repeat edits the same step.")
+                String(
+                    localized:
+                        " The \(String(describing: beatsTitle(track.lengthBeats))) cycle repeats (dashed boxes): every repeat edits the same step."
+                )
         }
         return s
     }

@@ -82,7 +82,7 @@ public final class LightEngine: @unchecked Sendable {
         self.artnet = outputDrivers.make(id: outputDriverID, transport: transport, interfaces: interfaces)
         self.baseLibrary = library
         self.clock = clock
-        artnet.onPreferredIdentityChanged = { [weak self] id in self?.onPreferredNodeChanged?(id) }
+        observeOutputDriver()
     }
 
     // MARK: Lifecycle
@@ -422,7 +422,7 @@ public final class LightEngine: @unchecked Sendable {
             self.outputActivity.update(active: false)
             self.artnet.close()
             self.artnet = registry.make(id: id, transport: self.transport, interfaces: self.interfaces)
-            self.artnet.onPreferredIdentityChanged = { [weak self] id in self?.onPreferredNodeChanged?(id) }
+            self.observeOutputDriver()
             self.lastSocketAttempt = -.infinity
             if self.running, !self.suspended {
                 self.lastSocketAttempt = self.clock()
@@ -433,6 +433,11 @@ public final class LightEngine: @unchecked Sendable {
     }
 
     public var outputDriverID: String { sync { artnet.driverID } }
+
+    /// Forwards the driver's auto-selected node to `onPreferredNodeChanged` without retaining the engine.
+    private func observeOutputDriver() {
+        artnet.onPreferredIdentityChanged = { [weak self] id in self?.onPreferredNodeChanged?(id) }
+    }
 
     public func setPreferredIdentity(_ identity: String?) { queue.async { self.artnet.preferredIdentity = identity } }
 

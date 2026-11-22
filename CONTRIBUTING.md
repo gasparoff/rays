@@ -18,10 +18,13 @@ a fixture profile, a controller layout, a translation, a bug report, a scene ide
 ```sh
 git clone --recursive https://github.com/gasparoff/rays.git
 cd rays
-Scripts/bootstrap.sh
-swift test
-Scripts/build-app.sh
+make bootstrap   # Ableton Link submodule + Beat Link helper
+make test
+make build       # dist/RAYS.app
 ```
+
+`make help` lists every task (`lint`, `format`, `clean`). Big design choices are recorded in
+[docs/adr](docs/adr/README.md): read them before proposing to change one.
 
 Requirements: macOS 14+, Xcode 16 or a Swift 6 toolchain.
 You don't need any lighting hardware to work on most of the code: the `Rays*` library modules are
@@ -52,7 +55,8 @@ Foundation-only and fully covered by unit tests, and the app's stage preview wor
 1. Fork, create a branch (`fixture/varytec-pad7`, `fix/k2-led-feedback`, …).
 2. Keep the PR focused on one thing. Small PRs get merged fast.
 3. Make sure `swift test` passes locally. CI runs the same.
-4. Fill in the PR template, including how you tested (hardware or not).
+4. Add a line under *Unreleased* in [CHANGELOG.md](CHANGELOG.md).
+5. Fill in the PR template, including how you tested (hardware or not).
 
 By contributing you agree that your contribution is licensed under the MIT License.
 

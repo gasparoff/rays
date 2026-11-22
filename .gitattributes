@@ -1,0 +1,10 @@
+* text=auto eol=lf
+*.png binary
+*.icns binary
+*.pdf binary
+
+# Keep GitHub's language stats about RAYS, not vendored SDKs
+Vendor/** linguist-vendored
+docs/** linguist-documentation
+Profiles/*.json linguist-detectable=false
+Controllers/*.json linguist-detectable=false

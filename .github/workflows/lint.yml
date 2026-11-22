@@ -1,0 +1,23 @@
+name: Lint
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  swift-format:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Lint changed Swift files
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          files=$(git diff --name-only --diff-filter=AM "$BASE_SHA"...HEAD -- '*.swift')
+          if [ -z "$files" ]; then echo "No Swift files changed."; exit 0; fi
+          echo "$files"
+          echo "$files" | xargs swift format lint --strict

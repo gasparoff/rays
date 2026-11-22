@@ -25,8 +25,8 @@ private struct RaysWordmarkShape: Shape {
         return Self.outline.applying(transform)
     }
 
-    // Generated from Assets/RAYS-wordmark-white.svg by
-    // Research/rays-brand/make-swift-wordmark.py. Preserve the counters.
+    // Outline of Assets/RAYS-wordmark-white.svg, converted once into path commands.
+    // Keep the letter counters (the holes in R and A) when editing.
     private static let outline: Path = {
         var path = Path()
         path.move(to: CGPoint(x: 0.700, y: 0.600))

@@ -1,5 +1,7 @@
 import XCTest
-@testable import LightCore
+@testable import RaysTempo
+@testable import RaysCore
+@testable import RaysEngine
 
 /// Club bank (130–138 BPM): identity of the factory scenes and their real rendering
 /// (SceneLook, sequencer gesture, 30 Hz engine). No UI, no hardware.

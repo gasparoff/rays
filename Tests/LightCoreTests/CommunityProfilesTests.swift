@@ -1,5 +1,5 @@
 import XCTest
-import LightCore
+import RaysCore
 
 /// Validates every community fixture profile in `Profiles/` so contributors get a
 /// clear failure before review.

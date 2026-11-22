@@ -1,5 +1,6 @@
 import XCTest
-@testable import LightCore
+@testable import RaysOutput
+@testable import RaysCore
 
 final class SceneAndDMXTests: XCTestCase {
     func testAllScenesFiniteAndBoundedAtEdgeBeats() {

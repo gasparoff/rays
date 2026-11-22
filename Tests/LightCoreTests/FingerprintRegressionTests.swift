@@ -1,5 +1,5 @@
 import XCTest
-@testable import LightCore
+@testable import RaysCore
 
 /// The user's physically tested patch (TRI 180 · 08CH · A008 · U1) was confirmed with this
 /// fingerprint. Any change to the TRI 180 8CH profile encoding or the fixture encoding would

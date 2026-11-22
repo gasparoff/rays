@@ -1,5 +1,5 @@
 import XCTest
-@testable import LightCore
+@testable import RaysCore
 
 final class BuildDropTests: XCTestCase {
     /// Build pressed off-grid at Link beat 100.37: pulses follow the beat, tension the press.

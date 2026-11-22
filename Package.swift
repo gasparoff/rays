@@ -1,17 +1,24 @@
 // swift-tools-version:5.10
 import PackageDescription
 
-// Light System — console luci nativa macOS (SwiftUI) per ENTTEC ODE MK3 via Art-Net
-// con sincronizzazione Ableton Link (SDK ufficiale, GPLv2+, vedi README).
+// RAYS — native macOS (SwiftUI) lighting console for ENTTEC ODE MK3 over Art-Net,
+// synchronised with Ableton Link (official SDK, GPLv2+, see README).
+//
+// Module layers (lower layers never import higher ones):
+//   RaysOutput, RaysTempo   Foundation-only leaves: Art-Net/UDP output, tempo maths
+//   RaysCore                fixtures, patch, scenes, choreography, sequencer (uses RaysOutput addresses)
+//   RaysControl             MIDI decoding, controller layouts, routing to actions
+//   RaysEngine              30 Hz engine, persisted configuration
+//   RaysApp                 SwiftUI app (executable "LightSystem")
 let package = Package(
     name: "LightSystem",
     platforms: [.macOS(.v14)],
     products: [
-        .executable(name: "LightSystem", targets: ["LightSystem"]),
-        .library(name: "LightCore", targets: ["LightCore"]),
+        .executable(name: "LightSystem", targets: ["RaysApp"]),
+        .library(name: "RaysEngine", targets: ["RaysEngine"]),
     ],
     targets: [
-        // Ponte C sottile sopra l'SDK C++ ufficiale di Ableton Link (header-only + ASIO standalone).
+        // Thin C bridge over the official Ableton Link C++ SDK (header-only + standalone ASIO).
         .target(
             name: "LinkBridge",
             path: "Sources/LinkBridge",
@@ -23,19 +30,23 @@ let package = Package(
                 .define("ASIO_NO_DEPRECATED", to: "1"),
             ]
         ),
-        // Nucleo Foundation-only: Art-Net, scoperta, patch, scene, motore 30 Hz. Testabile senza UI.
+        .target(name: "RaysOutput", path: "Sources/RaysOutput"),
+        .target(name: "RaysTempo", path: "Sources/RaysTempo"),
+        .target(name: "RaysCore", dependencies: ["RaysOutput"], path: "Sources/RaysCore"),
+        .target(name: "RaysControl", dependencies: ["RaysCore"], path: "Sources/RaysControl"),
         .target(
-            name: "LightCore",
-            path: "Sources/LightCore"
+            name: "RaysEngine",
+            dependencies: ["RaysCore", "RaysOutput", "RaysTempo", "RaysControl"],
+            path: "Sources/RaysEngine"
         ),
         .executableTarget(
-            name: "LightSystem",
-            dependencies: ["LightCore", "LinkBridge"],
-            path: "Sources/LightSystem"
+            name: "RaysApp",
+            dependencies: ["RaysEngine", "RaysCore", "RaysOutput", "RaysTempo", "RaysControl", "LinkBridge"],
+            path: "Sources/RaysApp"
         ),
         .testTarget(
             name: "LightCoreTests",
-            dependencies: ["LightCore", "LinkBridge"],
+            dependencies: ["RaysEngine", "RaysCore", "RaysOutput", "RaysTempo", "RaysControl", "LinkBridge"],
             path: "Tests/LightCoreTests"
         ),
     ],

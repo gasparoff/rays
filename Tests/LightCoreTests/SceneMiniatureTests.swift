@@ -1,5 +1,5 @@
 import XCTest
-@testable import LightCore
+@testable import RaysCore
 
 final class SceneMiniatureTests: XCTestCase {
     func testDifferentTrackCyclesRepeatOnOneBeatAxisAndSignedOffsetWraps() {

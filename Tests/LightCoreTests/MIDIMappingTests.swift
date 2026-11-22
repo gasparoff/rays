@@ -1,5 +1,7 @@
 import XCTest
-@testable import LightCore
+@testable import RaysCore
+@testable import RaysControl
+@testable import RaysEngine
 
 final class MIDIMappingTests: XCTestCase {
     func testDecodesNotesCCsRunningStatusAndSkipsSysEx() {

@@ -44,10 +44,9 @@ final class XDJBeatListener: ObservableObject {
             .deletingLastPathComponent().deletingLastPathComponent()
         candidates.append(project.appendingPathComponent("Vendor/BeatLinkHelper"))
         #endif
-        let helper = candidates
-            .compactMap { $0 }.first {
-                FileManager.default.isExecutableFile(atPath: $0.appendingPathComponent("Contents/MacOS/Beat Link Trigger").path)
-            }
+        let helper = candidates.compactMap { $0 }.first {
+            FileManager.default.isExecutableFile(atPath: $0.appendingPathComponent("Contents/MacOS/Beat Link Trigger").path)
+        }
         guard let helper else {
             error = String(localized: "Beat Link component missing: Pro DJ Link is not available in this build (see Scripts/bootstrap.sh).")
             return

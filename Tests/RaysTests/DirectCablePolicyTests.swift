@@ -48,4 +48,17 @@ final class DirectCablePolicyTests: XCTestCase {
         XCTAssertNil(DirectCablePolicy.ipv4("192.168.0.999"))
         XCTAssertNil(DirectCablePolicy.ipv4("192.168.0.20;id"))
     }
+
+    func testInterfaceNameIsCheckedCharacterByCharacter() {
+        for name in ["en0", "en8", "en12", "en999"] {
+            XCTAssertTrue(DirectCablePolicy.isWiredInterfaceName(name), name)
+        }
+        // A trailing newline satisfies the regex anchor `$`; it must never reach the root shell.
+        for name in ["en8\n", "en8\r", " en8", "en8 ", "en", "en1234", "eth0", "bridge0", "en٣", "en８", "EN8", "en8;id"] {
+            XCTAssertFalse(DirectCablePolicy.isWiredInterfaceName(name), name.debugDescription)
+            XCTAssertNil(DirectCablePolicy.removalCommand(interface: name), name.debugDescription)
+            guard case .unavailable = DirectCablePolicy.evaluate(interface: name, isWired: true, isActive: true, addresses: [])
+            else { return XCTFail("Must refuse \(name.debugDescription)") }
+        }
+    }
 }

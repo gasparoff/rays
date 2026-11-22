@@ -98,4 +98,26 @@ final class DiscoveryTests: XCTestCase {
         let msgs = NetworkDiagnosis.messages(interfaces: [linkLocal], nodes: [], manualIP: nil, socketError: nil, pollCount: 3)
         XCTAssertTrue(msgs.contains { $0.contains("169.254") && $0.contains("192.168.0.10") })
     }
+
+    func testSpoofedReplyFloodCannotGrowRegistryOrEvictFreshNodes() {
+        var reg = NodeRegistry()
+        reg.capacity = 8
+        let real = reg.ingest(try! ArtPollReply.parse(Fixture.pollReply()), from: IPv4Address(192, 168, 1, 50), at: 0)
+        for i in 0..<500 {
+            let mac: [UInt8] = [0x02, 0, 0, 0, UInt8(i >> 8), UInt8(i & 0xFF)]
+            reg.ingest(
+                try! ArtPollReply.parse(Fixture.pollReply(shortName: "Fake", longName: "Fake", esta: 0, mac: mac)),
+                from: IPv4Address(192, 168, 1, 99), at: 1, keeping: real.id)
+        }
+        XCTAssertEqual(reg.nodes.count, 8, "memory stays bounded")
+        XCTAssertNotNil(reg.node(id: real.id), "a fresh node is never evicted")
+
+        // Once the flood is stale it makes room for new nodes, but the selected node is kept.
+        let later = reg.ingest(
+            try! ArtPollReply.parse(Fixture.pollReply(ip: IPv4Address(192, 168, 1, 51), mac: [0, 0x50, 0xC2, 9, 9, 9])),
+            from: IPv4Address(192, 168, 1, 51), at: 30, keeping: real.id)
+        XCTAssertEqual(reg.nodes.count, 8)
+        XCTAssertNotNil(reg.node(id: later.id))
+        XCTAssertNotNil(reg.node(id: real.id), "the preferred node survives even when stale")
+    }
 }

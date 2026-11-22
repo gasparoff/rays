@@ -26,6 +26,12 @@ project uses [Semantic Versioning](https://semver.org/).
 - A light test (Setup → Lights) no longer clears an active blackout or arms the output during blackout; the test buttons are disabled while blacked out.
 - DMX USB Pro writes are bounded (20 ms per frame): a stalled widget can no longer hold the engine queue and delay blackout or shutdown.
 
+### Security
+- The Art-Net node list is capped at 64 entries, so a flood of fake ArtPollReply packets can't grow memory; fresh and selected nodes are never evicted.
+- The adapter name in the administrator command for the direct cable is checked byte by byte (a trailing newline used to pass the old pattern).
+- Release builds launch the Beat Link helper only from their own bundle.
+- `SECURITY.md` explains scope and how to verify a release; `docs/security.md` describes the security model.
+
 ## [1.5.5] - 2026-10-31
 
 Last private build before open-sourcing: House and Club 130–138 scene banks, full-screen scene editor

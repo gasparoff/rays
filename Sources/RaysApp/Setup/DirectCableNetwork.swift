@@ -59,7 +59,7 @@ final class DirectCableNetwork: ObservableObject {
                 let rawName = SCNetworkInterfaceGetBSDName(interface)
             else { return nil }
             let name = rawName as String
-            guard name.range(of: "^en[0-9]{1,3}$", options: .regularExpression) != nil else { return nil }
+            guard DirectCablePolicy.isWiredInterfaceName(name) else { return nil }
             let link = SCDynamicStoreCopyValue(nil, "State:/Network/Interface/\(name)/Link" as CFString) as? [String: Any]
             let active = link?["Active"] as? Bool ?? false
             return WiredAdapter(
@@ -156,7 +156,7 @@ final class DirectCableNetwork: ObservableObject {
                 // Both the interface and every command token originate in the
                 // validated policy. No paths or free-form user strings enter a shell.
                 let quotedCommand = command.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
-                let quotedPrompt = prompt.replacingOccurrences(of: "\"", with: "\\\"")
+                let quotedPrompt = prompt.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
                 let script = "do shell script \"\(quotedCommand)\" with administrator privileges with prompt \"\(quotedPrompt)\""
                 let process = Process()
                 process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")

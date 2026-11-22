@@ -84,7 +84,7 @@ public final class ArtNetController {
         guard ArtNet.opCode(of: bytes) == ArtNet.OpCode.pollReply.rawValue,
             let reply = try? ArtPollReply.parse(bytes)
         else { return }  // ignores our own ArtPoll/ArtDmx and malformed data
-        registry.ingest(reply, from: sender, at: now)
+        registry.ingest(reply, from: sender, at: now, keeping: preferredIdentity)
         if preferredIdentity == nil, manualIP == nil, let candidate = registry.autoSelectCandidate(now: now) {
             preferredIdentity = candidate.id
             onPreferredIdentityChanged?(candidate.id)

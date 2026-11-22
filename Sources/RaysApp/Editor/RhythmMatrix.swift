@@ -62,7 +62,10 @@ private struct RhythmMatrix: View {
             header(viewport)
             if tracks.isEmpty {
                 Text(
-                    "Nessuna traccia: aggiungine una con «Aggiungi traccia». Senza tracce la coreografia originale sotto resta al \(percentText(state.baseLevel))."
+                    String(
+                        localized:
+                            "No tracks: add one with “Add track”. Without tracks the original choreography underneath stays at \(String(describing: percentText(state.baseLevel)))."
+                    )
                 )
                 .font(.system(size: 12)).foregroundStyle(Theme.secondary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -110,7 +113,7 @@ private struct RhythmMatrix: View {
 
     private func header(_ viewport: RhythmViewport) -> some View {
         HStack(spacing: 10) {
-            Text("Ritmo").font(.system(size: 17, weight: .semibold))
+            Text("Rhythm").font(.system(size: 17, weight: .semibold))
             Menu {
                 ForEach(viewport.spanChoices, id: \.self) { span in
                     Button {
@@ -120,24 +123,24 @@ private struct RhythmMatrix: View {
                     }
                 }
             } label: {
-                Label("Vista · \(spanTitle(viewport.span))", systemImage: "eye")
+                Label("View · \(String(describing: spanTitle(viewport.span)))", systemImage: "eye")
             }
             .menuStyle(.borderlessButton)
             .fixedSize()
-            .help("Solo quanto tempo vedi nella matrice. Non cambia i passi: per quello usa Passo e Ciclo sotto.")
-            .accessibilityLabel("Vista: \(spanTitle(viewport.span))")
+            .help("Only how much time you see in the grid. It doesn't change the steps: use Step and Cycle below for that.")
+            .accessibilityLabel("View: \(String(describing: spanTitle(viewport.span)))")
             if viewport.pageCount > 1 {
                 Button {
                     session.followsPlayhead.toggle()
                 } label: {
-                    Label("Segui", systemImage: "viewfinder")
+                    Label("Follow", systemImage: "viewfinder")
                         .font(.system(size: 11.5, weight: .medium))
                         .foregroundStyle(navigation.followsPlayhead ? Theme.lavender : Theme.secondary)
                 }
                 .buttonStyle(.borderless)
-                .accessibilityLabel("Segui il cursore")
-                .accessibilityValue(navigation.followsPlayhead ? "attivo" : "disattivo")
-                .help("Mantiene visibile la posizione in diretta. Sfogliare le battute o disegnare i passi disattiva Segui.")
+                .accessibilityLabel("Follow the playhead")
+                .accessibilityValue(navigation.followsPlayhead ? String(localized: "on") : String(localized: "off"))
+                .help("Keeps the live position visible. Paging through bars or drawing steps turns Follow off.")
                 HStack(spacing: 2) {
                     Button {
                         session.showPage(viewport.page - 1)
@@ -145,7 +148,7 @@ private struct RhythmMatrix: View {
                         Image(systemName: "chevron.left").frame(width: 20, height: 20)
                     }
                     .disabled(viewport.page == 0)
-                    .accessibilityLabel("Battute precedenti")
+                    .accessibilityLabel("Previous bars")
                     Text(pageTitle(viewport)).font(.system(size: 11.5).monospacedDigit()).foregroundStyle(Theme.secondary)
                         .frame(minWidth: 92)
                     Button {
@@ -154,25 +157,34 @@ private struct RhythmMatrix: View {
                         Image(systemName: "chevron.right").frame(width: 20, height: 20)
                     }
                     .disabled(viewport.page >= viewport.pageCount - 1)
-                    .accessibilityLabel("Battute successive")
+                    .accessibilityLabel("Next bars")
                 }
                 .buttonStyle(.borderless)
-                .help("La linea del tempo è lunga \(viewport.total) battiti (il ciclo più lungo). Sfoglia le battute.")
+                .help("The timeline is \(String(describing: viewport.total)) beats long (the longest cycle). Page through the bars.")
             }
             Spacer(minLength: 6)
             if program.state.baseLevel > 0 {
-                Label("Originale sotto \(percentText(program.state.baseLevel))", systemImage: "square.3.layers.3d.down.right")
-                    .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
-                    .help("La coreografia originale di \(program.state.base.title) suona sotto le tracce. Si regola in Impostazioni scena.")
+                Label(
+                    "Original underneath \(String(describing: percentText(program.state.baseLevel)))",
+                    systemImage: "square.3.layers.3d.down.right"
+                )
+                .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
+                .help(
+                    "The original \(String(describing: program.state.base.title)) choreography plays under the tracks. Adjust it in Scene settings."
+                )
             }
         }
     }
 
-    private func spanTitle(_ span: Int) -> String { span == 4 ? "1 battuta" : "\(span / 4) battute" }
+    private func spanTitle(_ span: Int) -> String {
+        span == 4 ? String(localized: "1 bar") : String(localized: "\(String(describing: span / 4)) bars")
+    }
 
     private func pageTitle(_ v: RhythmViewport) -> String {
         let first = v.start / 4 + 1, last = v.end / 4
-        return first == last ? "battuta \(first) di \(v.total / 4)" : "battute \(first)–\(last) di \(v.total / 4)"
+        return first == last
+            ? String(localized: "bar \(String(describing: first)) of \(String(describing: v.total / 4))")
+            : String(localized: "bars \(String(describing: first))–\(String(describing: last)) of \(String(describing: v.total / 4))")
     }
 
     private var footer: some View {
@@ -186,17 +198,17 @@ private struct RhythmMatrix: View {
                     }
                 }
             } label: {
-                Label("Aggiungi traccia", systemImage: "plus")
+                Label("Add track", systemImage: "plus")
             }
             .menuStyle(.borderedButton)
             .fixedSize()
             .disabled(!program.state.canAddTrack)
             .help(
                 program.state.canAddTrack
-                    ? "Cassa, Clap, Hi-hat, Basso, Accento o Libero: poi la modifichi."
-                    : "Massimo \(SceneProgram.maxTracks) tracce per scena."
+                    ? String(localized: "Kick, Clap, Hi-hat, Bass, Accent or Free: then edit it.")
+                    : String(localized: "At most \(String(describing: SceneProgram.maxTracks)) tracks per scene.")
             )
-            .accessibilityLabel("Aggiungi traccia")
+            .accessibilityLabel("Add track")
             Text("\(program.state.tracks.count)/\(SceneProgram.maxTracks)").font(.system(size: 11).monospacedDigit()).foregroundStyle(
                 Theme.tertiary)
             Spacer(minLength: 6)
@@ -215,15 +227,15 @@ private struct RhythmMatrix: View {
 
     private var legend: some View {
         HStack(spacing: 12) {
-            legendItem("Forte", Theme.blue, 1)
-            legendItem("Debole", Theme.blue, 0.45)
-            legendItem("Spento", Color.white, 0.12)
+            legendItem(String(localized: "Strong"), Theme.blue, 1)
+            legendItem(String(localized: "Weak"), Theme.blue, 0.45)
+            legendItem(String(localized: "Off"), Color.white, 0.12)
         }
         .accessibilityElement(children: .combine)
     }
 
     private var hint: some View {
-        Text("Clic: forte → debole → spento · trascina per disegnare")
+        Text("Click: strong → weak → off · drag to draw")
             .font(.system(size: 11)).foregroundStyle(Theme.tertiary).lineLimit(1)
     }
 
@@ -298,8 +310,11 @@ private struct TrackRow: View, Equatable {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .help(track.enabled ? "Silenzia la traccia (resta salvata)" : "Riattiva la traccia")
-            .accessibilityLabel(track.enabled ? "Silenzia \(track.name)" : "Riattiva \(track.name)")
+            .help(track.enabled ? String(localized: "Mute the track (it stays saved)") : String(localized: "Unmute the track"))
+            .accessibilityLabel(
+                track.enabled
+                    ? String(localized: "Mute \(String(describing: track.name))")
+                    : String(localized: "Unmute \(String(describing: track.name))"))
 
             Button {
                 session.selection = track.id
@@ -316,7 +331,7 @@ private struct TrackRow: View, Equatable {
                             if abs(track.offset) >= 0.005 {
                                 Text(signedBeatsText(track.offset)).font(.system(size: 9.5, weight: .semibold).monospacedDigit())
                                     .foregroundStyle(Theme.blue)
-                                    .help("Spostamento della traccia in battiti (Tempo)")
+                                    .help("Track offset in beats (Timing)")
                             }
                         }
                         .lineLimit(1)
@@ -327,18 +342,18 @@ private struct TrackRow: View, Equatable {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Traccia \(track.name), \(rowCaption(track))")
-            .accessibilityValue(selected ? "selezionata" : "")
+            .accessibilityLabel("Track \(String(describing: track.name)), \(String(describing: rowCaption(track)))")
+            .accessibilityValue(selected ? String(localized: "picked") : "")
         }
         .frame(width: MatrixMetrics.caption)
     }
 
     private var menu: some View {
         Menu {
-            Button("Rinomina…") {
+            Button("Rename…") {
                 session.selection = track.id; session.renameRequest = track.id
             }
-            Menu("Etichetta") {
+            Menu("Label") {
                 ForEach(TrackSound.allCases) { sound in
                     Button {
                         session.editTrack(track.id, nil) { $0.sound = sound }
@@ -351,21 +366,21 @@ private struct TrackRow: View, Equatable {
                     }
                 }
             }
-            Button(track.enabled ? "Silenzia" : "Riattiva") { session.toggleEnabled(track.id) }
+            Button(track.enabled ? String(localized: "Mute") : String(localized: "Unmute")) { session.toggleEnabled(track.id) }
             Divider()
-            Button("Sposta su") { session.moveTrack(track.id, by: -1) }.disabled(index == 0)
-            Button("Sposta giù") { session.moveTrack(track.id, by: 1) }.disabled(index >= count - 1)
-            Button("Duplica") { session.duplicateTrack(track.id) }.disabled(count >= SceneProgram.maxTracks)
+            Button("Move up") { session.moveTrack(track.id, by: -1) }.disabled(index == 0)
+            Button("Move down") { session.moveTrack(track.id, by: 1) }.disabled(index >= count - 1)
+            Button("Duplicate") { session.duplicateTrack(track.id) }.disabled(count >= SceneProgram.maxTracks)
             Divider()
-            Button("Elimina", role: .destructive) { session.deleteTrack(track.id) }
+            Button("Delete", role: .destructive) { session.deleteTrack(track.id) }
         } label: {
             Image(systemName: "ellipsis").font(.system(size: 13, weight: .semibold)).frame(width: 22, height: 30)
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .frame(width: MatrixMetrics.menu)
-        .help("Rinomina, etichetta, ordine, duplica, elimina (⌘Z annulla)")
-        .accessibilityLabel("Azioni per \(track.name)")
+        .help("Rename, label, order, duplicate, delete (⌘Z undoes)")
+        .accessibilityLabel("Actions for \(String(describing: track.name))")
     }
 }
 
@@ -388,4 +403,4 @@ func rowCaption(_ track: ProgramTrack) -> String {
 
 func resolutionTitle(_ res: Int) -> String { ["1": "1/4", "2": "1/8", "4": "1/16"]["\(res)"] ?? "1/\(res * 4)" }
 
-func beatsTitle(_ n: Int) -> String { n == 1 ? "1 battito" : "\(n) battiti" }
+func beatsTitle(_ n: Int) -> String { n == 1 ? String(localized: "1 beat") : String(localized: "\(String(describing: n)) beats") }

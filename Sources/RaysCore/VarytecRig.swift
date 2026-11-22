@@ -36,19 +36,19 @@ public enum VarytecRig {
 
     /// Single TRI 180 bench test confirmed on the real light: 08CH, A008, Art-Net universe 1.
     /// Returned unconfirmed: the user still ticks the checkbox once.
-    public static let tri180TestTitle = "Test TRI180 · 08CH · A008 · U1"
-    public static let tri180TestInstruction = "Sulla luce: Mode → DMX, CH Mode → 08CH, Address → 008"
+    public static let tri180TestTitle = String(localized: "TRI180 test · 08CH · A008 · U1")
+    public static let tri180TestInstruction = String(localized: "On the light: Mode → DMX, CH Mode → 08CH, Address → 008")
 
     public static func tri180Test(universe: Int = 1) -> Patch {
         Patch(fixtures: [.init(label: "TRI 180 · test", profileID: "varytec.tri180.8", universe: universe, address: 8)])
     }
 
     /// Physical settings the full rig preset assumes on each light.
-    public static let fullRigTitle = "Rig di riferimento · 2× TRI180 + TRI380"
+    public static let fullRigTitle = String(localized: "Reference rig · 2× TRI180 + TRI380")
     public static let fullRigInstructions = [
-        "TRI 180 sinistra: Mode → DMX, CH Mode → 08CH, Address → 008",
-        "TRI 180 destra: Mode → DMX, CH Mode → 08CH, Address → 016",
-        "TRI 380 centro: Mode → DMX, CH Mode → 25CH, Address → 024",
+        String(localized: "Left TRI 180: Mode → DMX, CH Mode → 08CH, Address → 008"),
+        String(localized: "Right TRI 180: Mode → DMX, CH Mode → 08CH, Address → 016"),
+        String(localized: "Center TRI 380: Mode → DMX, CH Mode → 25CH, Address → 024"),
     ]
 
     /// Production rig preserves the physically tested TRI180 at 08CH / A008.

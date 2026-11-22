@@ -158,7 +158,7 @@ public final class DMXUSBProDriver: OutputDriver {
     public func open(queue: DispatchQueue, now: @escaping () -> TimeInterval) {
         availableDevices = devices()
         guard let path = configuration.devicePath ?? availableDevices.first else {
-            socketError = "Nessuna interfaccia DMX USB trovata (/dev/cu.usbserial-*). Collegala e riprova."
+            socketError = String(localized: "No USB DMX interface found (/dev/cu.usbserial-*). Connect it and try again.")
             return
         }
         do {
@@ -223,10 +223,15 @@ public final class DMXUSBProDriver: OutputDriver {
         if let socketError { out.append(socketError) }
         if availableDevices.isEmpty {
             out.append(
-                "Nessun dispositivo /dev/cu.usbserial-* trovato. Le interfacce FTDI (ENTTEC DMX USB Pro, DMXking ultraDMX) usano il driver seriale di macOS."
+                String(
+                    localized:
+                        "No /dev/cu.usbserial-* device found. FTDI interfaces (ENTTEC DMX USB Pro, DMXking ultraDMX) use the macOS serial driver."
+                )
             )
         }
-        out.append("DMX USB Pro: un solo universo. L'interfaccia non conferma la ricezione, quindi RAYS non può verificarla.")
+        out.append(
+            String(
+                localized: "DMX USB Pro: one universe only. The interface doesn't acknowledge what it receives, so RAYS can't verify it."))
         return out
     }
 }

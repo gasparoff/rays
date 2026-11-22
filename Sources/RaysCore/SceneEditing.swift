@@ -180,9 +180,9 @@ public enum HitShapePreset: String, CaseIterable, Identifiable, Sendable {
 
     public var title: String {
         switch self {
-        case .dry: return "Secco"
-        case .soft: return "Morbido"
-        case .long: return "Lungo"
+        case .dry: return String(localized: "Dry")
+        case .soft: return String(localized: "Soft")
+        case .long: return String(localized: "Long")
         }
     }
 

@@ -28,12 +28,12 @@ struct NetworkSetup: View {
         VStack(alignment: .leading, spacing: 18) {
             Panel {
                 VStack(alignment: .leading, spacing: 10) {
-                    SectionLabel("Cavo Mac → ENTTEC")
+                    SectionLabel("Mac → ENTTEC cable")
                     HStack(spacing: 12) {
-                        Picker("Adattatore", selection: $cable.selectedInterface) {
-                            Text("Scegli…").tag("")
+                        Picker("Adapter", selection: $cable.selectedInterface) {
+                            Text("Choose…").tag("")
                             ForEach(cable.adapters) { a in
-                                Text("\(a.name) · \(a.id)" + (a.active ? "" : " · scollegato")).tag(a.id)
+                                Text("\(a.name) · \(a.id)" + (a.active ? "" : String(localized: " · disconnected"))).tag(a.id)
                             }
                         }
                         .frame(width: 330)
@@ -41,50 +41,52 @@ struct NetworkSetup: View {
                         Button {
                             cable.refresh(); model.rediscover()
                         } label: {
-                            Label("Aggiorna", systemImage: "arrow.clockwise")
+                            Label("Refresh", systemImage: "arrow.clockwise")
                         }
                         Spacer()
                         if case .addAlias = cable.decision {
-                            Button(cable.busy ? "Preparazione…" : "Prepara rete luci") { model.prepareLightNetwork() }
-                                .buttonStyle(.borderedProminent).tint(Theme.amber.opacity(0.75))
-                                .disabled(cable.busy)
+                            Button(cable.busy ? String(localized: "Preparing…") : String(localized: "Prepare light network")) {
+                                model.prepareLightNetwork()
+                            }
+                            .buttonStyle(.borderedProminent).tint(Theme.amber.opacity(0.75))
+                            .disabled(cable.busy)
                         }
                     }
                     Label(cable.status, systemImage: cable.decision == .ready ? "checkmark.circle.fill" : "info.circle")
                         .font(small).foregroundStyle(cable.decision == .ready ? Theme.good : Theme.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     if cable.canRemoveAlias {
-                        Button("Rimuovi indirizzo luci (192.168.0.20)") { model.removeLightNetworkAlias() }
+                        Button("Remove the lights address (192.168.0.20)") { model.removeLightNetworkAlias() }
                             .buttonStyle(.link).font(note).disabled(cable.busy)
                     }
                 }
             }
 
             HStack {
-                SectionLabel("ENTTEC trovati")
+                SectionLabel("ENTTEC nodes found")
                 Spacer()
                 Button {
                     model.rediscover()
                 } label: {
-                    Label("Cerca di nuovo", systemImage: "arrow.clockwise")
+                    Label("Search again", systemImage: "arrow.clockwise")
                 }
             }
             if net.nodes.isEmpty {
-                Text("Nessun ENTTEC trovato finora.").foregroundStyle(Theme.secondary).font(.system(size: 13))
+                Text("No ENTTEC node found yet.").foregroundStyle(Theme.secondary).font(.system(size: 13))
             }
             ForEach(net.nodes) { node in
                 NodeRow(node: node, selected: net.selectedID == node.id && net.manualIP == nil)
             }
 
-            DisclosureGroup("IP manuale") {
+            DisclosureGroup("Manual IP") {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        TextField("es. 192.168.0.10", text: $manualText)
+                        TextField("e.g. 192.168.0.10", text: $manualText)
                             .textFieldStyle(.roundedBorder).frame(width: 200)
                             .onSubmit(applyManual)
-                        Button("Usa IP manuale", action: applyManual)
+                        Button("Use manual IP", action: applyManual)
                         if net.manualIP != nil {
-                            Button("Rimuovi") {
+                            Button("Remove") {
                                 model.clearManualIP(); manualText = ""
                             }
                         }
@@ -93,7 +95,9 @@ struct NetworkSetup: View {
                     if let ip = net.manualIP {
                         let verified = net.target?.verified == true
                         Label(
-                            verified ? "\(ip.description) risponde." : "\(ip.description) non risponde all’ArtPoll.",
+                            verified
+                                ? String(localized: "\(String(describing: ip.description)) responds.")
+                                : String(localized: "\(String(describing: ip.description)) doesn't answer ArtPoll."),
                             systemImage: verified ? "checkmark.seal" : "questionmark.circle"
                         )
                         .foregroundStyle(verified ? Theme.good : Theme.warn).font(small)
@@ -102,10 +106,13 @@ struct NetworkSetup: View {
                 .padding(.top, 6)
             }
 
-            DisclosureGroup("Dettagli tecnici") {
+            DisclosureGroup("Technical details") {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(
-                        "Cavo diretto: l’ENTTEC usa 192.168.0.10; il Mac aggiunge solo 192.168.0.20 sull’adattatore Ethernet. Wi-Fi, DHCP, DNS e Internet non cambiano. In alternativa, collega Mac ed ENTTEC allo stesso router o switch con DHCP."
+                        String(
+                            localized:
+                                "Direct cable: the ENTTEC uses 192.168.0.10; the Mac only adds 192.168.0.20 on the Ethernet adapter. Wi-Fi, DHCP, DNS and the Internet don't change. Alternatively, connect the Mac and the ENTTEC to the same router or switch with DHCP."
+                        )
                     )
                     .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
                     ForEach(net.interfaces) { i in
@@ -144,23 +151,24 @@ struct NodeRow: View {
                 HStack(spacing: 6) {
                     Text(node.displayName).font(.system(size: 14, weight: .semibold))
                     if node.isEnttec { Tag("ENTTEC", Theme.amber) }
-                    if node.isStale { Tag("non risponde", Theme.bad) }
+                    if node.isStale { Tag(String(localized: "not responding"), Theme.bad) }
                 }
                 Text(
                     "\(node.ip.description) · "
                         + (node.outputUniverses.isEmpty
-                            ? "nessuna uscita"
-                            : node.outputUniverses.map { "Universo Art-Net \($0)" }.joined(separator: ", "))
+                            ? String(localized: "no outputs")
+                            : node.outputUniverses.map { String(localized: "Art-Net universe \(String(describing: $0))") }.joined(
+                                separator: ", "))
                 )
                 .font(.system(size: 11.5)).foregroundStyle(Theme.secondary)
             }
             Spacer()
-            Button("Pagina web") { model.openWebConfig(node.ip) }
-                .help("Apre http://\(node.ip.description)/ nel browser")
+            Button("Web page") { model.openWebConfig(node.ip) }
+                .help("Opens http://\(String(describing: node.ip.description))/ in the browser")
             if selected {
-                Label("In uso", systemImage: "checkmark.circle.fill").foregroundStyle(Theme.good)
+                Label("In use", systemImage: "checkmark.circle.fill").foregroundStyle(Theme.good)
             } else {
-                Button("Usa questo") { model.selectNode(node.id) }.buttonStyle(.borderedProminent).tint(Theme.amber.opacity(0.7))
+                Button("Use this one") { model.selectNode(node.id) }.buttonStyle(.borderedProminent).tint(Theme.amber.opacity(0.7))
             }
         }
         .padding(12)

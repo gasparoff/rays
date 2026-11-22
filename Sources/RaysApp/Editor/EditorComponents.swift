@@ -21,8 +21,10 @@ extension TrackTarget {
     /// "Centro", "Sinistra + Destra", … including custom combinations.
     var placeText: String {
         if let zone { return zone.title }
-        let parts = [left ? "Sinistra" : nil, center ? "Centro" : nil, right ? "Destra" : nil].compactMap { $0 }
-        return parts.isEmpty ? "Nessuna luce" : parts.joined(separator: " + ")
+        let parts = [
+            left ? String(localized: "Left") : nil, center ? String(localized: "Center") : nil, right ? String(localized: "Right") : nil,
+        ].compactMap { $0 }
+        return parts.isEmpty ? String(localized: "No lights") : parts.joined(separator: " + ")
     }
 
     var lightText: String {
@@ -30,13 +32,13 @@ extension TrackTarget {
         case (true, true): return "RGB + COB"
         case (true, false): return "RGB"
         case (false, true): return "COB"
-        case (false, false): return "nessuna luce"
+        case (false, false): return String(localized: "no lights")
         }
     }
 
     /// Short summary, e.g. "Centro (dettaglio) · RGB".
     var summary: String {
-        let detail = center && !usesWholeCenter ? " (dettaglio)" : ""
+        let detail = center && !usesWholeCenter ? String(localized: " (detail)") : ""
         return "\(placeText)\(detail) · \(lightText)"
     }
 }
@@ -160,7 +162,7 @@ struct ColorChoiceChip: View {
                             Circle().fill(palette[i].swiftUIColor).frame(width: 11, height: 11)
                         }
                     }
-                    Text("A turno").font(.system(size: 12, weight: selected ? .semibold : .regular))
+                    Text("In turn").font(.system(size: 12, weight: selected ? .semibold : .regular))
                 }
             }
             .padding(.horizontal, 8).padding(.vertical, 6)
@@ -174,7 +176,10 @@ struct ColorChoiceChip: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(choice == .cycle ? "Colori 1, 2 e 3 a turno" : "Colore \(choice.title)")
+        .accessibilityLabel(
+            choice == .cycle
+                ? String(localized: "Colors 1, 2 and 3 in turn") : String(localized: "Color \(String(describing: choice.title))")
+        )
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
     }
 }
@@ -225,7 +230,7 @@ struct NumberStepper: View {
             }
             .buttonStyle(.plain)
             .disabled(value <= range.lowerBound + 1e-9)
-            .accessibilityLabel("Diminuisci \(title)")
+            .accessibilityLabel("Decrease \(String(describing: title))")
             TextField(title, text: $text)
                 .textFieldStyle(.plain)
                 .multilineTextAlignment(.center)
@@ -246,7 +251,7 @@ struct NumberStepper: View {
             }
             .buttonStyle(.plain)
             .disabled(value >= range.upperBound - 1e-9)
-            .accessibilityLabel("Aumenta \(title)")
+            .accessibilityLabel("Increase \(String(describing: title))")
             if !unit.isEmpty {
                 Text(unit).font(.system(size: 11)).foregroundStyle(Theme.tertiary).frame(width: 14, alignment: .leading)
             }
@@ -313,7 +318,7 @@ struct EditorSlider: View {
             }
             Slider(value: $value, in: 0...1).tint(tint)
                 .accessibilityLabel(title)
-                .accessibilityValue("\(Int((value * 100).rounded())) per cento")
+                .accessibilityValue("\(String(describing: Int((value * 100).rounded()))) percent")
         }
         .help(help)
     }
@@ -345,6 +350,6 @@ struct SummaryRow: View {
         .buttonStyle(.plain)
         .foregroundStyle(Theme.text)
         .accessibilityLabel("\(title): \(detail)")
-        .accessibilityHint("Apre la scheda \(title)")
+        .accessibilityHint("Opens the \(String(describing: title)) tab")
     }
 }

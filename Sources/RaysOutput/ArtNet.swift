@@ -73,10 +73,10 @@ public enum ArtNetError: Error, Equatable, LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .tooShort(let n): return "Pacchetto Art-Net troppo corto (\(n) byte)"
-        case .badHeader: return "Intestazione Art-Net non valida"
-        case .unexpectedOpCode(let op): return String(format: "OpCode Art-Net inatteso 0x%04X", op)
-        case .dataTooLong(let n): return "Dati DMX troppo lunghi (\(n) > 512)"
+        case .tooShort(let n): return String(localized: "Art-Net packet too short (\(String(describing: n)) bytes)")
+        case .badHeader: return String(localized: "Invalid Art-Net header")
+        case .unexpectedOpCode(let op): return String(format: String(localized: "Unexpected Art-Net OpCode 0x%04X"), op)
+        case .dataTooLong(let n): return String(localized: "DMX data too long (\(String(describing: n)) > 512)")
         }
     }
 }

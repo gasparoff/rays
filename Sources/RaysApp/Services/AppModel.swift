@@ -21,7 +21,8 @@ final class AppModel: ObservableObject {
     /// Enlarges the window for the editor and puts it back on Save/Annulla.
     let editorWindow = EditorWindowState()
     @Published private(set) var activeCustomSceneID: UUID?
-    @Published private(set) var sceneBank = SceneBank(rawValue: UserDefaults.standard.string(forKey: "LightSystem.sceneBank") ?? "") ?? .club
+    @Published private(set) var sceneBank =
+        SceneBank(rawValue: UserDefaults.standard.string(forKey: "LightSystem.sceneBank") ?? "") ?? .club
     @Published private(set) var showSettings = ShowSettings()
     let customScenes = CustomScenesStore()
     private var editorBackup: (scene: SceneID, energy: Double, subdivision: Subdivision, show: ShowSettings, custom: CustomScene?)?
@@ -77,7 +78,10 @@ final class AppModel: ObservableObject {
             loadedPatch = RigAutoSetup.preparedRig(replacing: nil, library: lib) ?? VarytecRig.tri180Test()
         } else {
             do { loadedPatch = try store.loadPatch() } catch {
-                errors.append("Impossibile leggere patch.json: \(error.localizedDescription). Il patch reale resta vuoto.")
+                errors.append(
+                    String(
+                        localized:
+                            "Could not read patch.json: \(String(describing: error.localizedDescription)). The real patch stays empty."))
             }
         }
         if fresh || (loadedPatch.fixtures.count == 1 && RigAutoSetup.preparedRig(replacing: loadedPatch, library: lib) != nil) {
@@ -89,7 +93,7 @@ final class AppModel: ObservableObject {
                     }
                     try store.savePatch(ready)
                     loadedPatch = ready
-                } catch { errors.append("Rig automatico: \(error.localizedDescription)") }
+                } catch { errors.append(String(localized: "Automatic rig: \(String(describing: error.localizedDescription))")) }
             }
         }
         var p = store.loadPreferences()
@@ -109,13 +113,15 @@ final class AppModel: ObservableObject {
         var tempoSources = TempoSourceRegistry.builtIn
         tempoSources.register(LinkTempoSource.descriptor)
         // Link is the only grid the app runs on; the registry keeps sources pluggable.
-        link = tempoSources.make(id: LinkTempoSource.sourceID, bpm: storedBPM.map(TempoRange.clamp) ?? 120)
+        link =
+            tempoSources.make(id: LinkTempoSource.sourceID, bpm: storedBPM.map(TempoRange.clamp) ?? 120)
             as? LinkTempoSource ?? LinkTempoSource(bpm: storedBPM.map(TempoRange.clamp) ?? 120)
         lightingTempo = DownbeatTempoSource(source: link)
         let store = self.store
         midi = MIDIService(map: store.loadMIDIMap(), profiles: controllers) { map in try? store.saveMIDIMap(map) }
-        engine = LightEngine(tempo: lightingTempo, transport: UDPSocket(), library: lib,
-                             outputDrivers: p.output.registry, outputDriverID: p.output.driverID)
+        engine = LightEngine(
+            tempo: lightingTempo, transport: UDPSocket(), library: lib,
+            outputDrivers: p.output.registry, outputDriverID: p.output.driverID)
 
         // Latest-only: if the main thread stalls, it skips to the newest frame instead of
         // queueing one block per 30 Hz snapshot. DMX output is not affected.
@@ -148,7 +154,10 @@ final class AppModel: ObservableObject {
         midi.onCommand = { [weak self] command in self?.perform(command) }
         midi.currentValue = { [weak self] action in self?.controlValue(action) ?? 0 }
         if let raw = UserDefaults.standard.string(forKey: "LightSystem.customScene"), let id = UUID(uuidString: raw),
-           let saved = customScenes.scene(id: id) ?? ClubSceneBank.scene(id: id) { useCustomScene(saved, immediate: true) }
+            let saved = customScenes.scene(id: id) ?? ClubSceneBank.scene(id: id)
+        {
+            useCustomScene(saved, immediate: true)
+        }
     }
 
     private func receiveSnapshot(_ snapshot: EngineSnapshot) {
@@ -176,19 +185,24 @@ final class AppModel: ObservableObject {
         started = true
         engine.start()
         let center = NSWorkspace.shared.notificationCenter
-        sleepObservers.append(center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
-            self?.engine.suspend()
-        })
-        sleepObservers.append(center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
-            self?.engine.resume()
-        })
-        // Visibility affects only UI delivery. Engine, Link, beat following and MIDI keep running.
-        for name in [NSWindow.didChangeOcclusionStateNotification, NSWindow.didMiniaturizeNotification,
-                     NSWindow.didDeminiaturizeNotification, NSApplication.didHideNotification,
-                     NSApplication.didUnhideNotification] {
-            visibilityObservers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.refreshPreviewVisibility() }
+        sleepObservers.append(
+            center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
+                self?.engine.suspend()
             })
+        sleepObservers.append(
+            center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
+                self?.engine.resume()
+            })
+        // Visibility affects only UI delivery. Engine, Link, beat following and MIDI keep running.
+        for name in [
+            NSWindow.didChangeOcclusionStateNotification, NSWindow.didMiniaturizeNotification,
+            NSWindow.didDeminiaturizeNotification, NSApplication.didHideNotification,
+            NSApplication.didUnhideNotification,
+        ] {
+            visibilityObservers.append(
+                NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated { self?.refreshPreviewVisibility() }
+                })
         }
         DispatchQueue.main.async { [weak self] in self?.refreshPreviewVisibility() }
         installKeyMonitor()
@@ -210,9 +224,11 @@ final class AppModel: ObservableObject {
     }
 
     private func refreshPreviewVisibility() {
-        let visible = !NSApp.isHidden && NSApp.windows.contains {
-            $0.isVisible && !$0.isMiniaturized && $0.occlusionState.contains(.visible)
-        }
+        let visible =
+            !NSApp.isHidden
+            && NSApp.windows.contains {
+                $0.isVisible && !$0.isMiniaturized && $0.occlusionState.contains(.visible)
+            }
         guard visible != previewVisible else { return }
         previewVisible = visible
         if visible { publishUI(latestSnapshot) }
@@ -287,7 +303,9 @@ final class AppModel: ObservableObject {
     func setFirstBeat() {
         if let beat = lightingTempo.setDownbeat() { engine.restartScene(at: beat) }
     }
-    func setSubdivision(_ s: Subdivision) { guard !snapshot.movementLocked else { return }; prefs.subdivision = s; engine.setSubdivision(s); scheduleSave() }
+    func setSubdivision(_ s: Subdivision) {
+        guard !snapshot.movementLocked else { return }; prefs.subdivision = s; engine.setSubdivision(s); scheduleSave()
+    }
 
     func blackoutOn() {
         prefs.blackout = true
@@ -318,8 +336,11 @@ final class AppModel: ObservableObject {
     /// Node selection and manual IP belong to Art-Net; other drivers keep their own settings.
     private func applyArtNetSelection(_ p: Preferences) {
         guard p.output.driverID == OutputDriverRegistry.defaultDriverID else { return }
-        if let ip = p.manualIP.flatMap(IPv4Address.init(string:)) { engine.setManualIP(ip) }
-        else { engine.setPreferredIdentity(p.preferredNodeIdentity) }
+        if let ip = p.manualIP.flatMap(IPv4Address.init(string:)) {
+            engine.setManualIP(ip)
+        } else {
+            engine.setPreferredIdentity(p.preferredNodeIdentity)
+        }
     }
 
     /// Changes the output driver or its settings. Output is switched off first.
@@ -346,7 +367,7 @@ final class AppModel: ObservableObject {
     /// Returns an error message for invalid input.
     func useManualIP(_ text: String) -> String? {
         guard let ip = IPv4Address(string: text), !ip.isUnspecified, !ip.isLoopback, ip.octets[3] != 255 else {
-            return "Indirizzo IPv4 non valido."
+            return String(localized: "Invalid IPv4 address.")
         }
         prefs.manualIP = ip.description
         prefs.outputEnabled = false
@@ -430,7 +451,8 @@ final class AppModel: ObservableObject {
 
     func savePatch(_ draft: Patch) throws {
         guard draft.validate(library: library).isEmpty else {
-            throw NSError(domain: "LightSystem", code: 1, userInfo: [NSLocalizedDescriptionKey: "Correggi gli errori prima di salvare."])
+            throw NSError(
+                domain: "LightSystem", code: 1, userInfo: [NSLocalizedDescriptionKey: String(localized: "Fix the errors before saving.")])
         }
         try store.savePatch(draft)
         patch = draft
@@ -457,8 +479,11 @@ final class AppModel: ObservableObject {
             self.prefs.scene = scene
             self.previewedCustom = look
             self.activeCustomSceneID = look?.id
-            if let id = look?.id { UserDefaults.standard.set(id.uuidString, forKey: "LightSystem.customScene") }
-            else { UserDefaults.standard.removeObject(forKey: "LightSystem.customScene") }
+            if let id = look?.id {
+                UserDefaults.standard.set(id.uuidString, forKey: "LightSystem.customScene")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "LightSystem.customScene")
+            }
             self.scheduleSave()
         }
     }
@@ -488,11 +513,13 @@ final class AppModel: ObservableObject {
     }
 
     func editPreset(_ slot: SceneID) {
-        let draft = presetLook(slot) ?? CustomScene(
-            name: slot.title, presetSlot: slot, base: slot, energy: prefs.energy,
-            subdivision: slot == .aurora || slot == .respiro ? .one : prefs.subdivision,
-            leftLevel: showSettings.levelLeft, centerLevel: showSettings.levelCenter,
-            rightLevel: showSettings.levelRight)
+        let draft =
+            presetLook(slot)
+            ?? CustomScene(
+                name: slot.title, presetSlot: slot, base: slot, energy: prefs.energy,
+                subdivision: slot == .aurora || slot == .respiro ? .one : prefs.subdivision,
+                leftLevel: showSettings.levelLeft, centerLevel: showSettings.levelCenter,
+                rightLevel: showSettings.levelRight)
         beginSceneEditing(draft)
     }
 
@@ -505,7 +532,7 @@ final class AppModel: ObservableObject {
     func copyPreset(_ slot: SceneID) {
         var draft = presetLook(slot) ?? CustomScene(name: slot.title, base: slot)
         draft.id = UUID(); draft.presetSlot = nil; draft.presetBank = .house
-        draft.name += " (copia)"
+        draft.name += String(localized: " (copy)")
         beginSceneEditing(draft)
     }
 
@@ -553,8 +580,11 @@ final class AppModel: ObservableObject {
         nextPrefs.energy = clean.energy
         nextPrefs.subdivision = clean.subdivision
         if nextPrefs != prefs { prefs = nextPrefs }
-        if changedBase || immediate { engine.setScene(clean.base, look: clean, immediate: immediate) }
-        else { engine.setCustomScene(clean, relaunchingIfStoppedAs: clean.base) }
+        if changedBase || immediate {
+            engine.setScene(clean.base, look: clean, immediate: immediate)
+        } else {
+            engine.setCustomScene(clean, relaunchingIfStoppedAs: clean.base)
+        }
         engine.setEnergy(clean.energy)
         if previewedCustom?.subdivision != clean.subdivision || immediate { engine.setSubdivision(clean.subdivision, immediate: immediate) }
         var nextShow = showSettings
@@ -579,10 +609,13 @@ final class AppModel: ObservableObject {
             beginSceneEditing(look); return
         }
         // A plain playing scene is a House preset, even while the user browses the Club bank.
-        beginSceneEditing(customScenes.preset(playing.scene, bank: .house) ?? CustomScene(name: playing.scene.title, presetSlot: playing.scene,
-                                      presetBank: .house, base: playing.scene, energy: prefs.energy,
-                                      subdivision: prefs.subdivision, leftLevel: showSettings.levelLeft,
-                                      centerLevel: showSettings.levelCenter, rightLevel: showSettings.levelRight))
+        beginSceneEditing(
+            customScenes.preset(playing.scene, bank: .house)
+                ?? CustomScene(
+                    name: playing.scene.title, presetSlot: playing.scene,
+                    presetBank: .house, base: playing.scene, energy: prefs.energy,
+                    subdivision: prefs.subdivision, leftLevel: showSettings.levelLeft,
+                    centerLevel: showSettings.levelCenter, rightLevel: showSettings.levelRight))
     }
 
     func beginSceneEditing(_ initial: CustomScene?) {
@@ -657,7 +690,7 @@ final class AppModel: ObservableObject {
             savedShow = before.show
         }
         do { try store.savePreferences(savedPrefs); try store.saveShowSettings(savedShow) } catch {
-            storageErrors.append("Impossibile salvare le preferenze: \(error.localizedDescription)")
+            storageErrors.append(String(localized: "Could not save preferences: \(String(describing: error.localizedDescription))"))
         }
     }
 

@@ -44,7 +44,7 @@ public struct DirectCablePolicy {
         guard interface.range(of: "^en[0-9]{1,3}$", options: .regularExpression) != nil,
             isWired, isActive
         else {
-            return .unavailable("Collega il cavo Ethernet dal Mac all’ENTTEC e accendi l’ODE.")
+            return .unavailable(String(localized: "Connect the Ethernet cable from the Mac to the ENTTEC and power on the ODE."))
         }
         let target = ipv4(nodeAddress)!
         let alias = ipv4(localAddress)!
@@ -52,17 +52,21 @@ public struct DirectCablePolicy {
         for item in addresses {
             guard let ip = ipv4(item.ip), ipv4(item.mask) != nil else { continue }
             if ip == target {
-                return .unavailable("Un’interfaccia del Mac usa l’indirizzo dell’ENTTEC. Risolvi il conflitto prima di collegarti.")
+                return .unavailable(
+                    String(localized: "A Mac interface is using the ENTTEC's address. Resolve the conflict before connecting."))
             }
             // Adding a connected /24 route must never divert an existing LAN,
             // Wi-Fi, VPN, or the Internet router to the lighting cable.
             if item.interface != interface && (ip & subnetMask) == (target & subnetMask) {
                 return .unavailable(
-                    "La rete 192.168.0.x è già usata da \(item.interface). Non modifico la rete: collega l’ODE alla stessa LAN oppure usa un indirizzo diverso per l’ODE."
+                    String(
+                        localized:
+                            "The 192.168.0.x network is already used by \(String(describing: item.interface)). RAYS won't change it: connect the ODE to the same LAN or give the ODE a different address."
+                    )
                 )
             }
             if item.interface != interface && ip == alias {
-                return .unavailable("L’indirizzo dedicato alle luci è già usato da un’altra interfaccia.")
+                return .unavailable(String(localized: "The address reserved for the lights is already used by another interface."))
             }
         }
         // Check every other interface before accepting an existing wired address.

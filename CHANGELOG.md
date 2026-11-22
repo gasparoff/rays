@@ -13,6 +13,7 @@ project uses [Semantic Versioning](https://semver.org/).
 - Controller layouts as JSON (`Controllers/`): any described MIDI controller gets bindings, LED feedback and an on-screen guide.
 - Community fixture profiles as JSON (`Profiles/`), with automatic validation in the test suite.
 - Varytec Event Par, LED Pad 7 RGBWA / RGBWAUV profiles and generic RGBA/RGBWA/UV profiles.
+- English user interface, with Italian as the first translation (`Localization/`). Profile names and notes stay as published by the manufacturer.
 - Contributor docs, issue and PR templates, CI on macOS.
 - Release workflow: pushing a `v*` tag publishes `RAYS.app` (Apple silicon) on GitHub Releases; CI also builds the app for every change.
 

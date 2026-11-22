@@ -12,20 +12,20 @@ struct K2Guide: View {
     }
 
     private func name(_ action: ControlAction?) -> String {
-        guard let action else { return "Libero" }
+        guard let action else { return String(localized: "Free") }
         if let i = action.sceneIndex { return model.sceneTitle(SceneID.allCases[i]) }
         if let rate = action.rate { return rate.label }
         switch action {
         case .master: return "Master"
-        case .levelLeft: return "Sinistra"
-        case .levelCenter: return "Centro"
-        case .levelRight: return "Destra"
+        case .levelLeft: return String(localized: "Left")
+        case .levelCenter: return String(localized: "Center")
+        case .levelRight: return String(localized: "Right")
         case .bankHouse: return "House"
         case .bankClub: return "Club"
-        case .sceneFirstBeat: return "1 della scena"
-        case .cancelPending: return "Annulla coda"
+        case .sceneFirstBeat: return String(localized: "Scene's 1")
+        case .cancelPending: return String(localized: "Cancel queued")
         case .accent: return "Flash"
-        case .accentLevel: return "Livello Flash"
+        case .accentLevel: return String(localized: "Flash level")
         case .buildDrop: return "Build → Drop"
         default: return action.label
         }
@@ -34,7 +34,7 @@ struct K2Guide: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("Banco \(model.sceneBank.title)").foregroundStyle(Theme.lavender)
+                Text("Bank \(String(describing: model.sceneBank.title))").foregroundStyle(Theme.lavender)
                 Spacer()
                 Text(midi.map.k2Layout.label).foregroundStyle(Theme.tertiary)
             }.font(.system(size: 11, weight: .semibold))
@@ -66,14 +66,20 @@ struct K2Guide: View {
                     bottom("Encoder ↺↻", action(.cc, 21))
                     bottom("Exit", action(.note, 15))
                 }
-                Text("Stessa disposizione sullo schermo: I–L = ¼× · ½× · 1× · 2×. N riparte dal primo beat dell’intera scena; O annulla solo il lancio in coda. I controlli appresi restano prioritari.")
-                    .font(.system(size: 11)).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(
+                    "Same layout as on screen: I–L = ¼× · ½× · 1× · 2×. N restarts from the first beat of the whole scene; O cancels only the queued launch. Learned controls take priority."
+                )
+                .font(.system(size: 11)).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
             } else {
-                Text("H: tieni per caricare, rilascia sul drop · M: Flash · P: blackout. Manopola in basso a destra: Energia; quella sopra: livello Flash.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(
+                    "H: hold to build, release on the drop · M: Flash · P: blackout. Bottom-right knob: Energy; the one above: Flash level."
+                )
+                .font(.system(size: 12)).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
             }
-            Text("Latching Layers OFF · LED ambra = anteprima o selezione, verde = uscita reale, rosso = blackout. Il banco in uscita e il banco selezionato possono essere diversi.")
-                .font(.system(size: 11)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+            Text(
+                "Latching Layers OFF · amber LED = preview or selection, green = live output, red = blackout. The bank on output and the selected bank can differ."
+            )
+            .font(.system(size: 11)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
         }
         .padding(12).background(RoundedRectangle(cornerRadius: 12).fill(Color.black.opacity(0.18)))
     }

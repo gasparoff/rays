@@ -14,7 +14,12 @@ public struct MIDIControl: Codable, Hashable, Sendable {
         self.kind = kind; self.channel = channel & 0x0F; self.number = number & 0x7F
     }
 
-    public var label: String { "\(kind == .note ? "Nota" : "CC") \(number) · can. \(channel + 1)" }
+    public var label: String {
+        String(
+            localized:
+                "\(String(describing: kind == .note ? "Note" : "CC")) \(String(describing: number)) · ch. \(String(describing: channel + 1))"
+        )
+    }
 }
 
 /// One decoded note or CC message.
@@ -116,23 +121,23 @@ public enum ControlAction: String, Codable, CaseIterable, Identifiable, Sendable
 
     public var label: String {
         if let i = sceneIndex { return SceneID.allCases[i].title }
-        if let r = rate { return "Velocità \(r.label)" }
+        if let r = rate { return String(localized: "Speed \(String(describing: r.label))") }
         switch self {
-        case .master: return "Luminosità generale"
-        case .levelLeft: return "Livello sinistra"
-        case .levelCenter: return "Livello centro"
-        case .levelRight: return "Livello destra"
-        case .energy: return "Energia"
-        case .accentLevel: return "Livello Flash"
-        case .accent: return "Flash (tieni)"
-        case .buildDrop: return "Build → Drop (tieni)"
+        case .master: return String(localized: "Master brightness")
+        case .levelLeft: return String(localized: "Left level")
+        case .levelCenter: return String(localized: "Center level")
+        case .levelRight: return String(localized: "Right level")
+        case .energy: return String(localized: "Energy")
+        case .accentLevel: return String(localized: "Flash level")
+        case .accent: return String(localized: "Flash (hold)")
+        case .buildDrop: return String(localized: "Build → Drop (hold)")
         case .blackout: return "Blackout"
         case .stop: return "Stop"
-        case .output: return "Luci on/off"
-        case .bankHouse: return "Banco House"
-        case .bankClub: return "Banco Club"
-        case .sceneFirstBeat: return "Primo beat della scena"
-        case .cancelPending: return "Annulla coda"
+        case .output: return String(localized: "Lights on/off")
+        case .bankHouse: return String(localized: "House bank")
+        case .bankClub: return String(localized: "Club bank")
+        case .sceneFirstBeat: return String(localized: "Scene's first beat")
+        case .cancelPending: return String(localized: "Cancel queued")
         default: return rawValue
         }
     }
@@ -172,7 +177,7 @@ public enum XoneK2 {
     public enum Layout: String, Codable, CaseIterable, Identifiable, Sendable {
         case classic, liveV2
         public var id: String { rawValue }
-        public var label: String { self == .classic ? "Classica" : "Live v2" }
+        public var label: String { self == .classic ? String(localized: "Classic") : "Live v2" }
     }
     /// Factory MIDI channel 15 (0-based 14).
     public static let factoryChannel: UInt8 = 14

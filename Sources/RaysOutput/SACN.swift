@@ -5,7 +5,7 @@ public enum SACNError: Error, Equatable, LocalizedError {
     case invalidUniverse(Int)
     public var errorDescription: String? {
         switch self {
-        case .invalidUniverse(let u): return "Universo sACN \(u) fuori da 1…63999"
+        case .invalidUniverse(let u): return String(localized: "sACN universe \(String(describing: u)) is outside 1…63999")
         }
     }
 }
@@ -225,11 +225,11 @@ public final class SACNDriver: OutputDriver {
     public func diagnosis(now: TimeInterval) -> [String] {
         var out: [String] = []
         if let socketError { out.append(socketError) }
-        if interfaces.isEmpty { out.append("Nessuna rete IPv4 attiva trovata.") }
+        if interfaces.isEmpty { out.append(String(localized: "No active IPv4 network found.")) }
         if configuration.mode == .unicast, configuration.unicastIP == nil {
-            out.append("sACN unicast: imposta l'indirizzo IP del ricevitore.")
+            out.append(String(localized: "sACN unicast: set the receiver's IP address."))
         }
-        out.append("sACN non ha una scoperta dei dispositivi: RAYS non può verificare che un ricevitore stia ascoltando.")
+        out.append(String(localized: "sACN has no device discovery: RAYS can't verify that a receiver is listening."))
         return out
     }
 }

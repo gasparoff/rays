@@ -55,6 +55,11 @@ cp "$BIN_DIR/LightSystem" "$APP/Contents/MacOS/LightSystem"
 # Controller layouts (Controllers/*.json), same loading rules.
 find "$ROOT/Controllers" -maxdepth 1 -name '*.json' -exec cp {} "$APP/Contents/Resources/Controllers/" \; 2>/dev/null || true
 
+# Translations (English is the source language in code; see Localization/README.md).
+for lproj in "$ROOT"/Localization/*.lproj; do
+  cp -R "$lproj" "$APP/Contents/Resources/"
+done
+
 cp "Vendor/link/LICENSE.md" "$APP/Contents/Resources/Licenses/AbletonLink-LICENSE.md"
 cp "Vendor/link/GNU-GPL-v2.0.md" "$APP/Contents/Resources/Licenses/GNU-GPL-v2.0.md"
 cp "Vendor/link/modules/asio-standalone/asio/LICENSE_1_0.txt" "$APP/Contents/Resources/Licenses/ASIO-BSL-1.0.txt" 2>/dev/null \
@@ -97,7 +102,8 @@ cat > "$APP/Contents/Info.plist" <<EOF
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleDevelopmentRegion</key><string>it</string>
+  <key>CFBundleDevelopmentRegion</key><string>en</string>
+  <key>CFBundleLocalizations</key><array><string>en</string><string>it</string></array>
   <key>CFBundleDisplayName</key><string>$APP_NAME</string>
   <key>CFBundleName</key><string>$APP_NAME</string>
   <key>CFBundleExecutable</key><string>LightSystem</string>

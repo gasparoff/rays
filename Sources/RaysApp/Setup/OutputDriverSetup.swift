@@ -21,19 +21,19 @@ struct OutputDriverSetup: View {
     var body: some View {
         Panel {
             VStack(alignment: .leading, spacing: 10) {
-                SectionLabel("Uscita DMX")
-                Picker("Protocollo", selection: Binding(get: { output.driverID }, set: { id in update { $0.driverID = id } })) {
+                SectionLabel("DMX output")
+                Picker("Protocol", selection: Binding(get: { output.driverID }, set: { id in update { $0.driverID = id } })) {
                     Text("Art-Net").tag(ArtNetController.driverID)
                     Text("sACN (E1.31)").tag(SACNDriver.driverID)
                     Text("DMX USB Pro").tag(DMXUSBProDriver.driverID)
                 }
                 .pickerStyle(.segmented).frame(width: 380)
-                .help("Cambiare protocollo spegne l'uscita: riaccendila quando sei pronto.")
+                .help("Changing protocol turns the output off: turn it back on when you're ready.")
                 switch output.driverID {
                 case SACNDriver.driverID: sacn
                 case DMXUSBProDriver.driverID: usbPro
                 default:
-                    Text("Art-Net verso ENTTEC ODE MK3 o altri nodi Art-Net, con scoperta automatica.")
+                    Text("Art-Net to an ENTTEC ODE MK3 or other Art-Net nodes, with automatic discovery.")
                         .font(.system(size: 11.5)).foregroundStyle(Theme.tertiary)
                 }
                 ForEach(live.snapshot.network.diagnosis.filter { _ in output.driverID != ArtNetController.driverID }, id: \.self) { line in
@@ -48,57 +48,79 @@ struct OutputDriverSetup: View {
     }
 
     @ViewBuilder private var sacn: some View {
-        Picker("Invio", selection: Binding(get: { output.sacn.mode }, set: { m in update { $0.sacn.mode = m } })) {
+        Picker("Sending", selection: Binding(get: { output.sacn.mode }, set: { m in update { $0.sacn.mode = m } })) {
             Text("Multicast").tag(SACNDriver.Mode.multicast)
             Text("Unicast").tag(SACNDriver.Mode.unicast)
         }
         .pickerStyle(.segmented).frame(width: 240)
         if output.sacn.mode == .unicast {
             HStack {
-                TextField("IP del ricevitore", text: $ipText).textFieldStyle(.roundedBorder).frame(width: 200)
+                TextField("Receiver IP", text: $ipText).textFieldStyle(.roundedBorder).frame(width: 200)
                     .onSubmit(applyIP)
-                Button("Usa", action: applyIP)
+                Button("Use", action: applyIP)
             }
             if let ipError { Text(ipError).foregroundStyle(Theme.bad).font(.system(size: 12)) }
         }
         HStack(spacing: 16) {
-            Stepper("Priorità \(output.sacn.priority)", value: Binding(
-                get: { Int(output.sacn.priority) }, set: { v in update { $0.sacn.priority = UInt8(min(200, max(0, v))) } }), in: 0...200)
-            Picker("Numerazione", selection: Binding(
-                get: { output.sacn.universeOffset }, set: { v in update { $0.sacn.universeOffset = v } })) {
-                Text("Art-Net 0 → sACN 1 (convenzione comune)").tag(1)
-                Text("Art-Net 1 → sACN 1 (stesso numero)").tag(0)
+            Stepper(
+                "Priority \(String(describing: output.sacn.priority))",
+                value: Binding(
+                    get: { Int(output.sacn.priority) }, set: { v in update { $0.sacn.priority = UInt8(min(200, max(0, v))) } }), in: 0...200
+            )
+            Picker(
+                "Numbering",
+                selection: Binding(
+                    get: { output.sacn.universeOffset }, set: { v in update { $0.sacn.universeOffset = v } })
+            ) {
+                Text("Art-Net 0 → sACN 1 (common convention)").tag(1)
+                Text("Art-Net 1 → sACN 1 (same number)").tag(0)
             }
             .frame(width: 380)
         }
-        Text("Nome sorgente «\(output.sacn.sourceName)». Il multicast va sull'interfaccia di rete predefinita del Mac. sACN non ha scoperta: RAYS non può sapere se un ricevitore ascolta. Sperimentale, non ancora provato su hardware.")
-            .font(.system(size: 11.5)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+        Text(
+            "Source name “\(String(describing: output.sacn.sourceName))”. Multicast goes out on the Mac's default network interface. sACN has no discovery: RAYS can't tell whether a receiver is listening. Experimental, not yet tested on hardware."
+        )
+        .font(.system(size: 11.5)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
     }
 
     private func applyIP() {
-        guard let ip = IPv4Address(string: ipText), !ip.isUnspecified, !ip.isLoopback else { ipError = "Indirizzo IPv4 non valido."; return }
+        guard let ip = IPv4Address(string: ipText), !ip.isUnspecified, !ip.isLoopback else {
+            ipError = String(localized: "Invalid IPv4 address."); return
+        }
         ipError = nil
         update { $0.sacn.unicastIP = ip }
     }
 
     @ViewBuilder private var usbPro: some View {
         HStack {
-            Picker("Dispositivo", selection: Binding(
-                get: { output.dmxUSBPro.devicePath ?? "" }, set: { p in update { $0.dmxUSBPro.devicePath = p.isEmpty ? nil : p } })) {
-                Text("Automatico (primo trovato)").tag("")
+            Picker(
+                "Device",
+                selection: Binding(
+                    get: { output.dmxUSBPro.devicePath ?? "" }, set: { p in update { $0.dmxUSBPro.devicePath = p.isEmpty ? nil : p } })
+            ) {
+                Text("Automatic (first found)").tag("")
                 ForEach(devices, id: \.self) { Text($0).tag($0) }
-                if let p = output.dmxUSBPro.devicePath, !devices.contains(p) { Text("\(p) · scollegato").tag(p) }
+                if let p = output.dmxUSBPro.devicePath, !devices.contains(p) { Text("\(String(describing: p)) · disconnected").tag(p) }
             }
             .frame(width: 380)
-            Button { devices = DMXUSBPro.candidateDevices() } label: { Label("Aggiorna", systemImage: "arrow.clockwise") }
+            Button {
+                devices = DMXUSBPro.candidateDevices()
+            } label: {
+                Label("Refresh", systemImage: "arrow.clockwise")
+            }
         }
-        Picker("Universo del patch", selection: Binding(
-            get: { output.dmxUSBPro.universe ?? -1 }, set: { u in update { $0.dmxUSBPro.universe = u < 0 ? nil : u } })) {
-            Text("Il più basso del patch").tag(-1)
-            ForEach(0...1, id: \.self) { Text("Universo Art-Net \($0)").tag($0) }
+        Picker(
+            "Patch universe",
+            selection: Binding(
+                get: { output.dmxUSBPro.universe ?? -1 }, set: { u in update { $0.dmxUSBPro.universe = u < 0 ? nil : u } })
+        ) {
+            Text("The patch's lowest").tag(-1)
+            ForEach(0...1, id: \.self) { Text("Art-Net universe \(String(describing: $0))").tag($0) }
         }
         .frame(width: 260)
-        Text("ENTTEC DMX USB Pro e interfacce compatibili (DMXking ultraDMX Pro/Micro) tramite il driver seriale FTDI di macOS: un universo. Sperimentale, non ancora provato su hardware. ENTTEC Open DMX USB non è supportato.")
-            .font(.system(size: 11.5)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+        Text(
+            "ENTTEC DMX USB Pro and compatible interfaces (DMXking ultraDMX Pro/Micro) through macOS's FTDI serial driver: one universe. Experimental, not yet tested on hardware. ENTTEC Open DMX USB is not supported."
+        )
+        .font(.system(size: 11.5)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
     }
 }

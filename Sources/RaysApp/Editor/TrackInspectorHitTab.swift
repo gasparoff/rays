@@ -12,7 +12,7 @@ struct HitTab: View {
         let preset = HitShapePreset.matching(track)
         let tint = trackTint(track, palette)
         VStack(alignment: .leading, spacing: 14) {
-            InspectorHeading("Forma del colpo", detail: preset == nil ? "personale" : nil)
+            InspectorHeading(String(localized: "Hit shape"), detail: preset == nil ? String(localized: "custom") : nil)
             HStack(spacing: 8) {
                 ForEach(HitShapePreset.allCases) { p in
                     PresetCard(preset: p, selected: p == preset) {
@@ -28,7 +28,10 @@ struct HitTab: View {
                 times; levels
             }
             Text(
-                "L’attacco finisce esattamente sul colpo (può iniziare prima), poi tenuta e rilascio. I tempi sono in battiti e seguono il BPM; il colore si sceglie in Luci."
+                String(
+                    localized:
+                        "The attack ends exactly on the hit (it can start earlier), then hold and release. Times are in beats and follow the BPM; the color is chosen in Lights."
+                )
             )
             .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
             .fixedSize(horizontal: false, vertical: true)
@@ -37,23 +40,26 @@ struct HitTab: View {
 
     private var times: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Tempi · battiti").font(.system(size: 13, weight: .semibold))
+            Text("Times · beats").font(.system(size: 13, weight: .semibold))
             NumberStepper(
-                title: "Attacco", value: track.attack, range: 0...ProgramTrack.maxAttack, step: 0.05,
+                title: String(localized: "Attack"), value: track.attack, range: 0...ProgramTrack.maxAttack, step: 0.05,
                 help:
-                    "Quanto prima del colpo inizia a salire: il massimo cade sul passo. Minimo effettivo 0,06 battiti contro lo sfarfallio."
+                    String(
+                        localized:
+                            "How long before the hit it starts rising: the peak lands on the step. Effective minimum 0.06 beats, against flicker."
+                    )
             ) { v in
                 session.editTrack(track.id, "attack") { $0.attack = v }
             }
             NumberStepper(
-                title: "Tenuta", value: track.hold, range: 0...ProgramTrack.maxHold, step: 0.05,
-                help: "Quanto resta al picco dopo il colpo."
+                title: String(localized: "Hold"), value: track.hold, range: 0...ProgramTrack.maxHold, step: 0.05,
+                help: String(localized: "How long it stays at the peak after the hit.")
             ) { v in
                 session.editTrack(track.id, "hold") { $0.hold = v }
             }
             NumberStepper(
-                title: "Rilascio", value: track.release, range: 0...ProgramTrack.maxRelease, step: 0.05,
-                help: "Quanto impiega a tornare al fondo dopo la tenuta."
+                title: String(localized: "Release"), value: track.release, range: 0...ProgramTrack.maxRelease, step: 0.05,
+                help: String(localized: "How long it takes to fall back to the floor after the hold.")
             ) { v in
                 session.editTrack(track.id, "release") { $0.release = v }
             }
@@ -64,16 +70,16 @@ struct HitTab: View {
 
     private var levels: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Livelli").font(.system(size: 13, weight: .semibold))
+            Text("Levels").font(.system(size: 13, weight: .semibold))
             NumberStepper(
-                title: "Fondo", value: track.floor, range: 0...1, step: 0.05, scale: 100, digits: 0, unit: "%",
-                help: "Luce tra un colpo e l’altro. Non supera mai il picco."
+                title: String(localized: "Floor"), value: track.floor, range: 0...1, step: 0.05, scale: 100, digits: 0, unit: "%",
+                help: String(localized: "Light between hits. Never above the peak.")
             ) { v in
                 session.editTrack(track.id, "floor") { $0 = $0.withFloor(v) }
             }
             NumberStepper(
-                title: "Picco", value: track.peak, range: 0...1, step: 0.05, scale: 100, digits: 0, unit: "%",
-                help: "Luce sul colpo forte. 100% = pieno (255) con Luminosità generale al massimo."
+                title: String(localized: "Peak"), value: track.peak, range: 0...1, step: 0.05, scale: 100, digits: 0, unit: "%",
+                help: String(localized: "Light on a strong hit. 100% = full (255) with Master brightness at maximum.")
             ) { v in
                 session.editTrack(track.id, "peak") { $0 = $0.withPeak(v) }
             }
@@ -108,9 +114,12 @@ private struct PresetCard: View {
         }
         .buttonStyle(.plain)
         .help(
-            "\(preset.title): attacco \(decimalText(preset.times.attack)), tenuta \(decimalText(preset.times.hold)), rilascio \(decimalText(preset.times.release)) battiti. Fondo e picco restano."
+            String(
+                localized:
+                    "\(String(describing: preset.title)): attack \(String(describing: decimalText(preset.times.attack))), hold \(String(describing: decimalText(preset.times.hold))), release \(String(describing: decimalText(preset.times.release))) beats. Floor and peak are kept."
+            )
         )
-        .accessibilityLabel("Forma \(preset.title)")
+        .accessibilityLabel("Shape \(String(describing: preset.title))")
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
     }
 }
@@ -210,15 +219,21 @@ private struct EnvelopeEditor: View {
         .background(RoundedRectangle(cornerRadius: 12).fill(Color.black.opacity(0.35)))
         .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.stroke))
         .help(
-            "Trascina i punti: inizio attacco (attacco e fondo), colpo (picco), fine tenuta (tenuta e picco), fine rilascio (rilascio e fondo)."
+            String(
+                localized:
+                    "Drag the points: attack start (attack and floor), hit (peak), hold end (hold and peak), release end (release and floor)."
+            )
         )
         .onChange(of: track.id) { _, _ in
             drag = nil; hover = nil
         }  // per-track gesture state
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Forma del colpo")
+        .accessibilityLabel("Hit shape")
         .accessibilityValue(
-            "Attacco \(decimalText(track.attack)), tenuta \(decimalText(track.hold)), rilascio \(decimalText(track.release)) battiti; fondo \(percentText(track.floor)), picco \(percentText(track.peak))"
+            String(
+                localized:
+                    "Attack \(String(describing: decimalText(track.attack))), hold \(String(describing: decimalText(track.hold))), release \(String(describing: decimalText(track.release))) beats; floor \(String(describing: percentText(track.floor))), peak \(String(describing: percentText(track.peak)))"
+            )
         )
     }
 
@@ -296,10 +311,10 @@ private struct EnvelopeEditor: View {
             },
             with: .color(Theme.amber.opacity(0.7)), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
         ctx.draw(
-            Text("colpo").font(.system(size: 9.5, weight: .semibold)).foregroundColor(Theme.amber.opacity(0.9)),
+            Text("hit").font(.system(size: 9.5, weight: .semibold)).foregroundColor(Theme.amber.opacity(0.9)),
             at: CGPoint(x: hx, y: plot.maxY + 10))
         ctx.draw(
-            Text("battiti").font(.system(size: 9.5)).foregroundColor(Theme.tertiary),
+            Text("beats").font(.system(size: 9.5)).foregroundColor(Theme.tertiary),
             at: CGPoint(x: plot.maxX - 2, y: plot.maxY + 10), anchor: .trailing)
     }
 }

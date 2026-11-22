@@ -35,7 +35,7 @@ struct LiveBeatMarks: NSViewRepresentable {
                 let current = (Int(floor(phase)) % 4 + 4) % 4
                 if beat != current {
                     beat = current
-                    setAccessibilityLabel("Battito \(current + 1) di 4")
+                    setAccessibilityLabel("Beat \(String(describing: current + 1)) of 4")
                 }
                 needsDisplay = true
             }
@@ -46,11 +46,15 @@ struct LiveBeatMarks: NSViewRepresentable {
             let fraction = phase - floor(phase)
             for i in 0..<4 {
                 let active = i == beat
-                let color = active ? NSColor(i == 0 ? Theme.amber : Theme.lavender).withAlphaComponent(1 - 0.55 * fraction)
+                let color =
+                    active
+                    ? NSColor(i == 0 ? Theme.amber : Theme.lavender).withAlphaComponent(1 - 0.55 * fraction)
                     : NSColor.white.withAlphaComponent(0.08)
                 color.setFill()
-                NSBezierPath(roundedRect: CGRect(x: CGFloat(i) * (width + gap), y: 0, width: width, height: bounds.height),
-                             xRadius: 3, yRadius: 3).fill()
+                NSBezierPath(
+                    roundedRect: CGRect(x: CGFloat(i) * (width + gap), y: 0, width: width, height: bounds.height),
+                    xRadius: 3, yRadius: 3
+                ).fill()
             }
         }
     }

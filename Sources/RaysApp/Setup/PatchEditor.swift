@@ -49,7 +49,7 @@ struct PatchEditor: View {
         VStack(alignment: .leading, spacing: 18) {
             Panel {
                 VStack(alignment: .leading, spacing: 12) {
-                    SectionLabel("Preset rapidi")
+                    SectionLabel("Quick presets")
                     PresetRow(title: VarytecRig.tri180TestTitle, lines: [VarytecRig.tri180TestInstruction]) {
                         draft = VarytecRig.tri180Test(universe: nodeUniverse)
                     }
@@ -57,7 +57,7 @@ struct PatchEditor: View {
                         draft = VarytecRig.referenceRig(universe: nodeUniverse)
                     }
                     if model.usingDefaultPatch {
-                        Text("Preset di prova caricato all’avvio: conferma e salva per usarlo.")
+                        Text("Test preset loaded at startup: confirm and save to use it.")
                             .font(note).foregroundStyle(Theme.warn)
                     }
                 }
@@ -65,33 +65,36 @@ struct PatchEditor: View {
 
             Panel {
                 VStack(alignment: .leading, spacing: 10) {
-                    SectionLabel("Prova rapida · 5 secondi")
+                    SectionLabel("Quick test · 5 seconds")
                     HStack {
-                        Button("Rosso fisso") { model.engine.runDiagnostic(LightColor(1, 0, 0)) }
-                        Button("Bianco caldo") { model.engine.runDiagnostic(LightColor(0, 0, 0, 0.25)) }
-                        if live.snapshot.isTesting { Button("Termina prova") { model.engine.cancelDiagnostic() } }
+                        Button("Solid red") { model.engine.runDiagnostic(LightColor(1, 0, 0)) }
+                        Button("Warm white") { model.engine.runDiagnostic(LightColor(0, 0, 0, 0.25)) }
+                        if live.snapshot.isTesting { Button("End test") { model.engine.cancelDiagnostic() } }
                     }
                     .buttonStyle(.bordered)
                     .disabled(live.snapshot.readiness != .ready || live.snapshot.blackout)
                     Text(
-                        "Usa il rig salvato e la luminosità generale. Al termine riprende la scena, oppure spegne le luci se prima erano spente."
+                        String(
+                            localized:
+                                "Uses the saved rig and the master brightness. Afterwards the scene resumes, or the lights turn off if they were off before."
+                        )
                     )
                     .font(note).foregroundStyle(Theme.tertiary)
                 }
             }
 
             VStack(alignment: .leading, spacing: 10) {
-                SectionLabel("Aggiungi luci")
+                SectionLabel("Add lights")
                 HStack(spacing: 14) {
-                    Picker("Profilo", selection: $profileID) {
+                    Picker("Profile", selection: $profileID) {
                         ForEach(orderedProfiles) { p in
                             Text("\(p.manufacturer) \(p.displayName)" + (p.isVerified ? " ✓" : "")).tag(p.id)
                         }
                     }
                     .frame(width: 330)
-                    Stepper("Quantità \(count)", value: $count, in: 1...48)
+                    Stepper("Quantity \(String(describing: count))", value: $count, in: 1...48)
                     HStack(spacing: 6) {
-                        Text("Indirizzo")
+                        Text("Address")
                         TextField("1–512", value: $startAddress, format: .number)
                             .textFieldStyle(.roundedBorder).frame(width: 60)
                     }
@@ -103,11 +106,13 @@ struct PatchEditor: View {
                 }
                 HStack {
                     if let p = library.profile(id: profileID) {
-                        Text("\(p.footprint) canali ciascuna · indirizzi \(startAddress)–\(startAddress + p.footprint * count - 1)")
-                            .font(note).foregroundStyle(Theme.tertiary).lineLimit(1)
+                        Text(
+                            "\(String(describing: p.footprint)) channels each · addresses \(String(describing: startAddress))–\(String(describing: startAddress + p.footprint * count - 1))"
+                        )
+                        .font(note).foregroundStyle(Theme.tertiary).lineLimit(1)
                     }
                     Spacer()
-                    Button("Aggiungi") {
+                    Button("Add") {
                         if let p = library.profile(id: profileID), (1...512).contains(startAddress) {
                             draft.addGroup(profile: p, count: count, startAddress: startAddress, universe: universe ?? nodeUniverse)
                             startAddress = min(512, startAddress + p.footprint * count)
@@ -117,7 +122,7 @@ struct PatchEditor: View {
                 }
             }
 
-            DisclosureGroup("Profilo personalizzato", isExpanded: $showCustom) {
+            DisclosureGroup("Custom profile", isExpanded: $showCustom) {
                 CustomProfileEditor { profile in
                     draft.customProfiles.append(profile)
                     profileID = profile.id
@@ -127,14 +132,14 @@ struct PatchEditor: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    SectionLabel("Luci (\(draft.fixtures.count))")
+                    SectionLabel("Lights (\(String(describing: draft.fixtures.count)))")
                     Spacer()
                     if !draft.fixtures.isEmpty {
-                        Button("Svuota", role: .destructive) { draft.fixtures.removeAll() }
+                        Button("Clear", role: .destructive) { draft.fixtures.removeAll() }
                     }
                 }
                 if draft.fixtures.isEmpty {
-                    Text("Nessuna luce: scegli un preset qui sopra.").font(.system(size: 12.5)).foregroundStyle(Theme.secondary)
+                    Text("No lights: choose a preset above.").font(.system(size: 12.5)).foregroundStyle(Theme.secondary)
                 }
                 ForEach($draft.fixtures) { $f in
                     FixtureRow(fixture: $f, profile: library.profile(id: f.profileID), nodeUniverses: nodeUniverses) {
@@ -158,23 +163,23 @@ struct PatchEditor: View {
                             get: { draft.isConfirmed(library: model.library) },
                             set: { draft.setConfirmed($0, library: model.library) })
                     ) {
-                        Text("Le luci sono impostate così (Mode DMX, CH Mode, Address)").font(.system(size: 13.5, weight: .semibold))
+                        Text("The lights are set like this (Mode DMX, CH Mode, Address)").font(.system(size: 13.5, weight: .semibold))
                     }
                     .toggleStyle(.checkbox)
                     .disabled(draft.fixtures.isEmpty || !issues.isEmpty)
-                    Text("Ogni modifica annulla la conferma. All’avvio l’uscita resta spenta: si accende con «Attiva luci».")
+                    Text("Every change cancels the confirmation. At startup the output stays off: turn it on with “Turn lights on”.")
                         .font(note).foregroundStyle(Theme.tertiary)
                     HStack {
                         if let saveMessage {
                             Text(saveMessage).font(small).foregroundStyle(Theme.secondary)
                         } else if dirty || model.usingDefaultPatch {
-                            Text("Non salvato").font(small).foregroundStyle(Theme.warn)
+                            Text("Not saved").font(small).foregroundStyle(Theme.warn)
                         }
                         Spacer()
-                        Button("Annulla modifiche") {
+                        Button("Discard changes") {
                             draft = model.patch; saveMessage = nil
                         }.disabled(!dirty)
-                        Button("Salva") {
+                        Button("Save") {
                             do { try model.savePatch(draft); saveMessage = "Salvato." } catch { saveMessage = error.localizedDescription }
                         }
                         .buttonStyle(.borderedProminent).tint(Theme.good.opacity(0.7))
@@ -199,7 +204,7 @@ struct PresetRow: View {
                 ForEach(lines, id: \.self) { Text($0).font(note).foregroundStyle(Theme.secondary) }
             }
             Spacer()
-            Button("Carica", action: action).help("Riempie la bozza: verifica sulle luci, conferma e salva.")
+            Button("Load", action: action).help("Fills the draft: check it on the lights, confirm and save.")
         }
     }
 }
@@ -209,9 +214,9 @@ struct UniversePicker: View {
     let nodeUniverses: Set<Int>
 
     var body: some View {
-        Picker("Universo", selection: $selection) {
+        Picker("Universe", selection: $selection) {
             ForEach(0...1, id: \.self) { u in
-                Text("Universo Art-Net \(u)" + (nodeUniverses.contains(u) ? " · ENTTEC" : "")).tag(u)
+                Text(String(localized: "Art-Net universe \(String(describing: u))") + (nodeUniverses.contains(u) ? " · ENTTEC" : "")).tag(u)
             }
         }
         .labelsHidden()
@@ -226,8 +231,8 @@ struct FixtureRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            TextField("Nome", text: $fixture.label).textFieldStyle(.roundedBorder).frame(width: 160)
-            Text(profile.map { "\($0.manufacturer) \($0.displayName)" } ?? "Profilo sconosciuto")
+            TextField("Name", text: $fixture.label).textFieldStyle(.roundedBorder).frame(width: 160)
+            Text(profile.map { "\($0.manufacturer) \($0.displayName)" } ?? String(localized: "Unknown profile"))
                 .font(small).foregroundStyle(profile == nil ? Theme.bad : Theme.secondary)
                 .frame(width: 230, alignment: .leading).lineLimit(1)
             UniversePicker(selection: $fixture.universe, nodeUniverses: nodeUniverses).frame(width: 200)
@@ -240,7 +245,7 @@ struct FixtureRow: View {
             }
             Spacer()
             Button(role: .destructive, action: onDelete) { Image(systemName: "trash") }
-                .buttonStyle(.borderless).accessibilityLabel("Rimuovi \(fixture.label)")
+                .buttonStyle(.borderless).accessibilityLabel("Remove \(String(describing: fixture.label))")
         }
         .padding(.vertical, 4)
     }
@@ -248,26 +253,29 @@ struct FixtureRow: View {
 
 struct CustomProfileEditor: View {
     let onAdd: (FixtureProfile) -> Void
-    @State private var name = "Personalizzato"
+    @State private var name = String(localized: "Manual")
     @State private var channels: [ChannelDefinition] = [.init(.red), .init(.green), .init(.blue)]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(
-                "Mappa canale per canale secondo il manuale della luce. «Valore fisso» serve per es. otturatore aperto; i canali non usati restano a 0."
+                String(
+                    localized:
+                        "Map channel by channel following the light's manual. “Fixed value” is for things like an open shutter; unused channels stay at 0."
+                )
             )
             .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
-            TextField("Nome profilo", text: $name).textFieldStyle(.roundedBorder).frame(width: 260)
+            TextField("Profile name", text: $name).textFieldStyle(.roundedBorder).frame(width: 260)
             ForEach(channels.indices, id: \.self) { i in
                 HStack {
                     Text("Ch \(i + 1)").monospacedDigit().frame(width: 44, alignment: .leading)
-                    Picker("Funzione", selection: $channels[i].kind) {
+                    Picker("Function", selection: $channels[i].kind) {
                         ForEach(ChannelKind.allCases, id: \.self) { k in Text(k.label).tag(k) }
                     }
                     .labelsHidden().frame(width: 220)
                     if channels[i].kind == .constant {
                         Stepper(
-                            "Valore \(channels[i].value)",
+                            String(localized: "Value \(String(describing: channels[i].value))"),
                             value: Binding(
                                 get: { Int(channels[i].value) }, set: { channels[i].value = UInt8(clamping: $0) }), in: 0...255)
                     }
@@ -281,12 +289,13 @@ struct CustomProfileEditor: View {
                 }
             }
             HStack {
-                Button("Aggiungi canale") { channels.append(.init(.ignore)) }.disabled(channels.count >= 64)
+                Button("Add channel") { channels.append(.init(.ignore)) }.disabled(channels.count >= 64)
                 Spacer()
-                Button("Crea profilo") {
+                Button("Create profile") {
                     let p = FixtureProfile(
                         id: "custom." + UUID().uuidString.prefix(8).lowercased(), name: name,
-                        manufacturer: "Personalizzato", mode: "\(channels.count) canali",
+                        manufacturer: String(localized: "Manual"),
+                        mode: String(localized: "\(String(describing: channels.count)) channels"),
                         isGeneric: false, isVerified: false, channels: channels)
                     if p.problems.isEmpty { onAdd(p) }
                 }

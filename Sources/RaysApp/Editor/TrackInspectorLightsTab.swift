@@ -14,58 +14,64 @@ struct LightsTab: View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    InspectorHeading("Dove", detail: "anche cliccando le luci nell’anteprima")
-                    Menu("Rapide") {
+                    InspectorHeading(String(localized: "Where"), detail: String(localized: "also by clicking the lights in the preview"))
+                    Menu("Quick") {
                         ForEach(TrackTarget.Zone.allCases) { zone in
                             Button(zone.title) { edit { $0.target.setZone(zone) } }
                         }
                     }
                     .menuStyle(.borderlessButton).fixedSize()
-                    .help("Scorciatoie: Tutte, Centro, Laterali, Sinistra, Destra. Puoi combinare liberamente i tre pulsanti.")
+                    .help("Shortcuts: All, Center, Sides, Left, Right. You can combine the three buttons freely.")
                 }
                 HStack(spacing: 6) {
-                    ChipButton(title: "Sinistra", symbol: "triangle", selected: t.left) { edit { $0.target.left.toggle() } }
-                        .help("TRI 180 a sinistra")
-                    ChipButton(title: "Centro", symbol: "triangle.fill", selected: t.center) { edit { $0.target.center.toggle() } }
-                        .help("TRI 380 al centro (segmenti e raggi qui sotto)")
-                    ChipButton(title: "Destra", symbol: "triangle", selected: t.right) { edit { $0.target.right.toggle() } }
-                        .help("TRI 180 a destra")
+                    ChipButton(title: String(localized: "Left"), symbol: "triangle", selected: t.left) { edit { $0.target.left.toggle() } }
+                        .help("TRI 180 on the left")
+                    ChipButton(title: String(localized: "Center"), symbol: "triangle.fill", selected: t.center) {
+                        edit { $0.target.center.toggle() }
+                    }
+                    .help("TRI 380 in the center (segments and rays below)")
+                    ChipButton(title: String(localized: "Right"), symbol: "triangle", selected: t.right) {
+                        edit { $0.target.right.toggle() }
+                    }
+                    .help("TRI 180 on the right")
                 }
             }
             VStack(alignment: .leading, spacing: 8) {
-                InspectorHeading("Luce", detail: "colore e bianco caldo sono indipendenti")
+                InspectorHeading(String(localized: "Light"), detail: String(localized: "color and warm white are independent"))
                 HStack(spacing: 6) {
-                    ChipButton(title: "Colore RGB", symbol: "paintpalette", selected: t.color) { edit { $0.target.color.toggle() } }
-                        .help("Gruppi RGB")
-                    ChipButton(title: "Bianco caldo COB", symbol: "sun.max", selected: t.warm, tint: Theme.amber) {
+                    ChipButton(title: String(localized: "RGB color"), symbol: "paintpalette", selected: t.color) {
+                        edit { $0.target.color.toggle() }
+                    }
+                    .help("RGB groups")
+                    ChipButton(title: String(localized: "COB warm white"), symbol: "sun.max", selected: t.warm, tint: Theme.amber) {
                         edit { $0.target.warm.toggle() }
                     }
-                    .help("Strisce COB calde. Si possono usare insieme ai colori.")
+                    .help("Warm COB strips. They can be used together with the colors.")
                 }
                 if t.isEmpty {
-                    Label("Nessuna luce scelta: la traccia resta spenta.", systemImage: "exclamationmark.triangle")
+                    Label("No light selected: the track stays off.", systemImage: "exclamationmark.triangle")
                         .font(.system(size: 11.5)).foregroundStyle(Theme.warn)
                 }
             }
             centerSection
             VStack(alignment: .leading, spacing: 8) {
-                InspectorHeading("Movimento")
+                InspectorHeading(String(localized: "Movement"))
                 SegmentedChoice(
                     options: TrackMotion.allCases,
                     selection: Binding(get: { track.motion }, set: { m in edit { $0.motion = m } }), label: \.title
                 )
-                .help("Insieme: tutte su ogni colpo. Alterna: metà e metà, un colpo ciascuna. Corsa: una posizione alla volta.")
-                Text("Direzione").font(.system(size: 12)).foregroundStyle(Theme.secondary)
+                .help("Together: all on every hit. Alternate: half and half, one hit each. Chase: one position at a time.")
+                Text("Direction").font(.system(size: 12)).foregroundStyle(Theme.secondary)
                 SegmentedChoice(
                     options: TrackDirection.allCases,
                     selection: Binding(get: { track.direction }, set: { d in edit { $0.direction = d } }),
-                    label: { $0 == .bounce ? "Rimbalzo" : $0.title }
+                    label: { $0 == .bounce ? String(localized: "Bounce") : $0.title }
                 )
-                .help("Ordine di corsa, alternanza e sfalsamento. Dal centro: le posizioni simmetriche insieme.")
+                .help("Order of the chase, alternation and spread. From center: symmetric positions together.")
                 NumberStepper(
-                    title: "Sfalsa", value: track.spread, range: 0...ProgramTrack.maxSpread, step: 0.05,
+                    title: String(localized: "Spread"), value: track.spread, range: 0...ProgramTrack.maxSpread, step: 0.05,
                     unit: "b",
-                    help: "Ritardo tra una posizione e la successiva nell’ordine della direzione, in battiti (0–1): crea un’onda."
+                    help: String(localized: "Delay between one position and the next in the direction order, in beats (0–1): makes a wave.")
                 ) { v in
                     session.editTrack(track.id, "spread") { $0.spread = v }
                 }
@@ -76,10 +82,12 @@ struct LightsTab: View {
                     in: 0...ProgramTrack.maxSpread
                 )
                 .tint(Theme.lavender)
-                .accessibilityLabel("Sfalsa, battiti")
+                .accessibilityLabel("Spread, beats")
             }
             VStack(alignment: .leading, spacing: 8) {
-                InspectorHeading("Colore", detail: t.color ? "dai tre colori della scena" : "solo per le luci RGB")
+                InspectorHeading(
+                    String(localized: "Color"),
+                    detail: t.color ? String(localized: "from the scene's three colors") : String(localized: "RGB lights only"))
                 HStack(spacing: 6) {
                     ForEach(TrackColor.allCases) { choice in
                         ColorChoiceChip(choice: choice, palette: palette, selected: track.color == choice) {
@@ -88,35 +96,35 @@ struct LightsTab: View {
                     }
                 }
                 .opacity(t.color ? 1 : 0.45)
-                .help("Uno dei tre colori della scena, o 1→2→3 a turno colpo dopo colpo. Il bianco caldo non usa i colori.")
+                .help("One of the scene's three colors, or 1→2→3 in turn hit after hit. Warm white doesn't use the colors.")
             }
         }
     }
 
     private var centerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            InspectorHeading("Centro · TRI 380", detail: "6 lati RGB · 3 raggi COB")
+            InspectorHeading(String(localized: "Center · TRI 380"), detail: String(localized: "6 RGB sides · 3 COB rays"))
             HStack(alignment: .center, spacing: 14) {
                 CenterMaskPicker(target: t) { change in edit { change(&$0.target) } }
                     .frame(width: 170, height: 140)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("RGB").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.secondary)
                     HStack(spacing: 4) {
-                        Button("Tutti") {
+                        Button("Select all") {
                             edit {
                                 $0.target.segments = Array(repeating: true, count: RigFrame.centerSegments); $0.target.color = true
                             }
                         }
-                        Button("Nessuno") { edit { $0.target.segments = Array(repeating: false, count: RigFrame.centerSegments) } }
+                        Button("None") { edit { $0.target.segments = Array(repeating: false, count: RigFrame.centerSegments) } }
                     }
                     Text("COB").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.secondary).padding(.top, 2)
                     HStack(spacing: 4) {
-                        Button("Tutti") {
+                        Button("Select all") {
                             edit {
                                 $0.target.cobs = Array(repeating: true, count: RigFrame.centerCOBs); $0.target.warm = true
                             }
                         }
-                        Button("Nessuno") { edit { $0.target.cobs = Array(repeating: false, count: RigFrame.centerCOBs) } }
+                        Button("None") { edit { $0.target.cobs = Array(repeating: false, count: RigFrame.centerCOBs) } }
                     }
                 }
                 .controlSize(.small)
@@ -125,8 +133,8 @@ struct LightsTab: View {
             .opacity(t.center ? 1 : 0.4)
             Text(
                 t.center
-                    ? "Clic su un lato o un raggio per includerlo. Orientamento approssimato: da verificare sulla TRI 380."
-                    : "Attiva Centro per scegliere lati e raggi."
+                    ? String(localized: "Click a side or a ray to include it. Approximate orientation: to be checked on the TRI 380.")
+                    : String(localized: "Turn on Center to choose sides and rays.")
             )
             .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
             .fixedSize(horizontal: false, vertical: true)
@@ -142,8 +150,13 @@ private struct CenterMaskPicker: View {
     let onChange: ((inout TrackTarget) -> Void) -> Void
 
     /// Segment k: 0,1 right edge top→bottom; 2,3 bottom edge right→left; 4,5 left edge bottom→top.
-    private static let names = ["destra alto", "destra basso", "base destra", "base sinistra", "sinistra basso", "sinistra alto"]
-    private static let cobNames = ["raggio in alto", "raggio in basso a destra", "raggio in basso a sinistra"]
+    private static let names = [
+        String(localized: "right top"), String(localized: "right bottom"), String(localized: "base right"), String(localized: "base left"),
+        String(localized: "left bottom"), String(localized: "left top"),
+    ]
+    private static let cobNames = [
+        String(localized: "top ray"), String(localized: "bottom right ray"), String(localized: "bottom left ray"),
+    ]
 
     var body: some View {
         GeometryReader { geo in
@@ -161,8 +174,8 @@ private struct CenterMaskPicker: View {
                     .buttonStyle(.plain)
                     .contentShape(line)
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("Colore centro, \(Self.names[k])")
-                    .accessibilityValue(on ? "incluso" : "escluso")
+                    .accessibilityLabel("Center color, \(String(describing: Self.names[k]))")
+                    .accessibilityValue(on ? String(localized: "included") : String(localized: "excluded"))
                     .accessibilityAddTraits(.isButton)
                 }
                 ForEach(0..<RigFrame.centerCOBs, id: \.self) { k in
@@ -177,8 +190,8 @@ private struct CenterMaskPicker: View {
                     .buttonStyle(.plain)
                     .contentShape(line)
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("Bianco caldo centro, \(Self.cobNames[k])")
-                    .accessibilityValue(on ? "incluso" : "escluso")
+                    .accessibilityLabel("Center warm white, \(String(describing: Self.cobNames[k]))")
+                    .accessibilityValue(on ? String(localized: "included") : String(localized: "excluded"))
                     .accessibilityAddTraits(.isButton)
                 }
             }

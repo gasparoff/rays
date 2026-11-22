@@ -25,12 +25,12 @@ public enum ClubSceneBank {
     /// Short card line (Italian), the Club counterpart of `SceneID.subtitle`.
     public static func subtitle(for slot: SceneID) -> String {
         switch slot {
-        case .ambra: return "Club · basso 3+3+2"
-        case .sunset: return "Club · clave e swing"
-        case .pulse: return "Garage · botta e risposta"
-        case .chase: return "Rave · corsa 136–138"
-        case .aurora: return "Salita · 8 battiti"
-        case .respiro: return "Impatto · coda lunga"
+        case .ambra: return String(localized: "Club · 3+3+2 bass")
+        case .sunset: return String(localized: "Club · clave and swing")
+        case .pulse: return String(localized: "Garage · call and response")
+        case .chase: return String(localized: "Rave · chase 136–138")
+        case .aurora: return String(localized: "Build · 8 beats")
+        case .respiro: return String(localized: "Impact · long tail")
         }
     }
 

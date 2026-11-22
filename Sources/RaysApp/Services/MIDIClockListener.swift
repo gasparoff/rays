@@ -28,7 +28,7 @@ final class MIDIClockListener: ObservableObject {
             guard n.pointee.messageID == .msgSetupChanged else { return }
             DispatchQueue.main.async { self?.rescan() }
         }
-        guard status == noErr else { error = "CoreMIDI non disponibile (\(status))."; return }
+        guard status == noErr else { error = String(localized: "CoreMIDI unavailable (\(String(describing: status)))."); return }
         let clock = source
         let portStatus = MIDIInputPortCreateWithProtocol(client, "Clock in" as CFString, ._1_0, &port) { [weak self] list, _ in
             for (bytes, time) in Self.realtime(from: list) {
@@ -37,7 +37,7 @@ final class MIDIClockListener: ObservableObject {
                 DispatchQueue.main.async { self?.handle(events) }
             }
         }
-        guard portStatus == noErr else { error = "Porta MIDI non disponibile (\(portStatus))."; return }
+        guard portStatus == noErr else { error = String(localized: "MIDI port unavailable (\(String(describing: portStatus)))."); return }
         error = nil
         rescan()
     }
@@ -93,7 +93,7 @@ final class MIDIClockListener: ObservableObject {
         var out: [([UInt8], TimeInterval)] = []
         for packet in list.unsafeSequence() {
             var bytes: [UInt8] = []
-            for word in MIDIEventPacket.WordCollection(packet) where word >> 28 == 0x1 {   // UMP type 1: system
+            for word in MIDIEventPacket.WordCollection(packet) where word >> 28 == 0x1 {  // UMP type 1: system
                 let status = UInt8((word >> 16) & 0xFF)
                 bytes.append(status)
                 if status == 0xF2 { bytes += [UInt8((word >> 8) & 0x7F), UInt8(word & 0x7F)] }

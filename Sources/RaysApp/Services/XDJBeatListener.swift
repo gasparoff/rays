@@ -44,12 +44,12 @@ final class XDJBeatListener: ObservableObject {
                 FileManager.default.isExecutableFile(atPath: $0.appendingPathComponent("Contents/MacOS/Beat Link Trigger").path)
             }
         guard let helper else {
-            error = "Componente Beat Link mancante: ricrea l’app con build-app.sh."
+            error = String(localized: "Beat Link component missing: Pro DJ Link is not available in this build (see Scripts/bootstrap.sh).")
             return
         }
         guard FileManager.default.fileExists(atPath: helper.appendingPathComponent("Contents/app/classes/LightSystemBeatLink.class").path)
         else {
-            error = "Componente Beat Link da compilare: esegui build-app.sh."
+            error = String(localized: "Beat Link component not compiled yet: run Scripts/build-app.sh.")
             return
         }
         let proc = Process()
@@ -85,7 +85,7 @@ final class XDJBeatListener: ObservableObject {
                     guard let self else { return }
                     self.objectWillChange.send()  // expires visible beat status even without events
                     if let last = self.lastMessage, Date().timeIntervalSince(last) > 30 {
-                        self.error = "Beat Link non risponde: riavvio della connessione."
+                        self.error = String(localized: "Beat Link is not responding: restarting the connection.")
                         self.process?.terminate()
                     }
                 }
@@ -93,7 +93,7 @@ final class XDJBeatListener: ObservableObject {
         } catch {
             releasePipes()
             process = nil; isOpen = false
-            self.error = "Avvio Beat Link non riuscito: \(error.localizedDescription)"
+            self.error = String(localized: "Could not start Beat Link: \(String(describing: error.localizedDescription))")
             retry(generation: token)
         }
     }
@@ -106,7 +106,9 @@ final class XDJBeatListener: ObservableObject {
         case "status":
             state = event.state ?? "searching"
             if state == "online" { error = nil }
-            if state == "network" { error = "Console rilevata: verifica che Mac e console siano sulla stessa rete Ethernet." }
+            if state == "network" {
+                error = String(localized: "Console detected: check that the Mac and the console are on the same Ethernet network.")
+            }
         case "device":
             guard let number = event.deck else { return }
             if event.present == true {
@@ -120,7 +122,10 @@ final class XDJBeatListener: ObservableObject {
             lastBeat = beat; lastBeatTime = Date(); error = nil
             onBeat?(beat)
         case "error":
-            error = "Beat Link: \(event.message ?? "connessione non disponibile"). Chiudi eventuali altre app che usano Pro DJ Link."
+            error = String(
+                localized:
+                    "Beat Link: \(String(describing: event.message ?? "connection unavailable")). Quit any other app that uses Pro DJ Link."
+            )
         default: break
         }
     }
@@ -130,7 +135,7 @@ final class XDJBeatListener: ObservableObject {
         releasePipes(); process = nil; isOpen = false
         lastBeat = nil; lastBeatTime = nil
         guard wanted else { return }
-        error = "Beat Link si è fermato (\(exitCode)); nuovo tentativo automatico."
+        error = String(localized: "Beat Link stopped (\(String(describing: exitCode))); retrying automatically.")
         retry(generation: token)
     }
 

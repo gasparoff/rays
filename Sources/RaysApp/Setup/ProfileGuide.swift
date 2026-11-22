@@ -26,7 +26,7 @@ struct ProfileGuide: View {
                 Text(profile.name).foregroundStyle(Theme.lavender)
                 Text(profile.manufacturer).foregroundStyle(Theme.tertiary)
                 Spacer()
-                Text("\(portName) · canale \(profile.midiChannel)").foregroundStyle(Theme.tertiary)
+                Text("\(String(describing: portName)) · channel \(String(describing: profile.midiChannel))").foregroundStyle(Theme.tertiary)
             }.font(.system(size: 11, weight: .semibold))
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 3), spacing: 6) {
                 ForEach(rows, id: \.action) { row in
@@ -44,7 +44,7 @@ struct ProfileGuide: View {
             if let notes = profile.notes, !notes.isEmpty {
                 Text(notes).font(.system(size: 11)).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
             }
-            Text("Layout dalla comunità, non verificato su questo controller. I controlli appresi restano prioritari.")
+            Text("Community layout, not verified on this controller. Learned controls take priority.")
                 .font(.system(size: 11)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
         }
         .padding(12).background(RoundedRectangle(cornerRadius: 12).fill(Color.black.opacity(0.18)))

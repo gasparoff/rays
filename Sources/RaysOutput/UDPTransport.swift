@@ -20,14 +20,22 @@ public struct SocketError: Error, LocalizedError, Equatable {
         let reason = String(cString: strerror(code))
         switch (operation, code) {
         case ("bind", EADDRINUSE):
-            return "Porta UDP \(port.map(String.init) ?? "locale") occupata da un’altra app: chiudila e riprova (\(reason))."
+            return String(
+                localized:
+                    "UDP port \(String(describing: port.map(String.init) ?? "local")) is used by another app: quit it and try again (\(String(describing: reason)))."
+            )
         case ("send", EHOSTUNREACH), ("send", ENETUNREACH):
             return
-                "Rete non raggiungibile (\(reason)). Controlla il permesso «Rete locale» in Impostazioni di Sistema > Privacy e il collegamento."
+                String(
+                    localized:
+                        "Network unreachable (\(String(describing: reason))). Check the Local Network permission in System Settings > Privacy & Security, and the connection."
+                )
         case ("send", EACCES), ("send", EPERM):
-            return "Invio negato dal sistema (\(reason)). Consenti l'accesso alla rete locale a RAYS."
+            return String(
+                localized: "Sending denied by the system (\(String(describing: reason))). Allow RAYS to access the local network.")
         default:
-            return "Errore socket \(operation): \(reason) (\(code))"
+            return String(
+                localized: "Socket error \(String(describing: operation)): \(String(describing: reason)) (\(String(describing: code)))")
         }
     }
 }

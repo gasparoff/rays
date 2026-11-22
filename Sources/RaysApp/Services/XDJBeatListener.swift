@@ -17,7 +17,6 @@ final class XDJBeatListener: ObservableObject {
     /// 0 follows the console's current master automatically.
     var deck = 0
     var isLive: Bool { lastBeatTime.map { Date().timeIntervalSince($0) < Self.staleAfter } ?? false }
-    var selectionLabel: String { deck == 0 ? "Master automatico" : "Deck \(deck)" }
 
     private var process: Process?
     private var input: Pipe?

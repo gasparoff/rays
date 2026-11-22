@@ -55,5 +55,4 @@ public enum VarytecRig {
         ])
     }
 
-    public static let setupInstructions = "Mode → DMX su tutte le luci. TRI 180 sinistra: 08 CH / 008. TRI 180 destra: 08 CH / 016. TRI 380 centro: 25 CH / 024. Universo Art-Net 1."
 }

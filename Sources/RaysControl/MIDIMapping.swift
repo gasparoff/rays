@@ -184,14 +184,6 @@ public enum XoneK2 {
         return ledNotes.contains(base) ? [base, base + 36, base + 72] : []
     }
 
-    public static func padName(_ note: UInt8) -> String? {
-        for (row, notes) in matrix.enumerated() {
-            if let col = notes.firstIndex(of: note) {
-                return String(UnicodeScalar(UInt8(65 + row * 4 + col)))
-            }
-        }
-        return nil
-    }
 
     /// The default performance page: faders = L / C / R / master, column-4 pots = accent level
     /// and energy, pads = scenes (A–C, E–G), Stop (D), rates (I–L), accent hold (M), blackout (P).

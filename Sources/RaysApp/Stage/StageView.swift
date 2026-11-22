@@ -12,16 +12,7 @@ import RaysEngine
 /// Drawn by one CoreGraphics view instead of a SwiftUI `Canvas`: the animated Canvas (blur layers and
 /// ~600 path operations per frame) kept a GPU heap of ~236 MiB in isolation. Geometry and blurred glow
 /// masks are built only when the size or the fixture models change; each 30 Hz snapshot only refills colours.
-struct StageView: View {
-    let fixtures: [FixtureVisual]
-
-    var body: some View {
-        StageRenderer(fixtures: fixtures)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Anteprima delle \(fixtures.count) luci: triangoli a specchio, zone RGB e strisce COB calde")
-    }
-}
-
+///
 /// The renderer consumes the 30 Hz frames directly. Its intrinsic size never changes with light
 /// values, so a new frame invalidates pixels without invalidating the surrounding SwiftUI layout.
 struct LiveStageView: NSViewRepresentable {
@@ -35,18 +26,6 @@ struct LiveStageView: NSViewRepresentable {
     }
 
     func updateNSView(_ view: StageRendererView, context: Context) {}
-}
-
-private struct StageRenderer: NSViewRepresentable {
-    let fixtures: [FixtureVisual]
-
-    func makeNSView(context: Context) -> StageRendererView {
-        let view = StageRendererView()
-        view.toolTip = "Colori e bianchi caldi derivano dagli stessi valori DMX. La disposizione dei sei segmenti centrali va verificata sulla TRI 380."
-        return view
-    }
-
-    func updateNSView(_ view: StageRendererView, context: Context) { view.fixtures = fixtures }
 }
 
 final class StageRendererView: NSView {

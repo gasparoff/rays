@@ -21,8 +21,6 @@ final class LinkTempoSource: TempoSource, @unchecked Sendable {
         if let link { ls_link_set_enabled(link, true) }
     }
 
-    var isAvailable: Bool { lock.lock(); defer { lock.unlock() }; return link != nil }
-
     func capture() -> TempoSnapshot {
         lock.lock(); defer { lock.unlock() }
         guard let link else { return fallback.capture() }

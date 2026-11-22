@@ -158,12 +158,6 @@ final class SceneEditorSession: ObservableObject {
                 set: { value in self.edit(key) { $0[keyPath: path] = value } })
     }
 
-    func trackBinding<T: Equatable>(_ id: UUID, _ path: WritableKeyPath<ProgramTrack, T>, key: String,
-                                    fallback: T) -> Binding<T> {
-        Binding(get: { self.tracks.first { $0.id == id }?[keyPath: path] ?? fallback },
-                set: { value in self.editTrack(id, key) { $0[keyPath: path] = value } })
-    }
-
     func undo() {
         guard !finished, let previous = history.undo(current: draft) else { return }
         draft = previous

@@ -23,7 +23,6 @@ final class CustomScenesStore: ObservableObject {
         load()
     }
 
-    var fileURL: URL { file.url }
     var personalScenes: [CustomScene] { scenes.filter { $0.presetSlot == nil } }
     func preset(_ slot: SceneID, bank: SceneBank = .house) -> CustomScene? {
         scenes.first { $0.presetSlot == slot && $0.presetBank == bank }
@@ -92,9 +91,6 @@ final class CustomScenesStore: ObservableObject {
             self.error = "Impossibile mettere da parte il file illeggibile: \(error.localizedDescription)"
         }
     }
-
-    /// Hides the current message (the unreadable-file protection stays active).
-    func clearError() { error = nil }
 
     /// Where the unreadable file was moved by the last `replaceUnreadableFile()`.
     @Published private(set) var lastBackupURL: URL?

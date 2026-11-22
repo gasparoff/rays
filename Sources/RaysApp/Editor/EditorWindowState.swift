@@ -28,8 +28,6 @@ final class EditorWindowState: ObservableObject {
     /// this (not the still-expanded current frame) is the frame to come back to.
     private var restoreTarget: NSRect?
 
-    var isFullScreen: Bool { window?.styleMask.contains(.fullScreen) == true }
-
     func enter(_ window: NSWindow) {
         guard !active else { return }
         active = true

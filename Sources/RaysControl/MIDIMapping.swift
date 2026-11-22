@@ -196,35 +196,54 @@ public enum XoneK2 {
     /// The default performance page: faders = L / C / R / master, column-4 pots = accent level
     /// and energy, pads = scenes (A–C, E–G), Stop (D), rates (I–L), accent hold (M), blackout (P).
     /// H, N, O, the other pots, the encoders and the bottom buttons stay free for Learn.
-    public static let preset: [(action: ControlAction, kind: MIDIControl.Kind, number: UInt8)] = [
-        (.levelLeft, .cc, 16), (.levelCenter, .cc, 17), (.levelRight, .cc, 18), (.master, .cc, 19),
-        (.accentLevel, .cc, 11), (.energy, .cc, 15),
-        (.scene1, .note, 36), (.scene2, .note, 37), (.scene3, .note, 38), (.stop, .note, 39),
-        (.scene4, .note, 32), (.scene5, .note, 33), (.scene6, .note, 34), (.buildDrop, .note, 35),
-        (.rateQuarter, .note, 28), (.rateHalf, .note, 29), (.rateNormal, .note, 30), (.rateDouble, .note, 31),
-        (.accent, .note, 24), (.blackout, .note, 27)
-    ]
+    /// Mirrored by `Controllers/xone-k2-classic.json` (verified by tests).
+    public static let classicProfile = k2Profile(
+        id: "allen-heath.xone-k2.classic", name: "Xone:K2 — Classica", encoderResolution: nil,
+        bindings: [
+            .init(.levelLeft, .cc, 16), .init(.levelCenter, .cc, 17), .init(.levelRight, .cc, 18), .init(.master, .cc, 19),
+            .init(.accentLevel, .cc, 11), .init(.energy, .cc, 15),
+            .init(.scene1, .note, 36), .init(.scene2, .note, 37), .init(.scene3, .note, 38), .init(.stop, .note, 39),
+            .init(.scene4, .note, 32), .init(.scene5, .note, 33), .init(.scene6, .note, 34), .init(.buildDrop, .note, 35),
+            .init(.rateQuarter, .note, 28), .init(.rateHalf, .note, 29), .init(.rateNormal, .note, 30), .init(.rateDouble, .note, 31),
+            .init(.accent, .note, 24), .init(.blackout, .note, 27),
+        ],
+        notes: "Factory layout, Latching Layers OFF. Faders = left / centre / right / master; column-4 pots = Flash level and energy; pads A–C, E–G = scenes, D = Stop, H = Build → Drop, I–L = rates, M = Flash (hold), P = Blackout.")
 
-    public static let livePreset: [(action: ControlAction, kind: MIDIControl.Kind, number: UInt8)] = [
-        (.levelLeft, .cc, 16), (.levelCenter, .cc, 17), (.levelRight, .cc, 18), (.master, .cc, 19),
-        (.energy, .cc, 20), (.accentLevel, .cc, 21),
-        (.scene1, .note, 36), (.scene2, .note, 37), (.scene3, .note, 38), (.bankHouse, .note, 39),
-        (.scene4, .note, 32), (.scene5, .note, 33), (.scene6, .note, 34), (.bankClub, .note, 35),
-        (.rateQuarter, .note, 28), (.rateHalf, .note, 29), (.rateNormal, .note, 30), (.rateDouble, .note, 31),
-        (.accent, .note, 24), (.sceneFirstBeat, .note, 25), (.cancelPending, .note, 26), (.stop, .note, 27),
-        (.buildDrop, .note, 12), (.blackout, .note, 15)
-    ]
+    /// Mirrored by `Controllers/xone-k2-live-v2.json` (verified by tests).
+    public static let liveV2Profile = k2Profile(
+        id: "allen-heath.xone-k2.live-v2", name: "Xone:K2 — Live v2", encoderResolution: 127,
+        bindings: [
+            .init(.levelLeft, .cc, 16), .init(.levelCenter, .cc, 17), .init(.levelRight, .cc, 18), .init(.master, .cc, 19),
+            .init(.energy, .cc, 20), .init(.accentLevel, .cc, 21),
+            .init(.scene1, .note, 36), .init(.scene2, .note, 37), .init(.scene3, .note, 38), .init(.bankHouse, .note, 39),
+            .init(.scene4, .note, 32), .init(.scene5, .note, 33), .init(.scene6, .note, 34), .init(.bankClub, .note, 35),
+            .init(.rateQuarter, .note, 28), .init(.rateHalf, .note, 29), .init(.rateNormal, .note, 30), .init(.rateDouble, .note, 31),
+            .init(.accent, .note, 24), .init(.sceneFirstBeat, .note, 25), .init(.cancelPending, .note, 26), .init(.stop, .note, 27),
+            .init(.buildDrop, .note, 12), .init(.blackout, .note, 15),
+        ],
+        notes: "Factory layout, Latching Layers OFF. The two bottom encoders = energy and Flash level (relative, 127 detents per sweep); pads D/H = House/Club bank, N = first beat, O = cancel queue, P = Stop; bottom Layer = Build → Drop, Exit = Blackout.")
 
-    public static func preset(for layout: Layout) -> [(action: ControlAction, kind: MIDIControl.Kind, number: UInt8)] {
-        layout == .classic ? preset : livePreset
+    private static func k2Profile(id: String, name: String, encoderResolution: Int?,
+                                  bindings: [ControllerProfile.Binding], notes: String) -> ControllerProfile {
+        ControllerProfile(
+            id: id, name: name, manufacturer: "Allen & Heath", portNamePattern: "(^|[^a-z0-9])k2($|[^a-z0-9])",
+            midiChannel: Int(factoryChannel) + 1, bindings: bindings, relativeEncoders: [0, 1, 2, 3, 20, 21],
+            encoderResolution: encoderResolution,
+            leds: .init(notes: .init(from: 24, to: 55), colors: .init(red: 0, amber: 36, green: 72),
+                        special: [.init(base: 12, addresses: [12, 16, 20]), .init(base: 15, addresses: [15, 19, 23])]),
+            notes: notes)
+    }
+
+    public static func profile(for layout: Layout) -> ControllerProfile {
+        layout == .classic ? classicProfile : liveV2Profile
     }
 
     public static func presetAction(kind: MIDIControl.Kind, number: UInt8, layout: Layout = .classic) -> ControlAction? {
-        preset(for: layout).first { $0.kind == kind && $0.number == number }?.action
+        profile(for: layout).bindings.first { $0.type == kind && $0.number == number }?.action
     }
 
     public static func presetControl(for action: ControlAction, channel: UInt8, layout: Layout = .classic) -> MIDIControl? {
-        preset(for: layout).first { $0.action == action }.map { MIDIControl($0.kind, channel: channel, number: $0.number) }
+        profile(for: layout).bindings.first { $0.action == action }.map { MIDIControl($0.type, channel: channel, number: $0.number) }
     }
 
     public enum LED: Equatable, Sendable {
@@ -263,10 +282,13 @@ public struct MIDIMap: Codable, Equatable, Sendable {
     public var k2Channel: UInt8?
     /// Additive setting: old MIDI files always retain the classic layout.
     public var k2Layout: XoneK2.Layout = .classic
+    /// Also connect MIDI inputs that match no controller layout, so their controls can be learned.
+    /// Off by default: only the K2 and ports matching a `ControllerProfile` are listened to.
+    public var learnFromAllInputs = false
 
     public init() {}
 
-    enum CodingKeys: String, CodingKey { case bindings, k2Preset, k2Channel, k2Layout }
+    enum CodingKeys: String, CodingKey { case bindings, k2Preset, k2Channel, k2Layout, learnFromAllInputs }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -279,6 +301,7 @@ public struct MIDIMap: Codable, Equatable, Sendable {
         k2Preset = (try? c.decodeIfPresent(Bool.self, forKey: .k2Preset)) ?? true
         k2Channel = (try? c.decodeIfPresent(UInt8.self, forKey: .k2Channel)).flatMap { $0 }.map { $0 & 0x0F }
         k2Layout = (try? c.decodeIfPresent(XoneK2.Layout.self, forKey: .k2Layout)) ?? .classic
+        learnFromAllInputs = (try? c.decodeIfPresent(Bool.self, forKey: .learnFromAllInputs)) ?? false
     }
 
     public func control(for action: ControlAction) -> MIDIControl? { bindings.first { $0.action == action }?.control }
@@ -299,6 +322,15 @@ public struct MIDIMap: Codable, Equatable, Sendable {
         guard k2Preset, let preset = XoneK2.presetControl(for: action, channel: channel, layout: k2Layout),
               binding(for: preset) == nil else { return nil }
         return preset
+    }
+
+    /// Effective control for an action on a port routed by `profile` (learned on that port's
+    /// channel first, else the layout's binding unless that control or action was re-learned).
+    public func control(for action: ControlAction, in profile: ControllerProfile) -> MIDIControl? {
+        if let learned = control(for: action) { return learned.channel == profile.channel ? learned : nil }
+        guard let b = profile.bindings.first(where: { $0.action == action }) else { return nil }
+        let c = MIDIControl(b.type, channel: profile.channel, number: b.number)
+        return binding(for: c) == nil ? c : nil
     }
 }
 
@@ -350,9 +382,12 @@ public struct MIDIRouter: Sendable {
     /// - Parameters:
     ///   - fromK2: the message came from a port named like an Xone K2 (enables the preset and
     ///     the relative-encoder rules).
+    ///   - profile: the controller layout of a non-K2 port (ignored when `fromK2`); nil = learned
+    ///     bindings only.
     ///   - current: the software value of a continuous action, for soft takeover and encoders.
-    public mutating func handle(_ event: MIDIEvent, fromK2: Bool = false,
+    public mutating func handle(_ event: MIDIEvent, fromK2: Bool = false, profile: ControllerProfile? = nil,
                                 current: (ControlAction) -> Double = { _ in 0 }) -> Result {
+        let profile = fromK2 ? nil : profile
         let control = event.control
         let pressed = control.kind == .note ? event.isNoteOn : event.value >= 64
         var risingEdge = pressed, fallingEdge = !pressed
@@ -369,21 +404,24 @@ public struct MIDIRouter: Sendable {
             if pressed { noteHigh.insert(control) } else { noteHigh.remove(control) }
         }
         let isK2Encoder = fromK2 && control.kind == .cc && XoneK2.relativeEncoderCCs.contains(control.number)
+        let isProfileEncoder = control.kind == .cc && control.channel == profile?.channel
+            && (profile?.relativeEncoders ?? []).contains(control.number)
+        let isEncoder = isK2Encoder || isProfileEncoder
 
         if let action = learning {
             if action.isContinuous {
                 guard control.kind == .cc else { return .none }
             } else {
                 // Buttons learn on a press, never on release, and never from an endless encoder.
-                guard risingEdge, !isK2Encoder else { return .none }
+                guard risingEdge, !isEncoder else { return .none }
             }
-            map.bind(action, to: control, relative: action.isContinuous && isK2Encoder)
+            map.bind(action, to: control, relative: action.isContinuous && isEncoder)
             learning = nil
             takeover[action] = nil
             return .learned(action, control)
         }
 
-        guard let (action, relative) = resolve(control, fromK2: fromK2) else { return .none }
+        guard let (action, relative) = resolve(control, fromK2: fromK2, profile: profile) else { return .none }
 
         if action.isContinuous {
             guard control.kind == .cc else { return .none }
@@ -391,8 +429,10 @@ public struct MIDIRouter: Sendable {
                 let raw = Int(event.value)
                 guard raw != 0, raw != 64 else { return .none }
                 let delta = raw < 64 ? raw : raw - 128
-                let isLivePresetEncoder = fromK2 && map.k2Layout == .liveV2 && map.binding(for: control) == nil
-                let step = isLivePresetEncoder ? Self.livePresetEncoderStep : Self.relativeStep
+                let isPreset = map.binding(for: control) == nil
+                let isLivePresetEncoder = fromK2 && map.k2Layout == .liveV2 && isPreset
+                var step = isLivePresetEncoder ? Self.livePresetEncoderStep : Self.relativeStep
+                if isPreset, isProfileEncoder, let r = profile?.encoderResolution, r > 0 { step = 1.0 / Double(r) }
                 let v = clamp01(current(action) + Double(delta) * step)
                 return MIDICommand.continuous(action, v).map(Result.command) ?? .none
             }
@@ -419,7 +459,7 @@ public struct MIDIRouter: Sendable {
             if fallingEdge { return .command(action == .buildDrop ? .buildHold(false) : .accent(false)) }
             return .none
         }
-        guard risingEdge, !isK2Encoder else { return .none }
+        guard risingEdge, !isEncoder else { return .none }
         if let i = action.sceneIndex { return .command(.scene(SceneID.allCases[i])) }
         if let r = action.rate { return .command(.rate(r)) }
         switch action {
@@ -436,8 +476,13 @@ public struct MIDIRouter: Sendable {
 
     /// Learned bindings first; then the K2 preset for K2 ports on the K2 channel, unless that
     /// action has been re-learned elsewhere.
-    private mutating func resolve(_ control: MIDIControl, fromK2: Bool) -> (ControlAction, Bool)? {
+    private mutating func resolve(_ control: MIDIControl, fromK2: Bool, profile: ControllerProfile?) -> (ControlAction, Bool)? {
         if let b = map.binding(for: control) { return (b.action, b.relative == true) }
+        if !fromK2, let profile {
+            guard let action = profile.action(for: control), map.control(for: action) == nil else { return nil }
+            let encoder = control.kind == .cc && (profile.relativeEncoders ?? []).contains(control.number)
+            return (action, encoder)
+        }
         guard fromK2, map.k2Preset,
               let action = XoneK2.presetAction(kind: control.kind, number: control.number, layout: map.k2Layout) else { return nil }
         if let fixed = map.k2Channel {
@@ -487,6 +532,19 @@ public enum K2Feedback {
         for action in ControlAction.allCases {
             guard let c = map.k2Control(for: action, channel: channel), c.channel == channel, c.kind == .note,
                   !XoneK2.ledAddresses(base: c.number).isEmpty else { continue }
+            out[c.number] = color(action, s)
+        }
+        return out
+    }
+
+    /// LED colours for a port routed by `profile` (same colour rules as the K2), keyed by base note.
+    /// Empty when the layout has no LEDs.
+    public static func leds(map: MIDIMap, profile: ControllerProfile, state s: K2FeedbackState) -> [UInt8: XoneK2.LED] {
+        guard let leds = profile.leds else { return [:] }
+        var out: [UInt8: XoneK2.LED] = [:]
+        for action in ControlAction.allCases {
+            guard let c = map.control(for: action, in: profile), c.kind == .note,
+                  leds.addresses(base: c.number).count == 3 else { continue }
             out[c.number] = color(action, s)
         }
         return out

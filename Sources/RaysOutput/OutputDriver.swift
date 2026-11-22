@@ -41,9 +41,11 @@ public protocol OutputDriver: AnyObject {
 
 /// Builds output drivers by identifier. Start from `.builtIn` and `register` new drivers.
 public struct OutputDriverRegistry {
+    /// Builds a driver for the engine's transport and interface list.
     public typealias Factory = (_ transport: DatagramTransport,
                                 _ interfaces: @escaping () -> [NetworkInterface]) -> OutputDriver
 
+    /// A driver the registry can build.
     public struct Descriptor {
         public var id: String
         public var name: String

@@ -2,6 +2,7 @@ import Foundation
 
 // MARK: - IPv4
 
+/// An IPv4 address, stored as four octets.
 public struct IPv4Address: Hashable, Codable, Comparable, CustomStringConvertible, Sendable {
     /// Host-order value: a.b.c.d == a << 24 | b << 16 | c << 8 | d.
     public var value: UInt32
@@ -63,6 +64,7 @@ public struct PortAddress: Hashable, Comparable, Codable, Sendable, CustomString
 
 // MARK: - Packets
 
+/// Errors building or parsing Art-Net packets.
 public enum ArtNetError: Error, Equatable, LocalizedError {
     case tooShort(Int)
     case badHeader
@@ -79,6 +81,7 @@ public enum ArtNetError: Error, Equatable, LocalizedError {
     }
 }
 
+/// Art-Net 4 packet builders and constants (ArtPoll, ArtDmx).
 public enum ArtNet {
     public static let port: UInt16 = 6454
     public static let header: [UInt8] = Array("Art-Net".utf8) + [0]
@@ -86,6 +89,7 @@ public enum ArtNet {
     public static let dmxSlots = 512
     public static let dmxPacketLength = 18 + 512
 
+    /// Art-Net operation codes used by RAYS.
     public enum OpCode: UInt16 {
         case poll = 0x2000
         case pollReply = 0x2100
@@ -130,7 +134,9 @@ public enum ArtNet {
 
 // MARK: - ArtPollReply
 
+/// A parsed ArtPollReply: node identity, names and output ports.
 public struct ArtPollReply: Equatable, Sendable {
+    /// One output port of a node.
     public struct Port: Equatable, Sendable {
         public var index: Int
         public var typeByte: UInt8

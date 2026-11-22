@@ -33,6 +33,7 @@ public enum TrackSound: String, Codable, CaseIterable, Identifiable, Sendable {
     }
 }
 
+/// How a track's hits move across the fixtures.
 public enum TrackMotion: String, Codable, CaseIterable, Identifiable, Sendable {
     /// Every target lights on every hit.
     case together
@@ -51,6 +52,7 @@ public enum TrackMotion: String, Codable, CaseIterable, Identifiable, Sendable {
     }
 }
 
+/// Direction of a moving track across the stage.
 public enum TrackDirection: String, Codable, CaseIterable, Identifiable, Sendable {
     /// Left → right across the stage (centre segments along the U path).
     case forward
@@ -131,6 +133,7 @@ public struct TrackTarget: Codable, Equatable, Hashable, Sendable {
     public static let centerOnly = TrackTarget(left: false, right: false)
     public static let sides = TrackTarget(center: false)
 
+    /// Shortcut for common target selections.
     public enum Zone: String, CaseIterable, Identifiable, Sendable {
         case all, center, sides, left, right
         public var id: String { rawValue }

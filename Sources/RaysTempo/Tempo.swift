@@ -1,11 +1,13 @@
 import Foundation
 
+/// Where a tempo snapshot comes from.
 public enum TempoSourceKind: String, Sendable {
     case link
     case local
     case midiClock
 }
 
+/// Tempo and beat position at one instant.
 public struct TempoSnapshot: Equatable, Sendable {
     public var bpm: Double
     /// Beat on the Link timeline (may be negative right after session start).
@@ -27,6 +29,7 @@ public struct TempoSnapshot: Equatable, Sendable {
     }
 }
 
+/// Anything that provides tempo and beat position to the engine (Ableton Link, internal clock, MIDI clock).
 public protocol TempoSource: AnyObject {
     func capture() -> TempoSnapshot
     /// Explicit user tempo change (tap / manual). Never called automatically.
@@ -66,6 +69,7 @@ public final class DownbeatTempoSource: TempoSource, @unchecked Sendable {
     public func setStartStopSync(_ enabled: Bool) { source.setStartStopSync(enabled) }
 }
 
+/// The BPM range RAYS accepts.
 public enum TempoRange {
     public static let bpm: ClosedRange<Double> = 20...999
     public static func clamp(_ bpm: Double) -> Double {

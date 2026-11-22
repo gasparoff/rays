@@ -143,6 +143,7 @@ public final class ArtNetController {
     }
 }
 
+/// Human-readable hints when no Art-Net node can be reached.
 public enum NetworkDiagnosis {
     public static let odeFallbackIP = IPv4Address(192, 168, 0, 10)
 

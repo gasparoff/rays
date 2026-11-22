@@ -94,6 +94,7 @@ public struct RhythmViewport: Equatable, Sendable {
 
     public mutating func showPage(_ page: Int) { update(start: page * span) }
 
+    /// One visible step cell of the rhythm grid.
     public struct Cell: Equatable, Sendable {
         /// Index into `ProgramTrack.steps`.
         public var source: Int

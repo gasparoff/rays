@@ -5,6 +5,7 @@ import Foundation
 /// The Xone:K2 layouts ship as JSON files that mirror `XoneK2` exactly (verified by tests);
 /// the K2 itself is still driven by the `XoneK2` code path. Learned bindings always win.
 public struct ControllerProfile: Codable, Equatable, Identifiable, Sendable {
+    /// One control of the layout and the action it drives.
     public struct Binding: Codable, Equatable, Hashable, Sendable {
         public var action: ControlAction
         /// "note" or "cc".
@@ -25,16 +26,20 @@ public struct ControllerProfile: Codable, Equatable, Identifiable, Sendable {
     /// - `velocity` (Akai APC, Novation): a note in `notes` or `extraNotes` lights colour `c` by
     ///   sending that same note with velocity `colors[c]`; off is a note-off.
     public struct LEDFeedback: Codable, Equatable, Sendable {
+        /// How a colour is selected: by note offset (Xone:K2) or by note velocity (APC, Launchpad).
         public enum Style: String, Codable, Sendable { case offset, velocity }
+        /// Inclusive range of LED notes.
         public struct Range: Codable, Equatable, Sendable {
             public var from: UInt8
             public var to: UInt8
         }
+        /// Note offsets (offset style) or velocities (velocity style) for the three feedback colours.
         public struct Colors: Codable, Equatable, Sendable {
             public var red: UInt8
             public var amber: UInt8
             public var green: UInt8
         }
+        /// A button whose LED uses its own three addresses.
         public struct Special: Codable, Equatable, Sendable {
             public var base: UInt8
             /// [red, amber, green]

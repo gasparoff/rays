@@ -5,6 +5,7 @@ import Foundation
 /// per view size and fixture models instead of on every 30 Hz frame. Coordinates are top-left origin, y down.
 /// Pure numbers so the renderer and the tests share one source of truth.
 public struct StageLayout: Equatable, Sendable {
+    /// One triangular mirror facet.
     public struct Facet: Equatable, Sendable {
         public var a: CGPoint, b: CGPoint, c: CGPoint
         /// RGB zone 0…5, clockwise from the top around the fixture centre (clamped to the fixture's zone count when drawn).
@@ -13,10 +14,12 @@ public struct StageLayout: Equatable, Sendable {
         public var reflection: Double
     }
 
+    /// One linear COB strip.
     public struct Strip: Equatable, Sendable {
         public var from: CGPoint, to: CGPoint
     }
 
+    /// Geometry of one fixture in the preview.
     public struct Fixture: Equatable, Sendable {
         public var large: Bool
         public var center: CGPoint

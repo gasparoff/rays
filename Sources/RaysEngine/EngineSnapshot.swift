@@ -3,6 +3,7 @@ import RaysOutput
 import RaysTempo
 import RaysCore
 
+/// Whether DMX can be sent, or the first reason why not.
 public enum OutputReadiness: Equatable, Sendable {
     case ready
     case noPatch
@@ -27,6 +28,7 @@ public enum OutputReadiness: Equatable, Sendable {
 
 /// One fixture as the preview shows it, decoded from the very bytes composed for DMX.
 public struct FixtureVisual: Equatable, Identifiable, Sendable {
+    /// Whether this fixture is live, preview-only or off.
     public enum Status: Equatable, Sendable {
         /// Patched and DMX is being sent.
         case live
@@ -61,6 +63,7 @@ public struct FixtureVisual: Equatable, Identifiable, Sendable {
     public var isDark: Bool { rgb.allSatisfy { $0.peak < 1e-9 } && cob.allSatisfy { $0 < 1e-9 } }
 }
 
+/// Output driver state shown in Setup (nodes, target, errors, diagnosis).
 public struct NetworkStatus: Equatable, Sendable {
     public var nodes: [DiscoveredNode] = []
     public var selectedID: String?
@@ -73,6 +76,7 @@ public struct NetworkStatus: Equatable, Sendable {
     public var diagnosis: [String] = []
 }
 
+/// Everything the UI shows about one engine frame, published at up to 30 Hz.
 public struct EngineSnapshot: Equatable, Sendable {
     public var tempo = TempoSnapshot(bpm: 120, beat: 0, phase: 0)
     public var scene: SceneID = .ambra

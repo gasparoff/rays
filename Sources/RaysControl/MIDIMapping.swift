@@ -3,6 +3,7 @@ import RaysCore
 
 /// One physical control on a MIDI controller (e.g. an Xone K2 button or fader).
 public struct MIDIControl: Codable, Hashable, Sendable {
+    /// Note or control-change message.
     public enum Kind: String, Codable, Sendable { case note, cc }
     public var kind: Kind
     /// 0-based MIDI channel.
@@ -16,6 +17,7 @@ public struct MIDIControl: Codable, Hashable, Sendable {
     public var label: String { "\(kind == .note ? "Nota" : "CC") \(number) · can. \(channel + 1)" }
 }
 
+/// One decoded note or CC message.
 public struct MIDIEvent: Equatable, Sendable {
     public var control: MIDIControl
     public var value: UInt8
@@ -136,6 +138,7 @@ public enum ControlAction: String, Codable, CaseIterable, Identifiable, Sendable
     }
 }
 
+/// What a MIDI control asks the app to do, after Learn, presets and soft takeover.
 public enum MIDICommand: Equatable, Sendable {
     case scene(SceneID)
     case master(Double)
@@ -165,6 +168,7 @@ public enum MIDICommand: Equatable, Sendable {
 
 /// Allen & Heath Xone:K2 factory layout (user guide AP8509, Latching Layers OFF).
 public enum XoneK2 {
+    /// The two built-in Xone:K2 layouts.
     public enum Layout: String, Codable, CaseIterable, Identifiable, Sendable {
         case classic, liveV2
         public var id: String { rawValue }
@@ -238,6 +242,7 @@ public enum XoneK2 {
         profile(for: layout).bindings.first { $0.action == action }.map { MIDIControl($0.type, channel: channel, number: $0.number) }
     }
 
+    /// Colour of a K2-style tri-colour LED.
     public enum LED: Equatable, Sendable {
         case off, red, amber, green
         /// Note to switch on for this colour, nil for off.
@@ -256,6 +261,7 @@ public enum XoneK2 {
 
 /// Persistent mapping: learned bindings plus the automatic K2 preset settings.
 public struct MIDIMap: Codable, Equatable, Sendable {
+    /// A learned binding from a control to an action.
     public struct Binding: Codable, Equatable, Sendable {
         public var action: ControlAction
         public var control: MIDIControl
@@ -328,6 +334,7 @@ public struct MIDIMap: Codable, Equatable, Sendable {
 
 /// Learn + dispatch state machine. Pure, so it is testable without hardware.
 public struct MIDIRouter: Sendable {
+    /// Outcome of one MIDI message.
     public enum Result: Equatable, Sendable {
         case none
         case learned(ControlAction, MIDIControl)
@@ -516,6 +523,7 @@ public struct K2FeedbackState: Equatable, Sendable {
     public init(scene: SceneID) { self.scene = scene }
 }
 
+/// LED colours that mirror the console state on the K2 and on other layouts with LEDs.
 public enum K2Feedback {
     /// Desired colour for each LED-capable base note mapped to an action.
     public static func leds(map: MIDIMap, channel: UInt8, state s: K2FeedbackState) -> [UInt8: XoneK2.LED] {

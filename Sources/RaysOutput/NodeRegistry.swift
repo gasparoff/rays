@@ -24,6 +24,7 @@ public struct DiscoveredNode: Identifiable, Equatable, Sendable {
     public var displayName: String { longName.isEmpty ? (shortName.isEmpty ? ip.description : shortName) : longName }
 }
 
+/// Recognises ENTTEC nodes from their ArtPollReply.
 public enum EnttecMatcher {
     /// ESTA manufacturer code registered to ENTTEC ("EN").
     public static let estaCode: UInt16 = 0x454E
@@ -37,6 +38,7 @@ public enum EnttecMatcher {
     }
 }
 
+/// Art-Net nodes seen recently, merged by identity, with automatic selection.
 public struct NodeRegistry: Sendable {
     public private(set) var nodes: [String: DiscoveredNode] = [:]
     public var staleAfter: TimeInterval = 10

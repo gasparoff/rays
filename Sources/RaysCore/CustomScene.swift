@@ -37,6 +37,7 @@ public struct SceneRGB: Codable, Equatable, Hashable, Sendable {
     }
 }
 
+/// A user scene: base choreography, palette, energy, levels and an optional track program. Persisted as JSON.
 public struct CustomScene: Codable, Equatable, Identifiable, Sendable {
     public static let defaultName = "La mia scena"
     public static let maxNameLength = 40
@@ -139,6 +140,7 @@ public struct CustomScene: Codable, Equatable, Identifiable, Sendable {
     /// For per-frame use, build `paletteMap` once and call `apply` on it.
     public func recolor(_ color: LightColor) -> LightColor { paletteMap.apply(color) }
 
+    /// Stage position used by the per-zone levels.
     public enum Zone: Sendable { case left, center, right }
 
     public func level(_ zone: Zone) -> Double {
@@ -264,6 +266,7 @@ public enum CustomSceneDocument {
     public static let currentVersion = 1
     public static let fileName = "custom-scenes.json"
 
+    /// Errors reading or writing the scenes file.
     public enum DocumentError: Error, Equatable, LocalizedError {
         case unsupportedVersion(Int)
         case unreadable(String)

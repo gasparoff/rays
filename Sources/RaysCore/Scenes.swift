@@ -1,5 +1,6 @@
 import Foundation
 
+/// RGBW colour, components 0...1.
 public struct LightColor: Equatable, Sendable {
     public var r: Double, g: Double, b: Double, w: Double
 
@@ -89,7 +90,9 @@ public enum SceneID: String, Codable, CaseIterable, Identifiable, Sendable {
     }
 }
 
+/// How the engine changes from one scene to the next.
 public struct SceneTransition: Equatable, Sendable {
+    /// When a scene change starts.
     public enum Start: Equatable, Sendable {
         /// Fade starts on the press.
         case immediate

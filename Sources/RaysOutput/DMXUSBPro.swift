@@ -83,6 +83,7 @@ public final class POSIXSerialPort: SerialPort, @unchecked Sendable {
 /// universe, the configured patch universe (default: the lowest one in the patch).
 /// Not thread-safe: use from the engine's serial queue.
 public final class DMXUSBProDriver: OutputDriver {
+    /// Device and universe for the DMX USB Pro driver.
     public struct Configuration: Codable, Equatable, Sendable {
         /// nil = first /dev/cu.usbserial-* device found.
         public var devicePath: String?

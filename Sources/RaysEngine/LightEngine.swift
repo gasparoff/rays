@@ -3,6 +3,7 @@ import RaysOutput
 import RaysTempo
 import RaysCore
 
+/// The 30 Hz lighting engine: tempo in, scenes and choreography, DMX out through an `OutputDriver`, snapshots to the UI. All state lives on its serial `queue`.
 public final class LightEngine: @unchecked Sendable {
     public static let frameRate = 30.0
     /// Light is rendered this far ahead of the Link beat to cover Art-Net + fixture processing.

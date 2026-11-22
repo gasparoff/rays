@@ -3,12 +3,14 @@ import Foundation
 /// A small, static score of the running lighting scene. Prepared only when its source or
 /// viewport changes; the live cursor uses the engine's patternBeat separately.
 public struct SceneMiniatureLayout: Equatable, Sendable {
+    /// One hit drawn in a lane.
     public struct Mark: Equatable, Sendable {
         public var beat: Double
         public var duration: Double
         public var level: Double
     }
 
+    /// One track row of the miniature.
     public struct Lane: Equatable, Sendable {
         public var name: String
         public var color: SceneRGB

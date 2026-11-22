@@ -1,6 +1,7 @@
 import Foundation
 import RaysOutput
 
+/// Meaning of one DMX channel of a fixture profile.
 public enum ChannelKind: String, Codable, CaseIterable, Sendable {
     case dimmer, red, green, blue, white, blinder, amber, constant, ignore
 
@@ -19,6 +20,7 @@ public enum ChannelKind: String, Codable, CaseIterable, Sendable {
     }
 }
 
+/// One DMX channel of a fixture profile.
 public struct ChannelDefinition: Codable, Hashable, Sendable {
     public var kind: ChannelKind
     /// Only used by `.constant` (e.g. shutter open). Everything else is computed.
@@ -111,6 +113,7 @@ public struct FixtureProfile: Codable, Hashable, Identifiable, Sendable {
     }
 }
 
+/// Built-in fixture profiles plus the ones loaded from JSON files.
 public struct ProfileLibrary: Sendable {
     public static let builtIn: [FixtureProfile] = [
         FixtureProfile(id: "generic.rgb3", name: "Generico RGB", mode: "3 canali",
@@ -165,6 +168,7 @@ public struct ProfileLibrary: Sendable {
 
 // MARK: - Patch
 
+/// A fixture placed in the patch: profile, universe, start address and stage role.
 public struct PatchedFixture: Codable, Hashable, Identifiable, Sendable {
     public var id: UUID
     public var label: String
@@ -182,11 +186,13 @@ public struct PatchedFixture: Codable, Hashable, Identifiable, Sendable {
     }
 }
 
+/// A problem that prevents a patch from being sent (overlap, missing profile…).
 public struct PatchIssue: Equatable, Sendable, CustomStringConvertible {
     public var message: String
     public var description: String { message }
 }
 
+/// The user's rig: patched fixtures, custom profiles and the confirmed fingerprint. Persisted as patch.json.
 public struct Patch: Codable, Equatable, Sendable {
     public var fixtures: [PatchedFixture]
     public var customProfiles: [FixtureProfile]

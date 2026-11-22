@@ -1,5 +1,6 @@
 import Foundation
 
+/// Errors building sACN packets.
 public enum SACNError: Error, Equatable, LocalizedError {
     case invalidUniverse(Int)
     public var errorDescription: String? {
@@ -22,6 +23,7 @@ public enum SACN {
     static let vectorFramingData: UInt32 = 0x0000_0002
     static let vectorDMPSetProperty: UInt8 = 0x02
 
+    /// E1.31 framing-layer option flags.
     public struct Options: OptionSet, Sendable {
         public let rawValue: UInt8
         public init(rawValue: UInt8) { self.rawValue = rawValue }
@@ -84,8 +86,10 @@ public enum SACN {
 /// sACN has no node discovery: the target is always the configured destination.
 /// Not thread-safe: use from the engine's serial queue.
 public final class SACNDriver: OutputDriver {
+    /// Multicast to each universe's group, or unicast to one receiver.
     public enum Mode: String, Codable, Sendable { case multicast, unicast }
 
+    /// Settings of the sACN driver.
     public struct Configuration: Codable, Equatable, Sendable {
         public var mode: Mode = .multicast
         public var unicastIP: IPv4Address?

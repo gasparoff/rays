@@ -7,6 +7,7 @@ public struct DirectCablePolicy {
     public static let localAddress = "192.168.0.20"
     public static let netmask = "255.255.255.0"
 
+    /// An IPv4 address and netmask configured on one network interface.
     public struct Address: Equatable {
         public let interface: String
         public let ip: String
@@ -16,6 +17,7 @@ public struct DirectCablePolicy {
         }
     }
 
+    /// What the app may do for the selected adapter.
     public enum Decision: Equatable {
         case ready
         case addAlias(command: String)

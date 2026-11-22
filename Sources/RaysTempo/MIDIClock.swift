@@ -5,6 +5,7 @@ import Foundation
 /// Pure, so it is testable without hardware. Beats are only reported while running
 /// (after Start, Continue or a Song Position Pointer), because only then is the bar known.
 public struct MIDIClockParser: Sendable {
+    /// Something the clock reported.
     public enum Event: Equatable, Sendable {
         case start
         case stop

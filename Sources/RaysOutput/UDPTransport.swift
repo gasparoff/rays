@@ -10,6 +10,7 @@ public protocol DatagramTransport: AnyObject {
     func send(_ bytes: [UInt8], to address: IPv4Address, port: UInt16) throws
 }
 
+/// A failed socket call with its errno, described for the user.
 public struct SocketError: Error, LocalizedError, Equatable {
     public var operation: String
     public var code: Int32
@@ -115,6 +116,7 @@ public final class UDPSocket: DatagramTransport, @unchecked Sendable {
 
 // MARK: - Interfaces
 
+/// An active IPv4 interface of this Mac.
 public struct NetworkInterface: Equatable, Sendable, Identifiable {
     public var name: String
     public var address: IPv4Address

@@ -62,12 +62,19 @@ No hardware yet? Launch the app anyway: the stage preview runs without any light
 | Art-Net nodes | Any Art-Net 4 node | 🟡 should work, [report it](../../issues/new?template=hardware-report.yml) |
 | Fixtures | Varytec Retro Blinder TRI 180 (5/8 ch), TRI 380 (5/25 ch) | ✅ verified profiles |
 | Fixtures | Generic RGB, RGBW, Dimmer+RGB, Dimmer+RGBW | ✅ built in |
+| Fixtures | Varytec Event Par IP65 4in1 (4/7/9 ch), LED Pad 7 RGBWA (5/6/9 ch), LED Pad 7 RGBWAUV (6/7/10 ch) | 🟡 from the official manuals, not yet tested on hardware |
+| Fixtures | Generic RGBA, RGBWA, RGBWA+UV PARs, 2-zone RGB bar | 🟡 generic profiles in `Profiles/` |
 | Controllers | Allen & Heath Xone:K2 (Classic and Live v2 layouts) | ✅ |
+| Controllers | Any controller with a layout in `Controllers/` | 🟡 routed from JSON, LED feedback if described |
 | Controllers | Any MIDI controller | ✅ via MIDI Learn |
 | Tempo | Ableton Link, Pioneer Pro DJ Link (CDJ/XDJ) | ✅ |
 
-**Your light is missing?** Adding it takes one JSON file and no Swift:
-see [Add a fixture](docs/adding-a-fixture.md). Every new profile is a welcome first PR.
+**Your light or controller is missing?** Adding it takes one JSON file and no Swift:
+see [Add a fixture](docs/adding-a-fixture.md) and [Add a controller](docs/adding-a-controller.md).
+Every new profile is a welcome first PR.
+
+UV channels are kept at 0 for now (RAYS has no UV colour yet), like strobe, programme and sound
+channels.
 
 ## How it works
 

@@ -1,5 +1,8 @@
 import XCTest
-@testable import LightCore
+@testable import RaysOutput
+@testable import RaysTempo
+@testable import RaysCore
+@testable import RaysEngine
 
 final class OutputLifecycleTests: XCTestCase {
     private func rig(universes: [Int] = [0]) -> (LightEngine, FakeTransport, ManualClock) {

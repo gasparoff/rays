@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import LightCore
+@testable import RaysOutput
 
 final class OutputActivityTests: XCTestCase {
     func testFramesAndReconnectsKeepOneActivityUntilOutputIsSwitchedOff() {

@@ -1,5 +1,6 @@
 import XCTest
-@testable import LightCore
+@testable import RaysCore
+@testable import RaysControl
 
 final class XoneLiveLayoutTests: XCTestCase {
     private func note(_ n: UInt8, _ on: Bool = true) -> MIDIEvent {

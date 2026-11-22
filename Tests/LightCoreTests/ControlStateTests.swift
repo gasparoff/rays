@@ -1,5 +1,6 @@
 import XCTest
-@testable import LightCore
+@testable import RaysCore
+@testable import RaysEngine
 
 final class ControlStateTests: XCTestCase {
     private func snapshot() -> EngineSnapshot {

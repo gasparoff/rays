@@ -1,5 +1,7 @@
 import XCTest
-@testable import LightCore
+@testable import RaysTempo
+@testable import RaysCore
+@testable import RaysEngine
 
 /// Program tracks through the real engine, sequencer and DMX composer (no UI, no hardware).
 final class SceneProgramEngineTests: XCTestCase {

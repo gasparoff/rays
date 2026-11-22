@@ -1,5 +1,6 @@
 import XCTest
-@testable import LightCore
+@testable import RaysTempo
+@testable import RaysEngine
 
 final class DownbeatTests: XCTestCase {
     func testPressMakesNowFirstBeatAndKeepsFollowingSourceTempo() {

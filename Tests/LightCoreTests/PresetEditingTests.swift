@@ -1,5 +1,7 @@
 import XCTest
-@testable import LightCore
+@testable import RaysTempo
+@testable import RaysCore
+@testable import RaysEngine
 
 final class PresetEditingTests: XCTestCase {
     func testModifiedPresetRoundTripsInItsOriginalSlotAlongsidePersonalScenes() throws {

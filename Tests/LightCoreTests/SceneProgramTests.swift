@@ -1,5 +1,5 @@
 import XCTest
-@testable import LightCore
+@testable import RaysCore
 
 /// Structure on the beat: model, sanitising, persistence and the deterministic renderer.
 final class SceneProgramTests: XCTestCase {

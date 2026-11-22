@@ -1,5 +1,7 @@
 import XCTest
-@testable import LightCore
+@testable import RaysTempo
+@testable import RaysCore
+@testable import RaysEngine
 
 /// Editor previews and re-selecting the same custom scene go through
 /// `setCustomScene(_:relaunchingIfStoppedAs:)`. The decision "stopped → launch, playing → new look"

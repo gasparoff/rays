@@ -1,5 +1,8 @@
 import XCTest
-@testable import LightCore
+@testable import RaysOutput
+@testable import RaysTempo
+@testable import RaysCore
+@testable import RaysEngine
 
 final class EngineAndTempoTests: XCTestCase {
     private func makeEngine() -> (LightEngine, FakeTransport, ManualClock, LocalTempoClock) {

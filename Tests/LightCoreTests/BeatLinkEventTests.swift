@@ -1,5 +1,5 @@
 import XCTest
-@testable import LightCore
+@testable import RaysTempo
 
 final class BeatLinkEventTests: XCTestCase {
     private func line(_ extra: String = "", deck: Int = 2, master: Bool = true, playing: Bool = true, timestamp: Double = 1000) -> String {

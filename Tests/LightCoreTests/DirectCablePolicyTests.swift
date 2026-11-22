@@ -1,5 +1,5 @@
 import XCTest
-@testable import LightCore
+@testable import RaysOutput
 
 final class DirectCablePolicyTests: XCTestCase {
     func testObservedDirectCablePreservesWiFi() {

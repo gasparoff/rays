@@ -1,6 +1,8 @@
 import Foundation
-@testable import LightCore
 import XCTest
+@testable import RaysOutput
+@testable import RaysCore
+@testable import RaysEngine
 
 final class LatestMailboxTests: XCTestCase {
     func testPostsCoalesceIntoOneWakeUpCarryingTheNewestValue() {

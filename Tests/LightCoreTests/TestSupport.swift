@@ -1,5 +1,5 @@
 import Foundation
-@testable import LightCore
+@testable import RaysOutput
 
 final class FakeTransport: DatagramTransport {
     struct Sent: Equatable { var bytes: [UInt8]; var to: IPv4Address; var port: UInt16 }

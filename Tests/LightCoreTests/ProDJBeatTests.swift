@@ -1,5 +1,5 @@
 import XCTest
-@testable import LightCore
+@testable import RaysTempo
 
 final class ProDJBeatTests: XCTestCase {
     func packet() -> [UInt8] {

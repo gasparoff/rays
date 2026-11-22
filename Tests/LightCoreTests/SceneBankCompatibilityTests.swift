@@ -1,5 +1,6 @@
 import XCTest
-@testable import LightCore
+@testable import RaysCore
+@testable import RaysControl
 
 final class SceneBankCompatibilityTests: XCTestCase {
     func testExistingPresetEditsStayInHouseAndBothBanksRoundTripIndependently() throws {

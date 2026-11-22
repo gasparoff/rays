@@ -1,5 +1,6 @@
 import XCTest
-@testable import LightCore
+@testable import RaysCore
+@testable import RaysControl
 
 final class PerformanceControlsTests: XCTestCase {
     private func event(_ kind: MIDIControl.Kind, _ number: UInt8, _ value: UInt8, channel: UInt8 = 14) -> MIDIEvent {

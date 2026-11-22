@@ -23,7 +23,7 @@ cp Profiles/community.generic.par-rgbw-6ch.json Profiles/acme.spot-rgb-7ch.json
 | `white` | White LED mixed with the color |
 | `blinder` | Independent white/COB element (blinders, warm white strips) |
 | `constant` | Fixed value from `value` (e.g. shutter open = 255) |
-| `ignore` | Sent as 0: strobe, macros, programs, sound mode… |
+| `ignore` | Sent as 0: strobe, macros, programs, sound mode, UV (no UV colour yet)… |
 
 Rules:
 

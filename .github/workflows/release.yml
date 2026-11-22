@@ -1,0 +1,83 @@
+name: Release
+
+# Push a tag like v2.0.0 to publish a GitHub release with RAYS.app (Apple silicon).
+# "Run workflow" on main builds the same zip as an artifact without publishing anything.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    env:
+      # Beat Link Trigger release whose runtime powers Pro DJ Link (EPL-2.0).
+      # Leave empty for the latest release; pin a tag (e.g. v8.0.0) for reproducible builds.
+      BEAT_LINK_TRIGGER_TAG: ""
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF#refs/tags/v}"; else v="0.0.0-dev"; fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch Beat Link Trigger
+        run: |
+          mkdir -p "$RUNNER_TEMP/blt"
+          gh release download $BEAT_LINK_TRIGGER_TAG --repo Deep-Symmetry/beat-link-trigger \
+            --pattern '*.dmg' --dir "$RUNNER_TEMP/blt"
+          ls "$RUNNER_TEMP/blt"
+          dmg=$(ls "$RUNNER_TEMP/blt"/*.dmg | grep -Ei 'arm64|aarch64' | head -n1 || true)
+          [ -n "$dmg" ] || dmg=$(ls "$RUNNER_TEMP/blt"/*.dmg | head -n1)
+          echo "Using $dmg"
+          hdiutil attach -nobrowse -readonly -mountpoint "$RUNNER_TEMP/blt/mnt" "$dmg"
+          cp -R "$RUNNER_TEMP/blt/mnt/Beat Link Trigger.app" "$RUNNER_TEMP/Beat Link Trigger.app"
+          hdiutil detach "$RUNNER_TEMP/blt/mnt"
+          echo "BEAT_LINK_TRIGGER_DMG=$(basename "$dmg")" >> "$GITHUB_ENV"
+
+      - name: Bootstrap
+        run: BEAT_LINK_TRIGGER_APP="$RUNNER_TEMP/Beat Link Trigger.app" Scripts/bootstrap.sh
+
+      - name: Test
+        run: swift test --parallel
+
+      - name: Build RAYS.app
+        env:
+          RAYS_VERSION: ${{ steps.version.outputs.version }}
+          RAYS_REQUIRE_BEATLINK: "1"
+        run: Scripts/build-app.sh
+
+      - name: Zip
+        run: |
+          zip="dist/RAYS-${{ steps.version.outputs.version }}-macOS-arm64.zip"
+          ditto -c -k --sequesterRsrc --keepParent dist/RAYS.app "$zip"
+          shasum -a 256 "$zip" | tee "$zip.sha256"
+          echo "ZIP=$zip" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RAYS-release
+          path: dist/RAYS-*.zip*
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          cat > "$RUNNER_TEMP/notes.md" <<NOTES
+          See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/CHANGELOG.md) for what changed.
+
+          **Install:** unzip, move RAYS.app to Applications and open it. This build is not notarized yet:
+          the first time, macOS blocks it. Open System Settings → Privacy & Security and click **Open Anyway**.
+
+          Requires macOS 14+ on Apple silicon. Pro DJ Link uses Beat Link from ${BEAT_LINK_TRIGGER_DMG} (EPL-2.0).
+          The app includes Ableton Link and is distributed under the GPL v2 or later; source: this repository at ${GITHUB_REF_NAME}.
+          NOTES
+          gh release create "$GITHUB_REF_NAME" "$ZIP" "$ZIP.sha256" \
+            --title "RAYS ${{ steps.version.outputs.version }}" --notes-file "$RUNNER_TEMP/notes.md" --verify-tag

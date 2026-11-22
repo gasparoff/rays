@@ -63,7 +63,7 @@ git clone --recursive https://github.com/gasparoff/rays.git
 cd rays
 make bootstrap   # Ableton Link submodule (+ Beat Link helper if Beat Link Trigger is installed)
 make test        # 235 tests, no hardware needed
-make build       # builds dist/RAYS.app (needs the Beat Link helper for now)
+make build       # builds dist/RAYS.app (without Beat Link Trigger: no Pro DJ Link)
 open dist/RAYS.app
 ```
 

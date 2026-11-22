@@ -14,9 +14,11 @@ project uses [Semantic Versioning](https://semver.org/).
 - Community fixture profiles as JSON (`Profiles/`), with automatic validation in the test suite.
 - Varytec Event Par, LED Pad 7 RGBWA / RGBWAUV profiles and generic RGBA/RGBWA/UV profiles.
 - Contributor docs, issue and PR templates, CI on macOS.
+- Release workflow: pushing a `v*` tag publishes `RAYS.app` (Apple silicon) on GitHub Releases; CI also builds the app for every change.
 
 ### Changed
 - Core split into `RaysOutput`, `RaysTempo`, `RaysCore`, `RaysControl`, `RaysEngine` modules; the app lives in `Sources/RaysApp`.
+- `Scripts/build-app.sh` builds without the Beat Link helper (Pro DJ Link then unavailable) instead of failing; the bundled license notice now covers public distribution.
 - Bundle identifier is now `io.github.gasparoff.rays`. Saved patches and scenes are kept; the remembered scene bank and internal BPM reset once.
 
 ## [1.5.5] - 2026-10-31

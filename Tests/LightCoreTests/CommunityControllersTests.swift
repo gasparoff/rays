@@ -29,30 +29,61 @@ final class CommunityControllersTests: XCTestCase {
         }
     }
 
-    func testXoneK2FilesEqualTheBuiltInPresets() throws {
+    /// Fixed expected values: the factory layouts as they shipped before controllers became data.
+    private static let expectedClassic: [(ControlAction, MIDIControl.Kind, UInt8)] = [
+        (.levelLeft, .cc, 16), (.levelCenter, .cc, 17), (.levelRight, .cc, 18), (.master, .cc, 19),
+        (.accentLevel, .cc, 11), (.energy, .cc, 15),
+        (.scene1, .note, 36), (.scene2, .note, 37), (.scene3, .note, 38), (.stop, .note, 39),
+        (.scene4, .note, 32), (.scene5, .note, 33), (.scene6, .note, 34), (.buildDrop, .note, 35),
+        (.rateQuarter, .note, 28), (.rateHalf, .note, 29), (.rateNormal, .note, 30), (.rateDouble, .note, 31),
+        (.accent, .note, 24), (.blackout, .note, 27),
+    ]
+    private static let expectedLiveV2: [(ControlAction, MIDIControl.Kind, UInt8)] = [
+        (.levelLeft, .cc, 16), (.levelCenter, .cc, 17), (.levelRight, .cc, 18), (.master, .cc, 19),
+        (.energy, .cc, 20), (.accentLevel, .cc, 21),
+        (.scene1, .note, 36), (.scene2, .note, 37), (.scene3, .note, 38), (.bankHouse, .note, 39),
+        (.scene4, .note, 32), (.scene5, .note, 33), (.scene6, .note, 34), (.bankClub, .note, 35),
+        (.rateQuarter, .note, 28), (.rateHalf, .note, 29), (.rateNormal, .note, 30), (.rateDouble, .note, 31),
+        (.accent, .note, 24), (.sceneFirstBeat, .note, 25), (.cancelPending, .note, 26), (.stop, .note, 27),
+        (.buildDrop, .note, 12), (.blackout, .note, 15),
+    ]
+
+    private static func expectedLED(_ base: UInt8) -> [UInt8] {
+        if base == 12 || base == 15 { return [base, base + 4, base + 8] }
+        return (24...55).contains(base) ? [base, base + 36, base + 72] : []
+    }
+
+    func testXoneK2FilesAndBuiltInsEqualTheFactoryLayouts() throws {
         let byID = Dictionary(uniqueKeysWithValues: loaded().map { ($0.id, $0) })
-        let files: [(String, XoneK2.Layout)] = [("allen-heath.xone-k2.classic", .classic),
-                                                ("allen-heath.xone-k2.live-v2", .liveV2)]
-        for (id, layout) in files {
-            let p = try XCTUnwrap(byID[id], id)
-            XCTAssertEqual(p.bindings, XoneK2.preset(for: layout).map { .init($0.action, $0.kind, $0.number) }, id)
-            XCTAssertEqual(p.channel, XoneK2.factoryChannel, id)
-            XCTAssertEqual(Set(p.relativeEncoders ?? []), XoneK2.relativeEncoderCCs, id)
-            for name in ["XONE:K2", "Xone K2 MIDI", "K2"] { XCTAssertTrue(p.matches(portName: name), "\(id) \(name)") }
+        let cases: [(XoneK2.Layout, [(ControlAction, MIDIControl.Kind, UInt8)], Int?)] =
+            [(.classic, Self.expectedClassic, nil), (.liveV2, Self.expectedLiveV2, 127)]
+        for (layout, expected, resolution) in cases {
+            let builtIn = XoneK2.profile(for: layout)
+            let file = try XCTUnwrap(byID[builtIn.id], builtIn.id)
+            XCTAssertEqual(file, builtIn, "Controllers/ JSON drifted from the built-in \(layout) layout")
+            let id = builtIn.id
+            XCTAssertEqual(builtIn.bindings, expected.map { .init($0.0, $0.1, $0.2) }, id)
+            XCTAssertEqual(builtIn.midiChannel, 15, id)
+            XCTAssertEqual(builtIn.channel, XoneK2.factoryChannel, id)
+            XCTAssertEqual(Set(builtIn.relativeEncoders ?? []), [0, 1, 2, 3, 20, 21], id)
+            XCTAssertEqual(Set(builtIn.relativeEncoders ?? []), XoneK2.relativeEncoderCCs, id)
+            XCTAssertEqual(builtIn.encoderResolution, resolution, id)
+            for name in ["XONE:K2", "Xone K2 MIDI", "K2"] { XCTAssertTrue(builtIn.matches(portName: name), "\(id) \(name)") }
             for name in ["K25", "Launchpad", "XONE:K3"] {
-                XCTAssertEqual(p.matches(portName: name), MIDIRouter.isK2(name), "\(id) \(name)")
+                XCTAssertEqual(builtIn.matches(portName: name), MIDIRouter.isK2(name), "\(id) \(name)")
             }
-            let leds = try XCTUnwrap(p.leds, id)
+            let leds = try XCTUnwrap(builtIn.leds, id)
             for base in UInt8(0)...127 {
-                XCTAssertEqual(leds.addresses(base: base), XoneK2.ledAddresses(base: base), "\(id) LED \(base)")
+                XCTAssertEqual(leds.addresses(base: base), Self.expectedLED(base), "\(id) LED \(base)")
+                XCTAssertEqual(XoneK2.ledAddresses(base: base), Self.expectedLED(base), "XoneK2 LED \(base)")
             }
-            for binding in p.bindings {
-                let control = MIDIControl(binding.type, channel: XoneK2.factoryChannel, number: binding.number)
-                XCTAssertEqual(p.action(for: control), XoneK2.presetAction(kind: binding.type, number: binding.number, layout: layout))
+            for (action, kind, number) in expected {
+                XCTAssertEqual(XoneK2.presetAction(kind: kind, number: number, layout: layout), action, id)
+                XCTAssertEqual(XoneK2.presetControl(for: action, channel: 14, layout: layout),
+                               MIDIControl(kind, channel: 14, number: number), id)
             }
         }
-        let live = try XCTUnwrap(byID["allen-heath.xone-k2.live-v2"])
-        XCTAssertEqual(1.0 / Double(try XCTUnwrap(live.encoderResolution)), MIDIRouter.livePresetEncoderStep, accuracy: 1e-12)
+        XCTAssertEqual(MIDIRouter.livePresetEncoderStep, 1.0 / 127, accuracy: 1e-12)
     }
 
     func testValidationCatchesCommonMistakes() {

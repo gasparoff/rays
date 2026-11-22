@@ -1,0 +1,168 @@
+{
+  "id": "allen-heath.xone-k2.live-v2",
+  "name": "Xone:K2 — Live v2",
+  "manufacturer": "Allen & Heath",
+  "portNamePattern": "(^|[^a-z0-9])k2($|[^a-z0-9])",
+  "midiChannel": 15,
+  "bindings": [
+    {
+      "action": "levelLeft",
+      "type": "cc",
+      "number": 16
+    },
+    {
+      "action": "levelCenter",
+      "type": "cc",
+      "number": 17
+    },
+    {
+      "action": "levelRight",
+      "type": "cc",
+      "number": 18
+    },
+    {
+      "action": "master",
+      "type": "cc",
+      "number": 19
+    },
+    {
+      "action": "energy",
+      "type": "cc",
+      "number": 20
+    },
+    {
+      "action": "accentLevel",
+      "type": "cc",
+      "number": 21
+    },
+    {
+      "action": "scene1",
+      "type": "note",
+      "number": 36
+    },
+    {
+      "action": "scene2",
+      "type": "note",
+      "number": 37
+    },
+    {
+      "action": "scene3",
+      "type": "note",
+      "number": 38
+    },
+    {
+      "action": "bankHouse",
+      "type": "note",
+      "number": 39
+    },
+    {
+      "action": "scene4",
+      "type": "note",
+      "number": 32
+    },
+    {
+      "action": "scene5",
+      "type": "note",
+      "number": 33
+    },
+    {
+      "action": "scene6",
+      "type": "note",
+      "number": 34
+    },
+    {
+      "action": "bankClub",
+      "type": "note",
+      "number": 35
+    },
+    {
+      "action": "rateQuarter",
+      "type": "note",
+      "number": 28
+    },
+    {
+      "action": "rateHalf",
+      "type": "note",
+      "number": 29
+    },
+    {
+      "action": "rateNormal",
+      "type": "note",
+      "number": 30
+    },
+    {
+      "action": "rateDouble",
+      "type": "note",
+      "number": 31
+    },
+    {
+      "action": "accent",
+      "type": "note",
+      "number": 24
+    },
+    {
+      "action": "sceneFirstBeat",
+      "type": "note",
+      "number": 25
+    },
+    {
+      "action": "cancelPending",
+      "type": "note",
+      "number": 26
+    },
+    {
+      "action": "stop",
+      "type": "note",
+      "number": 27
+    },
+    {
+      "action": "buildDrop",
+      "type": "note",
+      "number": 12
+    },
+    {
+      "action": "blackout",
+      "type": "note",
+      "number": 15
+    }
+  ],
+  "relativeEncoders": [
+    0,
+    1,
+    2,
+    3,
+    20,
+    21
+  ],
+  "encoderResolution": 127,
+  "leds": {
+    "notes": {
+      "from": 24,
+      "to": 55
+    },
+    "colors": {
+      "red": 0,
+      "amber": 36,
+      "green": 72
+    },
+    "special": [
+      {
+        "base": 12,
+        "addresses": [
+          12,
+          16,
+          20
+        ]
+      },
+      {
+        "base": 15,
+        "addresses": [
+          15,
+          19,
+          23
+        ]
+      }
+    ]
+  },
+  "notes": "Factory layout, Latching Layers OFF. The two bottom encoders = energy and Flash level (relative, 127 detents per sweep); pads D/H = House/Club bank, N = first beat, O = cancel queue, P = Stop; bottom Layer = Build → Drop, Exit = Blackout."
+}

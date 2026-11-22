@@ -33,6 +33,9 @@ final class AppModel: ObservableObject {
     @Published private(set) var library: ProfileLibrary
     @Published private(set) var prefs: Preferences
     @Published private(set) var storageErrors: [String] = []
+    /// Controller layouts from Resources/Controllers and Application Support/Light System/Controllers
+    /// (user files override bundled ones by id). The Xone:K2 itself is still routed by `XoneK2`.
+    private(set) var controllerProfiles: [ControllerProfile] = []
     /// True when no patch.json exists yet: the TRI 180 test preset is shown, unconfirmed and unsaved.
     @Published private(set) var usingDefaultPatch = false
 
@@ -60,6 +63,13 @@ final class AppModel: ObservableObject {
         let user = ProfileLibrary.loadProfiles(in: store.profilesDirectory)
         extra += user.profiles; errors += user.errors
         let lib = ProfileLibrary(extra: extra)
+        var bundledControllers: [ControllerProfile] = []
+        if let bundled = Bundle.main.resourceURL?.appendingPathComponent("Controllers") {
+            let r = ControllerLibrary.loadProfiles(in: bundled); bundledControllers = r.profiles; errors += r.errors
+        }
+        let userControllers = ControllerLibrary.loadProfiles(in: store.controllersDirectory)
+        errors += userControllers.errors
+        let controllers = ControllerLibrary.merge(bundledControllers, userControllers.profiles)
         var loadedPatch = Patch.empty
         let fresh = !store.hasSavedPatch
         if fresh {
@@ -93,6 +103,7 @@ final class AppModel: ObservableObject {
         patch = loadedPatch
         prefs = p
         storageErrors = errors
+        controllerProfiles = controllers
         let storedBPM = UserDefaults.standard.object(forKey: "LightSystem.internalBPM") as? Double
         var tempoSources = TempoSourceRegistry.builtIn
         tempoSources.register(LinkTempoSource.descriptor)

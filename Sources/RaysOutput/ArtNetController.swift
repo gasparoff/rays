@@ -7,6 +7,11 @@ public struct OutputTarget: Equatable, Sendable {
     public var universes: [PortAddress]
     public var verified: Bool
     public var fresh: Bool
+    /// Non-IP endpoint (e.g. a serial device path) or a description such as "multicast".
+    public var endpoint: String? = nil
+
+    /// What the UI shows next to the target name.
+    public var displayAddress: String { endpoint ?? ip.description }
 }
 
 /// Art-Net discovery + unicast ArtDmx. Not thread-safe: use from a single serial queue.

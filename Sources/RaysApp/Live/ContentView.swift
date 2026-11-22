@@ -78,7 +78,7 @@ struct TopBar: View {
                 .help(cable.status)
             }
             StatusPill(title: "ENTTEC", value: enttecText(s), color: enttecColor(s))
-                .help(s.network.target.map { "\($0.name) · \($0.ip)" } ?? cable.status)
+                .help(s.network.target.map { "\($0.name) · \($0.displayAddress)" } ?? cable.status)
             StatusPill(title: "Tempo", value: TempoWording.status(s.tempo, source: model.prefs.beatSource, xdj: xdj),
                        color: tempoColor(s.tempo))
             StatusPill(title: "Luci", value: dmxText(s), color: dmxColor(s))

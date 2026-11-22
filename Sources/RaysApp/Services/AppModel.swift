@@ -112,7 +112,7 @@ final class AppModel: ObservableObject {
             as? LinkTempoSource ?? LinkTempoSource(bpm: storedBPM.map(TempoRange.clamp) ?? 120)
         lightingTempo = DownbeatTempoSource(source: link)
         let store = self.store
-        midi = MIDIService(map: store.loadMIDIMap()) { map in try? store.saveMIDIMap(map) }
+        midi = MIDIService(map: store.loadMIDIMap(), profiles: controllers) { map in try? store.saveMIDIMap(map) }
         engine = LightEngine(tempo: lightingTempo, transport: UDPSocket(), library: lib)
 
         // Latest-only: if the main thread stalls, it skips to the newest frame instead of

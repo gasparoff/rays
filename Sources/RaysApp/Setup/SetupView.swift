@@ -547,10 +547,13 @@ struct ControllerSetup: View {
                         Text("Automatico").tag(BeatSource.auto)
                         Text("Solo Link").tag(BeatSource.link)
                         Text("Console").tag(BeatSource.xdj)
+                        Text("MIDI Clock").tag(BeatSource.midiClock)
                     }
                     .pickerStyle(.segmented).labelsHidden().frame(width: 360)
                     .help("Automatico cerca la console Pro DJ Link e ne invia tempo e battiti ad Ableton Link. Senza console usa Link o il tempo interno.")
-                    if model.prefs.beatSource != .link {
+                    if model.prefs.beatSource == .midiClock {
+                        MIDIClockStatus()
+                    } else if model.prefs.beatSource != .link {
                         HStack(spacing: 14) {
                             Picker("Deck", selection: Binding(get: { model.prefs.xdjDeck }, set: { model.setXDJDeck($0) })) {
                                 Text("Master auto").tag(0)
@@ -657,5 +660,32 @@ struct AdvancedSetup: View {
             }
             Text("Dati salvati in \(model.store.directory.path)").font(.system(size: 11)).foregroundStyle(Theme.tertiary)
         }
+    }
+}
+
+struct MIDIClockStatus: View {
+    @EnvironmentObject private var model: AppModel
+
+    var body: some View {
+        MIDIClockStatusBody(clock: model.midiClock)
+    }
+}
+
+private struct MIDIClockStatusBody: View {
+    @ObservedObject var clock: MIDIClockListener
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(statusText).font(.system(size: 12)).foregroundStyle(clock.isLive ? Theme.good : Theme.secondary)
+            Text("RAYS ascolta il MIDI Clock (24 impulsi per battito, Start/Stop) da tutti gli ingressi MIDI e lo passa ad Ableton Link, come fa con la console. Il primo battito dopo Start è l'uno della battuta. Sperimentale.")
+                .font(.system(size: 11.5)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var statusText: String {
+        if let e = clock.error { return e }
+        if clock.isLive, let bpm = clock.lastBPM { return String(format: "MIDI Clock · %.1f BPM", bpm) }
+        if clock.sourceNames.isEmpty { return "Nessun ingresso MIDI" }
+        return "In attesa di Start + clock · ingressi: \(clock.sourceNames.joined(separator: ", "))"
     }
 }

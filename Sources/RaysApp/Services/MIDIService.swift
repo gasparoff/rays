@@ -40,7 +40,7 @@ final class MIDIService: ObservableObject {
     private let save: (MIDIMap) -> Void
     /// Non-K2 layouts (the K2 always uses the built-in `XoneK2` profiles).
     let profiles: [ControllerProfile]
-    private struct LEDGroup { var destinations: [MIDIEndpointRef]; var last: [UInt8: XoneK2.LED] = [:] }
+    private struct LEDGroup { var destinations: [MIDIEndpointRef]; var last: [MIDIControl: XoneK2.LED] = [:] }
     private var profileLEDs: [String: LEDGroup] = [:]
 
     init(map: MIDIMap, profiles: [ControllerProfile] = [], save: @escaping (MIDIMap) -> Void) {
@@ -249,12 +249,10 @@ final class MIDIService: ObservableObject {
         for profile in profiles {
             guard var group = profileLEDs[profile.id], let leds = profile.leds else { continue }
             let next = K2Feedback.leds(map: router.map, profile: profile, state: state)
-            let channel = profile.channel
-            for base in Set(next.keys).union(group.last.keys) where next[base] != group.last[base] {
-                let addresses = leds.addresses(base: base)
-                for address in addresses { send([0x80 | channel, address, 0], to: group.destinations) }
-                if let color = next[base], let i = [XoneK2.LED.red, .amber, .green].firstIndex(of: color), i < addresses.count {
-                    send([0x90 | channel, addresses[i], 127], to: group.destinations)
+            for control in Set(next.keys).union(group.last.keys) where next[control] != group.last[control] {
+                for note in leds.offNotes(base: control.number) { send([0x80 | control.channel, note, 0], to: group.destinations) }
+                if let color = next[control], let on = leds.onMessage(base: control.number, color: color) {
+                    send([0x90 | control.channel, on.note, on.velocity], to: group.destinations)
                 }
             }
             group.last = next
@@ -265,8 +263,8 @@ final class MIDIService: ObservableObject {
     private func clearProfileLEDs() {
         for profile in profiles {
             guard var group = profileLEDs[profile.id], let leds = profile.leds else { continue }
-            for base in group.last.keys {
-                for address in leds.addresses(base: base) { send([0x80 | profile.channel, address, 0], to: group.destinations) }
+            for control in group.last.keys {
+                for note in leds.offNotes(base: control.number) { send([0x80 | control.channel, note, 0], to: group.destinations) }
             }
             group.last.removeAll()
             profileLEDs[profile.id] = group

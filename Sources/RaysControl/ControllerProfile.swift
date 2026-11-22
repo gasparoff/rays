@@ -10,15 +10,22 @@ public struct ControllerProfile: Codable, Equatable, Identifiable, Sendable {
         /// "note" or "cc".
         public var type: MIDIControl.Kind
         public var number: UInt8
+        /// 1-based MIDI channel when this control does not use the layout's `midiChannel`
+        /// (e.g. per-track faders that send on channels 1…8). Omitted = the layout's channel.
+        public var channel: Int?
 
-        public init(_ action: ControlAction, _ type: MIDIControl.Kind, _ number: UInt8) {
-            self.action = action; self.type = type; self.number = number
+        public init(_ action: ControlAction, _ type: MIDIControl.Kind, _ number: UInt8, channel: Int? = nil) {
+            self.action = action; self.type = type; self.number = number; self.channel = channel
         }
     }
 
-    /// Tri-colour pad LEDs: a note in `notes` lights colour `c` by sending `note + colors[c]`;
-    /// `special` lists bases with their own [red, amber, green] addresses.
+    /// Pad LEDs. Two styles:
+    /// - `offset` (default, Xone:K2): a note in `notes` lights colour `c` by sending note
+    ///   `note + colors[c]`; `special` lists bases with their own [red, amber, green] addresses.
+    /// - `velocity` (Akai APC, Novation): a note in `notes` or `extraNotes` lights colour `c` by
+    ///   sending that same note with velocity `colors[c]`; off is a note-off.
     public struct LEDFeedback: Codable, Equatable, Sendable {
+        public enum Style: String, Codable, Sendable { case offset, velocity }
         public struct Range: Codable, Equatable, Sendable {
             public var from: UInt8
             public var to: UInt8
@@ -33,12 +40,50 @@ public struct ControllerProfile: Codable, Equatable, Identifiable, Sendable {
             /// [red, amber, green]
             public var addresses: [UInt8]
         }
+        public var style: Style?
         public var notes: Range
+        /// More LED notes outside `notes` (velocity style).
+        public var extraNotes: [UInt8]?
         public var colors: Colors
         public var special: [Special]?
 
-        /// LED addresses [red, amber, green] for a mapped note, or [] when it has no LED.
+        public init(style: Style? = nil, notes: Range, extraNotes: [UInt8]? = nil, colors: Colors, special: [Special]? = nil) {
+            self.style = style; self.notes = notes; self.extraNotes = extraNotes; self.colors = colors; self.special = special
+        }
+
+        private var isVelocity: Bool { style == .velocity }
+
+        /// True when `base` has an LED RAYS can drive.
+        public func hasLED(base: UInt8) -> Bool {
+            if isVelocity { return inRange(base) || (extraNotes ?? []).contains(base) }
+            return addresses(base: base).count == 3
+        }
+
+        /// Note and velocity that light `base` in `color` (red/amber/green), nil for no LED.
+        public func onMessage(base: UInt8, color: XoneK2.LED) -> (note: UInt8, velocity: UInt8)? {
+            guard hasLED(base: base) else { return nil }
+            let index: Int
+            switch color {
+            case .off: return nil
+            case .red: index = 0
+            case .amber: index = 1
+            case .green: index = 2
+            }
+            if isVelocity { return (base, [colors.red, colors.amber, colors.green][index]) }
+            return (addresses(base: base)[index], 127)
+        }
+
+        /// Notes to switch off (note-off) to clear `base`.
+        public func offNotes(base: UInt8) -> [UInt8] {
+            guard hasLED(base: base) else { return [] }
+            return isVelocity ? [base] : addresses(base: base)
+        }
+
+        private func inRange(_ base: UInt8) -> Bool { (notes.from...max(notes.from, notes.to)).contains(base) }
+
+        /// Offset style: LED addresses [red, amber, green] for a mapped note, or [] when it has no LED.
         public func addresses(base: UInt8) -> [UInt8] {
+            guard !isVelocity else { return [] }
             if let s = special?.first(where: { $0.base == base }) { return s.addresses }
             guard (notes.from...max(notes.from, notes.to)).contains(base) else { return [] }
             return [colors.red, colors.amber, colors.green].map { UInt8(clamping: Int(base) + Int($0)) }
@@ -63,13 +108,30 @@ public struct ControllerProfile: Codable, Equatable, Identifiable, Sendable {
     /// 0-based channel used on the wire.
     public var channel: UInt8 { UInt8(clamping: max(0, midiChannel - 1)) & 0x0F }
 
+    /// 0-based wire channel of one binding.
+    public func channel(of binding: Binding) -> UInt8 {
+        binding.channel.map { UInt8(clamping: max(0, $0 - 1)) & 0x0F } ?? channel
+    }
+
+    /// The control a binding listens to.
+    public func control(of binding: Binding) -> MIDIControl {
+        MIDIControl(binding.type, channel: channel(of: binding), number: binding.number)
+    }
+
+    /// Channels this layout uses (the layout channel plus any per-binding channels).
+    public var channels: Set<UInt8> { Set(bindings.map(channel(of:))).union([channel]) }
+
+    /// A relative (endless) encoder of this layout.
+    public func isRelativeEncoder(_ control: MIDIControl) -> Bool {
+        control.kind == .cc && channels.contains(control.channel) && (relativeEncoders ?? []).contains(control.number)
+    }
+
     public func matches(portName: String) -> Bool {
         portName.range(of: portNamePattern, options: [.caseInsensitive, .regularExpression]) != nil
     }
 
     public func action(for control: MIDIControl) -> ControlAction? {
-        guard control.channel == channel else { return nil }
-        return bindings.first { $0.type == control.kind && $0.number == control.number }?.action
+        bindings.first { self.control(of: $0) == control }?.action
     }
 
     /// Human-readable problems; empty means the profile is valid.
@@ -87,8 +149,10 @@ public struct ControllerProfile: Codable, Equatable, Identifiable, Sendable {
         var controls = Set<String>(), actions = Set<ControlAction>()
         for b in bindings {
             if b.number > 127 { out.append("\(b.action.rawValue): number \(b.number) is not 0...127") }
-            if !controls.insert("\(b.type.rawValue) \(b.number)").inserted {
-                out.append("\(b.type.rawValue) \(b.number) is bound twice")
+            if let c = b.channel, !(1...16).contains(c) { out.append("\(b.action.rawValue): channel \(c) is not 1...16") }
+            let where_ = b.channel.map { " on channel \($0)" } ?? ""
+            if !controls.insert("\(b.type.rawValue) \(b.number) ch\(channel(of: b))").inserted {
+                out.append("\(b.type.rawValue) \(b.number)\(where_) is bound twice")
             }
             if !actions.insert(b.action).inserted { out.append("\(b.action.rawValue) is bound twice") }
             if b.action.isContinuous, b.type != .cc { out.append("\(b.action.rawValue) is continuous and needs a cc") }
@@ -100,8 +164,9 @@ public struct ControllerProfile: Codable, Equatable, Identifiable, Sendable {
         if let r = encoderResolution, r < 1 { out.append("encoderResolution must be at least 1") }
         if let leds {
             if leds.notes.from > leds.notes.to { out.append("leds.notes.from is after leds.notes.to") }
-            let top = Int(leds.notes.to) + Int(max(leds.colors.red, leds.colors.amber, leds.colors.green))
-            if top > 127 { out.append("LED addresses exceed 127") }
+            let colorTop = Int(max(leds.colors.red, leds.colors.amber, leds.colors.green))
+            let top = leds.style == .velocity ? max(Int(leds.notes.to), colorTop) : Int(leds.notes.to) + colorTop
+            if top > 127 || (leds.extraNotes ?? []).contains(where: { $0 > 127 }) { out.append("LED addresses exceed 127") }
             for s in leds.special ?? [] where s.addresses.count != 3 || s.addresses.contains(where: { $0 > 127 }) {
                 out.append("leds.special \(s.base) needs three addresses 0...127")
             }

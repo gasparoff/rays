@@ -327,9 +327,9 @@ public struct MIDIMap: Codable, Equatable, Sendable {
     /// Effective control for an action on a port routed by `profile` (learned on that port's
     /// channel first, else the layout's binding unless that control or action was re-learned).
     public func control(for action: ControlAction, in profile: ControllerProfile) -> MIDIControl? {
-        if let learned = control(for: action) { return learned.channel == profile.channel ? learned : nil }
+        if let learned = control(for: action) { return profile.channels.contains(learned.channel) ? learned : nil }
         guard let b = profile.bindings.first(where: { $0.action == action }) else { return nil }
-        let c = MIDIControl(b.type, channel: profile.channel, number: b.number)
+        let c = profile.control(of: b)
         return binding(for: c) == nil ? c : nil
     }
 }
@@ -404,8 +404,7 @@ public struct MIDIRouter: Sendable {
             if pressed { noteHigh.insert(control) } else { noteHigh.remove(control) }
         }
         let isK2Encoder = fromK2 && control.kind == .cc && XoneK2.relativeEncoderCCs.contains(control.number)
-        let isProfileEncoder = control.kind == .cc && control.channel == profile?.channel
-            && (profile?.relativeEncoders ?? []).contains(control.number)
+        let isProfileEncoder = profile?.isRelativeEncoder(control) ?? false
         let isEncoder = isK2Encoder || isProfileEncoder
 
         if let action = learning {
@@ -480,7 +479,7 @@ public struct MIDIRouter: Sendable {
         if let b = map.binding(for: control) { return (b.action, b.relative == true) }
         if !fromK2, let profile {
             guard let action = profile.action(for: control), map.control(for: action) == nil else { return nil }
-            let encoder = control.kind == .cc && (profile.relativeEncoders ?? []).contains(control.number)
+            let encoder = profile.isRelativeEncoder(control)
             return (action, encoder)
         }
         guard fromK2, map.k2Preset,
@@ -537,15 +536,14 @@ public enum K2Feedback {
         return out
     }
 
-    /// LED colours for a port routed by `profile` (same colour rules as the K2), keyed by base note.
-    /// Empty when the layout has no LEDs.
-    public static func leds(map: MIDIMap, profile: ControllerProfile, state s: K2FeedbackState) -> [UInt8: XoneK2.LED] {
+    /// LED colours for a port routed by `profile` (same colour rules as the K2), keyed by the
+    /// note control (its channel included). Empty when the layout has no LEDs.
+    public static func leds(map: MIDIMap, profile: ControllerProfile, state s: K2FeedbackState) -> [MIDIControl: XoneK2.LED] {
         guard let leds = profile.leds else { return [:] }
-        var out: [UInt8: XoneK2.LED] = [:]
+        var out: [MIDIControl: XoneK2.LED] = [:]
         for action in ControlAction.allCases {
-            guard let c = map.control(for: action, in: profile), c.kind == .note,
-                  leds.addresses(base: c.number).count == 3 else { continue }
-            out[c.number] = color(action, s)
+            guard let c = map.control(for: action, in: profile), c.kind == .note, leds.hasLED(base: c.number) else { continue }
+            out[c] = color(action, s)
         }
         return out
     }

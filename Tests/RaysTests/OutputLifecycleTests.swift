@@ -9,11 +9,13 @@ final class OutputLifecycleTests: XCTestCase {
         let transport = FakeTransport()
         let clock = ManualClock()
         let source = LocalTempoClock(bpm: 120, now: { clock.now })
-        let engine = LightEngine(tempo: source, transport: transport, interfaces: { [Fixture.lan] },
-                                 clock: { clock.now }, runsTimer: false)
-        var patch = Patch(fixtures: universes.map {
-            .init(label: "Test U\($0)", profileID: "generic.rgb3", universe: $0, address: 1)
-        })
+        let engine = LightEngine(
+            tempo: source, transport: transport, interfaces: { [Fixture.lan] },
+            clock: { clock.now }, runsTimer: false)
+        var patch = Patch(
+            fixtures: universes.map {
+                .init(label: "Test U\($0)", profileID: "generic.rgb3", universe: $0, address: 1)
+            })
         patch.setConfirmed(true, library: ProfileLibrary())
         engine.start(); engine.setPatch(patch); engine.setMaster(1)
         engine.sync { transport.receive?(Fixture.pollReply(), .init(192, 168, 1, 50)) }
@@ -253,7 +255,7 @@ final class OutputLifecycleTests: XCTestCase {
 
     func testSACNConfiguredPortIsNotAnArtNetSubscriber() throws {
         var bytes = Fixture.pollReply()
-        bytes[182] = 1 // GoodOutput bit0 means sACN conversion.
+        bytes[182] = 1  // GoodOutput bit0 means sACN conversion.
         let reply = try ArtPollReply.parse(bytes)
         XCTAssertEqual(reply.outputPorts.map(\.portAddress), [PortAddress(1)!])
     }
@@ -296,8 +298,9 @@ final class OutputSettingsTests: XCTestCase {
     func testSwitchingDriverDisarmsAndSendsBlackOnTheOldDriver() throws {
         let t = FakeTransport()
         let clock = ManualClock()
-        let engine = LightEngine(tempo: LocalTempoClock(), transport: t, interfaces: { [Fixture.lan] },
-                                 clock: { clock.now }, runsTimer: false)
+        let engine = LightEngine(
+            tempo: LocalTempoClock(), transport: t, interfaces: { [Fixture.lan] },
+            clock: { clock.now }, runsTimer: false)
         engine.start()
         XCTAssertEqual(engine.outputDriverID, "artnet")
         engine.useOutputDriver("sacn", registry: OutputSettings().registry)

@@ -122,7 +122,7 @@ final class DMXUSBProTests: XCTestCase {
         let port = POSIXSerialPort()
         try port.open(path: String(cString: name))
         defer { port.close() }
-        let frame = DMXUSBPro.sendDMX([0x0A, 0x0D, 0x7E, 0xE7, 0x11, 0x13])   // CR/LF/XON/XOFF must pass untouched
+        let frame = DMXUSBPro.sendDMX([0x0A, 0x0D, 0x7E, 0xE7, 0x11, 0x13])  // CR/LF/XON/XOFF must pass untouched
         try port.write(frame)
         var received: [UInt8] = []
         var buffer = [UInt8](repeating: 0, count: 1024)
@@ -135,4 +135,3 @@ final class DMXUSBProTests: XCTestCase {
         XCTAssertThrowsError(try POSIXSerialPort().open(path: "/dev/cu.usbserial-does-not-exist"))
     }
 }
-

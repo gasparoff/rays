@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import RaysCore
 
-// Piccoli componenti condivisi dall'editor a tutto schermo (matrice, ispettore, impostazioni scena).
+// Small components shared by the full-screen editor (matrix, inspector, scene settings).
 
 extension TrackSound {
     var symbol: String {

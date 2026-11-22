@@ -1,8 +1,8 @@
 import SwiftUI
 import RaysCore
 
-// Ispettore della traccia scelta: quattro schede esplicite (Luci, Colpo, Tempo, Mix).
-// Ogni scheda mostra in fondo il riassunto delle altre; un punto indica valori diversi dal predefinito.
+// Inspector of the selected track: four explicit tabs (Luci = lights, Colpo = hit, Tempo, Mix).
+// Each tab ends with a summary of the others; a dot marks values that differ from the default.
 
 enum InspectorTab: String, CaseIterable, Identifiable {
     case lights, hit, timing, mix
@@ -236,7 +236,7 @@ private struct RenamePopover: View {
     }
 }
 
-// MARK: - Luci
+// MARK: - Lights tab ("Luci")
 
 private struct LightsTab: View {
     let session: SceneEditorSession
@@ -447,7 +447,7 @@ private struct LineShape: Shape {
     }
 }
 
-// MARK: - Colpo
+// MARK: - Hit tab ("Colpo")
 
 private struct HitTab: View {
     let session: SceneEditorSession
@@ -709,7 +709,7 @@ private struct EnvelopeEditor: View {
     }
 }
 
-// MARK: - Tempo
+// MARK: - Timing tab ("Tempo")
 
 private struct TimingTab: View {
     let session: SceneEditorSession
@@ -772,7 +772,7 @@ private struct TimingTab: View {
     }
 }
 
-// MARK: - Mix
+// MARK: - Mix tab
 
 private struct MixTab: View {
     let session: SceneEditorSession

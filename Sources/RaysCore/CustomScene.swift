@@ -7,10 +7,10 @@ public enum SceneBank: String, Codable, CaseIterable, Identifiable, Sendable {
     public var title: String { self == .house ? "House" : "Club 130–138" }
 }
 
-// Scene personalizzate: una coreografia di base (SceneID) con tre colori scelti dall'utente,
-// energia, durata del movimento, livello dei bianchi caldi (COB) e bilanciamento L/C/R.
-// Il motore continua a calcolare la coreografia di base; `recolor` rimappa ogni colore
-// prodotto sulla tavolozza dell'utente preservando picco, nero e canale bianco.
+// Custom scenes: a base choreography (SceneID) with three user colours, energy, motion length,
+// warm-white (COB) level and L/C/R balance. The engine still computes the base choreography;
+// `recolor` maps every produced colour onto the user's palette, preserving peak, black and the
+// white channel.
 
 /// Plain sRGB triple (0...1) as stored on disk. The white channel is never stored: whites belong to the choreography.
 public struct SceneRGB: Codable, Equatable, Hashable, Sendable {

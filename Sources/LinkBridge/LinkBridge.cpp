@@ -1,4 +1,4 @@
-// Ponte C verso l'SDK ufficiale Ableton Link (GPLv2+). Nessuna reimplementazione del protocollo.
+// C bridge to the official Ableton Link SDK (GPLv2+). The protocol is not reimplemented.
 #include "LinkBridge.h"
 
 #include <ableton/Link.hpp>

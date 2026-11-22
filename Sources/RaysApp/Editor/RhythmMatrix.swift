@@ -1,10 +1,11 @@
 import SwiftUI
 import RaysCore
 
-// Matrice ritmica condivisa: una riga per traccia (fino a 8) su un unico asse in battiti.
-// Ogni traccia mantiene la sua risoluzione (1/4, 1/8, 1/16) e il suo ciclo (1–16 battiti):
-// un ciclo più corto della vista si ripete, e ogni ripetizione modifica lo stesso passo salvato.
-// "Vista" sceglie solo cosa si vede; "Passo" e "Ciclo" nella barra sotto cambiano il disegno.
+// Shared rhythm matrix: one row per track (up to 8) on a single beat axis.
+// Each track keeps its own resolution (1/4, 1/8, 1/16) and cycle (1–16 beats): a cycle shorter
+// than the view repeats, and every repetition edits the same stored step.
+// "Vista" (view) only chooses what is visible; "Passo" (step) and "Ciclo" (cycle) in the bar
+// below change the pattern.
 
 private enum MatrixMetrics {
     static let caption: CGFloat = 176

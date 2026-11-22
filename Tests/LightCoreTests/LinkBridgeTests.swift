@@ -2,8 +2,8 @@ import XCTest
 import LinkBridge
 
 final class LinkBridgeTests: XCTestCase {
-    /// Verifica che l'SDK reale di Ableton Link sia compilato e collegato: crea un'istanza
-    /// (non abilitata, quindi nessun traffico di rete), legge la timeline e la distrugge.
+    /// Checks that the real Ableton Link SDK is compiled and linked: creates an instance
+    /// (not enabled, so no network traffic), reads the timeline and destroys it.
     func testRealLinkBridgeCapturesTimeline() throws {
         let link = try XCTUnwrap(ls_link_create(123))
         defer { ls_link_destroy(link) }

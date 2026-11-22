@@ -1,8 +1,8 @@
 import Foundation
 
-// Operazioni deterministiche dell'editor di scena: cronologia annulla/ripeti, mappatura della
-// griglia ritmica su un asse comune in battiti, pittura dei passi e maniglie dell'inviluppo.
-// Solo Foundation: nessun effetto sul motore, sul formato salvato o sui preset.
+// Deterministic scene-editor operations: undo/redo history, mapping the rhythm grid onto a shared
+// beat axis, step painting and envelope handles. Foundation only: no effect on the engine, the
+// saved format or the presets.
 
 // MARK: - Undo history
 

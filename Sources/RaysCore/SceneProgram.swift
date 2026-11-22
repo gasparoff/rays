@@ -1,8 +1,8 @@
 import Foundation
 
-// Struttura di una scena: tracce disegnate a mano sulla griglia dei battiti (Cassa, Clap, Hi-hat…).
-// Le etichette sono solo musicali: nessun ascolto dell'audio, ogni traccia segue il battito di Link.
-// Il modello è opzionale (`CustomScene.program`): se manca, la scena resta identica a prima.
+// Scene structure: tracks drawn by hand on the beat grid (kick, clap, hi-hat…). The labels are
+// only musical: no audio is analysed, every track follows the Link beat. The model is optional
+// (`CustomScene.program`): without it a scene behaves exactly as before.
 
 /// Musical label of a track. It only chooses a name, an icon and a starting pattern.
 public enum TrackSound: String, Codable, CaseIterable, Identifiable, Sendable {

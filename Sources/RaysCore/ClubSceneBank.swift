@@ -1,15 +1,15 @@
 import Foundation
 
-// Banco "Club 130–138": sei scene di fabbrica per house/garage/rave veloce (130–138 BPM).
-// Riferimenti creativi (Chris Stussy, Kettama, Kolter, Robbie Doherty): groove, swing, garage e drive;
-// nessuna pretesa di riprodurre show reali. Ogni scena è un `SceneProgram` di sole tracce
-// (`baseLevel` 0), quindi completamente modificabile nell'editor. Progetto: Research/club-scene-design.txt.
+// "Club 130–138" bank: six factory scenes for fast house, garage and rave (130–138 BPM).
+// Design intent: the groove, swing, garage shuffle and drive of contemporary club sets, without
+// trying to reproduce any real show. Every scene is a track-only `SceneProgram` (`baseLevel` 0),
+// so it is fully editable in the scene editor.
 //
-// Regole di palco comuni:
-// - il centro (TRI 380) tiene la cassa, le laterali (TRI 180) rispondono in levare;
-// - colori diversi non si sovrappongono sugli stessi segmenti (il blend "Più forte" li sbiancherebbe);
-// - i COB caldi solo su clap e accenti: nessun bianco fisso, nessuno strobo bianco rapido;
-// - colpi forti a 1 (sempre pieni), ghost a 0,5 (seguono l'Energia).
+// Shared stage rules:
+// - the centre (TRI 380) holds the kick, the sides (TRI 180) answer on the offbeat;
+// - different colours never overlap on the same segments (the "strongest" blend would wash them out);
+// - warm COBs only on claps and accents: no static white, no fast white strobe;
+// - strong hits at 1 (always full), ghost hits at 0.5 (they follow Energy).
 
 /// The six factory scenes of the Club bank, one per performance slot.
 public enum ClubSceneBank {

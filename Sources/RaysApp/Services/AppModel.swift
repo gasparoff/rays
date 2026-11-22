@@ -113,7 +113,8 @@ final class AppModel: ObservableObject {
         lightingTempo = DownbeatTempoSource(source: link)
         let store = self.store
         midi = MIDIService(map: store.loadMIDIMap(), profiles: controllers) { map in try? store.saveMIDIMap(map) }
-        engine = LightEngine(tempo: lightingTempo, transport: UDPSocket(), library: lib)
+        engine = LightEngine(tempo: lightingTempo, transport: UDPSocket(), library: lib,
+                             outputDrivers: p.output.registry, outputDriverID: p.output.driverID)
 
         // Latest-only: if the main thread stalls, it skips to the newest frame instead of
         // queueing one block per 30 Hz snapshot. DMX output is not affected.
@@ -132,8 +133,7 @@ final class AppModel: ObservableObject {
         engine.setEnergy(p.energy)
         engine.setSubdivision(p.subdivision, immediate: true)
         engine.setStartStopSync(p.startStopSync)
-        if let ip = p.manualIP.flatMap(IPv4Address.init(string:)) { engine.setManualIP(ip) }
-        else { engine.setPreferredIdentity(p.preferredNodeIdentity) }
+        applyArtNetSelection(p)
         engine.setOutputRequested(p.outputEnabled)
         if p.blackout { engine.setBlackout(true) }
 
@@ -310,6 +310,25 @@ final class AppModel: ObservableObject {
     func setTempo(_ bpm: Double) { engine.setTempo(bpm) }
 
     func setStartStopSync(_ on: Bool) { prefs.startStopSync = on; engine.setStartStopSync(on); scheduleSave() }
+
+    /// Node selection and manual IP belong to Art-Net; other drivers keep their own settings.
+    private func applyArtNetSelection(_ p: Preferences) {
+        guard p.output.driverID == OutputDriverRegistry.defaultDriverID else { return }
+        if let ip = p.manualIP.flatMap(IPv4Address.init(string:)) { engine.setManualIP(ip) }
+        else { engine.setPreferredIdentity(p.preferredNodeIdentity) }
+    }
+
+    /// Changes the output driver or its settings. Output is switched off first.
+    func setOutput(_ settings: OutputSettings) {
+        var s = settings
+        if s.driverID == SACNDriver.driverID, s.sacn.cid == nil { s.sacn.cid = UUID() }
+        guard s != prefs.output else { return }
+        prefs.output = s
+        prefs.outputEnabled = false
+        engine.useOutputDriver(s.driverID, registry: s.registry)
+        applyArtNetSelection(prefs)
+        scheduleSave()
+    }
 
     func selectNode(_ id: String?) {
         prefs.outputEnabled = false

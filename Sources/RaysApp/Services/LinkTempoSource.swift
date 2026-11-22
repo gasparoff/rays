@@ -11,6 +11,8 @@ final class LinkTempoSource: TempoSource, @unchecked Sendable {
     private var link: OpaquePointer?
     private let fallback: LocalTempoClock
     static let quantum = 4.0
+    static let sourceID = "link"
+    static let descriptor = TempoSourceRegistry.Descriptor(id: sourceID, name: "Ableton Link") { LinkTempoSource(bpm: $0) }
 
     init(bpm: Double = 120) {
         let initialBPM = TempoRange.clamp(bpm)

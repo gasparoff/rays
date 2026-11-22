@@ -164,7 +164,7 @@ public final class LightEngine: @unchecked Sendable {
     public var onPreferredNodeChanged: ((String?) -> Void)?
 
     private let tempo: TempoSource
-    private let artnet: ArtNetController
+    private let artnet: OutputDriver
     private let clock: () -> TimeInterval
     private var baseLibrary: ProfileLibrary
     private var timer: DispatchSourceTimer?
@@ -216,10 +216,12 @@ public final class LightEngine: @unchecked Sendable {
                 interfaces: @escaping () -> [NetworkInterface] = NetworkInterface.current,
                 library: ProfileLibrary = ProfileLibrary(),
                 clock: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
-                runsTimer: Bool = true) {
+                runsTimer: Bool = true,
+                outputDrivers: OutputDriverRegistry = .builtIn,
+                outputDriverID: String = OutputDriverRegistry.defaultDriverID) {
         self.runsTimer = runsTimer
         self.tempo = tempo
-        self.artnet = ArtNetController(transport: transport, interfaces: interfaces)
+        self.artnet = outputDrivers.make(id: outputDriverID, transport: transport, interfaces: interfaces)
         self.baseLibrary = library
         self.clock = clock
         artnet.onPreferredIdentityChanged = { [weak self] id in self?.onPreferredNodeChanged?(id) }
@@ -562,7 +564,7 @@ public final class LightEngine: @unchecked Sendable {
 
     private func reopenSocketIfNeeded(now: TimeInterval, force: Bool = false) {
         guard running, !suspended, !artnet.isOpen,
-              force || now - lastSocketAttempt >= ArtNetController.pollInterval else { return }
+              force || now - lastSocketAttempt >= artnet.reopenInterval else { return }
         lastSocketAttempt = now
         artnet.open(queue: queue, now: clock)
         if artnet.isOpen { artnet.forcePoll(now: now) }

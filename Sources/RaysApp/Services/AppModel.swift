@@ -94,7 +94,11 @@ final class AppModel: ObservableObject {
         prefs = p
         storageErrors = errors
         let storedBPM = UserDefaults.standard.object(forKey: "LightSystem.internalBPM") as? Double
-        link = LinkTempoSource(bpm: storedBPM.map(TempoRange.clamp) ?? 120)
+        var tempoSources = TempoSourceRegistry.builtIn
+        tempoSources.register(LinkTempoSource.descriptor)
+        // Link is the only grid the app runs on; the registry keeps sources pluggable.
+        link = tempoSources.make(id: LinkTempoSource.sourceID, bpm: storedBPM.map(TempoRange.clamp) ?? 120)
+            as? LinkTempoSource ?? LinkTempoSource(bpm: storedBPM.map(TempoRange.clamp) ?? 120)
         lightingTempo = DownbeatTempoSource(source: link)
         let store = self.store
         midi = MIDIService(map: store.loadMIDIMap()) { map in try? store.saveMIDIMap(map) }

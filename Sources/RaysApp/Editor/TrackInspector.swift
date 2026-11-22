@@ -11,9 +11,9 @@ enum InspectorTab: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .lights: return "Luci"
-        case .hit: return "Colpo"
-        case .timing: return "Tempo"
+        case .lights: return String(localized: "Lights")
+        case .hit: return String(localized: "Hit")
+        case .timing: return String(localized: "Tempo")
         case .mix: return "Mix"
         }
     }
@@ -46,20 +46,20 @@ enum InspectorTab: String, CaseIterable, Identifiable {
         switch self {
         case .lights:
             var parts = [t.target.placeText, t.target.lightText, t.motion.title]
-            if t.spread > 0 { parts.append("sfalsa \(decimalText(t.spread))") }
+            if t.spread > 0 { parts.append(String(localized: "spread \(String(describing: decimalText(t.spread)))")) }
             return parts.joined(separator: " · ")
         case .hit:
-            let shape = HitShapePreset.matching(t)?.title ?? "Personale"
+            let shape = HitShapePreset.matching(t)?.title ?? String(localized: "Custom")
             return
                 "\(shape) · \(decimalText(t.attack))/\(decimalText(t.hold))/\(decimalText(t.release)) · \(percentText(t.floor))–\(percentText(t.peak))"
         case .timing:
             let shift =
                 abs(t.offset) < 0.005
-                ? "A tempo" : (t.offset < 0 ? "Anticipo \(signedBeatsText(t.offset))" : "Ritardo \(signedBeatsText(t.offset))")
-            return shift + " · " + (t.riseBeats == 0 ? "nessuna salita" : "Salita \(beatsTitle(t.riseBeats))")
+                ? String(localized: "On time") : (t.offset < 0 ? String(localized: "Early \(String(describing: signedBeatsText(t.offset)))") : String(localized: "Late \(String(describing: signedBeatsText(t.offset)))"))
+            return shift + " · " + (t.riseBeats == 0 ? String(localized: "no rise") : String(localized: "Rise \(String(describing: beatsTitle(t.riseBeats)))"))
         case .mix:
-            return "\(t.blend.title) · " + (t.softFollowsEnergy ? "Deboli seguono Energia" : "Deboli fissi")
-                + (t.enabled ? "" : " · silenziata")
+            return "\(t.blend.title) · " + (t.softFollowsEnergy ? String(localized: "Weak hits follow Energy") : String(localized: "Weak hits fixed"))
+                + (t.enabled ? "" : String(localized: " · muted"))
         }
     }
 }
@@ -134,7 +134,7 @@ struct TrackInspector: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(item.title)
-                .accessibilityValue(item.isModified(track) ? "valori personalizzati" : "")
+                .accessibilityValue(item.isModified(track) ? String(localized: "custom values") : "")
                 .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
                 .help(item.summary(track))
             }
@@ -153,11 +153,11 @@ struct TrackInspector: View {
 
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Parametri della traccia").font(.system(size: 17, weight: .semibold))
+            Text("Track parameters").font(.system(size: 17, weight: .semibold))
             Text(
                 !program.state.hasProgram
-                    ? "La scena usa ancora la coreografia originale: non ci sono tracce da regolare. Scegli a sinistra come iniziare, oppure cambia colori, energia e zone in Impostazioni scena."
-                    : "Nessuna traccia. Aggiungine una sotto la matrice del ritmo."
+                    ? String(localized: "The scene still uses the original choreography: there are no tracks to adjust. Choose how to start on the left, or change colors, energy and zones in Scene settings.")
+                    : String(localized: "No tracks. Add one below the rhythm grid.")
             )
             .font(.system(size: 12)).foregroundStyle(Theme.secondary)
             .fixedSize(horizontal: false, vertical: true)
@@ -186,18 +186,18 @@ private struct InspectorHeader: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(track.name).font(.system(size: 19, weight: .semibold)).lineLimit(1)
-                Text("Parametri della traccia · \(track.sound.title)").font(.system(size: 12)).foregroundStyle(Theme.secondary).lineLimit(1)
+                Text("Track parameters · \(String(describing: track.sound.title))").font(.system(size: 12)).foregroundStyle(Theme.secondary).lineLimit(1)
             }
             Spacer(minLength: 6)
-            iconButton("pencil", "Rinomina ed etichetta") { renaming = true }
+            iconButton("pencil", String(localized: "Rename and label")) { renaming = true }
                 .popover(isPresented: $renaming, arrowEdge: .bottom) {
                     RenamePopover(session: session, trackID: track.id)
                 }
-            iconButton("plus.square.on.square", canAddTrack ? "Duplica la traccia" : "Massimo \(SceneProgram.maxTracks) tracce") {
+            iconButton("plus.square.on.square", canAddTrack ? String(localized: "Duplicate the track") : String(localized: "At most \(String(describing: SceneProgram.maxTracks)) tracks")) {
                 session.duplicateTrack(track.id)
             }
             .disabled(!canAddTrack)
-            iconButton("trash", "Elimina la traccia (⌘Z per annullare)") { session.deleteTrack(track.id) }
+            iconButton("trash", String(localized: "Delete the track (⌘Z to undo)")) { session.deleteTrack(track.id) }
         }
         .onChange(of: session.renameRequest) { _, id in
             if id == track.id { renaming = true; session.renameRequest = nil }
@@ -229,9 +229,9 @@ private struct RenamePopover: View {
     var body: some View {
         let track = session.tracks.first { $0.id == trackID }
         VStack(alignment: .leading, spacing: 10) {
-            Text("Nome della traccia").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.secondary)
+            Text("Track name").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.secondary)
             TextField(
-                "Nome",
+                String(localized: "Name"),
                 text: Binding(
                     get: { track?.name ?? "" },
                     set: { name in session.editTrack(trackID, "name") { $0.name = String(name.prefix(ProgramTrack.maxNameLength)) } })
@@ -239,8 +239,8 @@ private struct RenamePopover: View {
             .textFieldStyle(.roundedBorder)
             .focused($focused)
             .frame(width: 240)
-            .accessibilityLabel("Nome della traccia")
-            Text("Etichetta musicale (solo nome e icona)").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.secondary)
+            .accessibilityLabel("Track name")
+            Text("Musical label (name and icon only)").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.secondary)
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 3), spacing: 6) {
                 ForEach(TrackSound.allCases) { sound in
                     ChipButton(title: sound.title, symbol: sound.symbol, selected: track?.sound == sound) {

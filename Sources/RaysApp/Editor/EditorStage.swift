@@ -19,11 +19,11 @@ struct EditorStagePanel: View {
                 EditorLiveStage(frames: live, target: target, onToggleRole: onToggleRole).environmentObject(controls)
                     .padding(.horizontal, 10).padding(.top, 34).padding(.bottom, 4)
                 HStack(spacing: 10) {
-                    Text("Anteprima").font(.system(size: 17, weight: .semibold))
+                    Text("Preview").font(.system(size: 17, weight: .semibold))
                     StageOutputBadge().environmentObject(controls)
                     Spacer()
                     if let trackName, target != nil {
-                        Label("Clic sulle luci: destinazioni di «\(trackName)»", systemImage: "hand.point.up.left")
+                        Label("Click the lights: targets of “\(String(describing: trackName))”", systemImage: "hand.point.up.left")
                             .font(.system(size: 11)).foregroundStyle(Theme.tertiary).lineLimit(1)
                     }
                 }
@@ -42,15 +42,15 @@ private struct StageOutputBadge: View {
         let onLights = s.armed && s.sending && !s.blackout
         let (text, symbol, color): (String, String, Color) = s.blackout
             ? ("Blackout", "lightbulb.slash.fill", Theme.bad)
-            : (onLights ? ("Sulle luci", "dot.radiowaves.left.and.right", Theme.good)
-               : (s.armed ? ("Errore invio", "exclamationmark.triangle.fill", Theme.bad) : ("Solo anteprima", "eye", Theme.lavender)))
+            : (onLights ? (String(localized: "On the lights"), "dot.radiowaves.left.and.right", Theme.good)
+               : (s.armed ? (String(localized: "Send error"), "exclamationmark.triangle.fill", Theme.bad) : (String(localized: "Preview only"), "eye", Theme.lavender)))
         Label(text, systemImage: symbol)
             .font(.system(size: 11.5, weight: .medium))
             .padding(.horizontal, 10).padding(.vertical, 4)
             .background(Capsule().fill(color.opacity(0.16)))
             .foregroundStyle(color)
-            .help(onLights ? "Uscita attiva: le luci cambiano mentre modifichi." : "L’editor non accende mai l’uscita: vedi l’anteprima.")
-            .accessibilityLabel("Stato uscita: \(text)")
+            .help(onLights ? String(localized: "Output on: the lights change while you edit.") : String(localized: "The editor never turns the output on: you see the preview."))
+            .accessibilityLabel("Output status: \(String(describing: text))")
     }
 }
 
@@ -104,15 +104,15 @@ private struct StageTargetOverlay: View, Equatable {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(target.map { "Destinazioni della traccia: \($0.summary)" } ?? "Anteprima")
+        .accessibilityLabel(target.map { String(localized: "Track targets: \(String(describing: $0.summary))") } ?? String(localized: "Preview"))
         .accessibilityActions {
             if target != nil {
                 ForEach(FixtureRole.allCases) { role in
-                    Button("Includi o escludi \(role.label)") { onToggleRole(role) }
+                    Button("Include or exclude \(String(describing: role.label))") { onToggleRole(role) }
                 }
             }
         }
-        .help(target == nil ? "" : "Clic su una luce per includerla o escluderla dalla traccia scelta. I segmenti del centro si scelgono in Luci; l’orientamento è approssimato.")
+        .help(target == nil ? "" : String(localized: "Click a light to include it in or exclude it from the selected track. Center segments are chosen in Lights; orientation is approximate."))
     }
 
     private func selected(_ role: FixtureRole, _ t: TrackTarget) -> Bool {

@@ -35,7 +35,7 @@ struct LiveBeatMarks: NSViewRepresentable {
                 let current = (Int(floor(phase)) % 4 + 4) % 4
                 if beat != current {
                     beat = current
-                    setAccessibilityLabel("Battito \(current + 1) di 4")
+                    setAccessibilityLabel("Beat \(String(describing: current + 1)) of 4")
                 }
                 needsDisplay = true
             }

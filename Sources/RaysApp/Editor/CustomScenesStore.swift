@@ -88,7 +88,7 @@ final class CustomScenesStore: ObservableObject {
             hasUnsavedChanges = true
             save()
         } catch {
-            self.error = "Impossibile mettere da parte il file illeggibile: \(error.localizedDescription)"
+            self.error = String(localized: "Could not set the unreadable file aside: \(String(describing: error.localizedDescription))")
         }
     }
 
@@ -106,7 +106,7 @@ final class CustomScenesStore: ObservableObject {
     private func save() {
         guard !fileIsUnreadable else {
             error =
-                "Il file delle scene personalizzate non è leggibile: le modifiche restano solo in questa sessione finché non scegli di sostituirlo (verrà conservata una copia)."
+                String(localized: "The custom scenes file can't be read: changes stay in this session only until you choose to replace it (a copy will be kept).")
             return
         }
         do {
@@ -114,23 +114,23 @@ final class CustomScenesStore: ObservableObject {
             hasUnsavedChanges = false
             error = nil
         } catch {
-            self.error = "Scene personalizzate non salvate su disco: \(error.localizedDescription)"
+            self.error = String(localized: "Custom scenes not saved to disk: \(String(describing: error.localizedDescription))")
         }
     }
 
     private func copyName(for name: String) -> String {
-        let suffix = " (copia)"
+        let suffix = String(localized: " (copy)")
         let room = CustomScene.maxNameLength - suffix.count
         let stem = String(CustomScene.cleanName(name).prefix(room)).trimmingCharacters(in: .whitespaces)
         let base = stem + suffix
         guard scenes.contains(where: { $0.name == base }) else { return base }
         var n = 2
-        while scenes.contains(where: { $0.name == "\(stem) (copia \(n))" }) { n += 1 }
-        return "\(stem) (copia \(n))"
+        while scenes.contains(where: { $0.name == String(localized: "\(String(describing: stem)) (copy \(String(describing: n)))") }) { n += 1 }
+        return String(localized: "\(String(describing: stem)) (copy \(String(describing: n)))")
     }
 
     private func message(for error: Error) -> String {
         (error as? LocalizedError)?.errorDescription
-            ?? "Il file delle scene personalizzate non è leggibile e non è stato modificato: \(error.localizedDescription)"
+            ?? String(localized: "The custom scenes file can't be read and was left unchanged: \(String(describing: error.localizedDescription))")
     }
 }

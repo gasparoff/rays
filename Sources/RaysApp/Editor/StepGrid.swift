@@ -83,12 +83,12 @@ struct StepGrid: View, Equatable {
         }
         .help(helpText)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Passi di \(track.name)")
+        .accessibilityLabel("Steps of \(String(describing: track.name))")
         .accessibilityChildren {
             ForEach(0..<steps.count, id: \.self) { i in
                 Rectangle()
-                    .accessibilityLabel("Passo \(i + 1) di \(steps.count), battito \(i / track.stepsPerBeat + 1)")
-                    .accessibilityValue(steps[i] <= 0 ? "spento" : (steps[i] >= 0.999 ? "forte" : "debole"))
+                    .accessibilityLabel("Step \(String(describing: i + 1)) of \(String(describing: steps.count)), beat \(String(describing: i / track.stepsPerBeat + 1))")
+                    .accessibilityValue(steps[i] <= 0 ? String(localized: "off") : (steps[i] >= 0.999 ? String(localized: "strong") : String(localized: "weak")))
                     .accessibilityAddTraits(.isButton)
                     .accessibilityAction { session.cycleStep(track.id, i) }
             }
@@ -96,10 +96,10 @@ struct StepGrid: View, Equatable {
     }
 
     private var helpText: String {
-        var s = "\(track.name): \(rowCaption(track)). Clic: forte → debole → spento; trascina per disegnare lo stesso valore."
+        var s = String(localized: "\(String(describing: track.name)): \(String(describing: rowCaption(track))). Click: strong → weak → off; drag to draw the same value.")
         if track.lengthBeats < viewport.total || viewport.start > 0 {
             s +=
-                " Il ciclo di \(beatsTitle(track.lengthBeats)) si ripete (riquadri tratteggiati): ogni ripetizione modifica lo stesso passo."
+                String(localized: " The \(String(describing: beatsTitle(track.lengthBeats))) cycle repeats (dashed boxes): every repeat edits the same step.")
         }
         return s
     }

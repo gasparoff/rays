@@ -5,7 +5,7 @@ import Foundation
 /// Explicit sleep / lid closure still follow macOS's normal lifecycle.
 public final class OutputActivity {
     public static let options: ProcessInfo.ActivityOptions = .userInitiated
-    public static let reason = "RAYS — invio luci e riconnessione automatica"
+    public static let reason = String(localized: "RAYS — sending light data and reconnecting automatically")
 
     private let begin: () -> NSObjectProtocol
     private let end: (NSObjectProtocol) -> Void

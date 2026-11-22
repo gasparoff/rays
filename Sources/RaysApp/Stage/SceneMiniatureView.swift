@@ -36,11 +36,11 @@ struct SceneMiniatureView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "waveform.path").font(.system(size: 10))
                         .foregroundStyle(Theme.lavender)
-                    Text(stopped ? "Scena ferma" : (look?.name ?? scene.title))
+                    Text(stopped ? String(localized: "Scene stopped") : (look?.name ?? scene.title))
                         .font(.system(size: 11, weight: .semibold)).lineLimit(1)
                     Spacer(minLength: 2)
                     if stopped || blackout || pending {
-                        Text(stopped ? "Stop" : (blackout ? "Blackout" : "Attesa beat"))
+                        Text(stopped ? "Stop" : (blackout ? "Blackout" : String(localized: "Waiting for beat")))
                             .font(.system(size: 9)).foregroundStyle(blackout ? Theme.bad : Theme.secondary)
                     } else {
                         MiniatureBarCounter(scene: scene, span: layout?.span ?? 16)
@@ -65,9 +65,9 @@ struct SceneMiniatureView: View {
             .contentShape(RoundedRectangle(cornerRadius: 9))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Struttura della scena \(look?.name ?? scene.title)")
-        .accessibilityHint("Apri l’editor a schermo intero")
-        .help("Struttura della scena luci e posizione sul battito. Le righe mostrano le tracce; per le coreografie originali, l’andamento delle tre luci. Clic per modificare.")
+        .accessibilityLabel("Structure of scene \(String(describing: look?.name ?? scene.title))")
+        .accessibilityHint("Open the full-screen editor")
+        .help("Structure of the light scene and position on the beat. Rows show the tracks; for the original choreographies, the movement of the three lights. Click to edit.")
         .onAppear { rebuild(source) }
         .onChange(of: source) { _, value in rebuild(value) }
     }
@@ -89,7 +89,7 @@ private struct MiniatureBarCounter: View {
         let bars = max(1, Int(span / 4))
         Text(current.map { "\($0)/\(bars)" } ?? "—")
             .font(.system(size: 9).monospacedDigit()).foregroundStyle(Theme.secondary)
-            .accessibilityLabel(current.map { "Battuta \($0) di \(bars) nella miniatura" } ?? "In attesa del battere")
+            .accessibilityLabel(current.map { String(localized: "Bar \(String(describing: $0)) of \(String(describing: bars)) in the miniature") } ?? String(localized: "Waiting for the downbeat"))
             .onReceive(model.live.$snapshot.map { snapshot in
                 SceneMiniatureLayout.cursor(beat: snapshot.patternBeat, scene: scene, span: span)
                     .map { min(bars, Int(floor($0 * Double(bars))) + 1) }

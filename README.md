@@ -65,7 +65,7 @@ Requirements: macOS 14+, Xcode 16 or a Swift 6 toolchain.
 git clone --recursive https://github.com/gasparoff/rays.git
 cd rays
 make bootstrap   # Ableton Link submodule (+ Beat Link helper if Beat Link Trigger is installed)
-make test        # 235 tests, no hardware needed
+make test        # 240+ tests, no hardware needed
 make build       # builds dist/RAYS.app (without Beat Link Trigger: no Pro DJ Link)
 open dist/RAYS.app
 ```
@@ -136,8 +136,8 @@ ENTTEC Open DMX USB is not, [and here is why](docs/hardware.md#dmx-outputs).
 **Windows or Linux?** Not today. The engine modules are Foundation-only Swift, so a port is
 possible: open a Discussion if you want to work on it.
 
-**Is the interface in English?** Not yet: the app UI is still in Italian, and the English
-translation is the [top open issue](https://github.com/gasparoff/rays/issues/11).
+**Which languages does the app speak?** English, and Italian when macOS is set to Italian.
+Adding a language takes one translation file: see [Localization/README.md](Localization/README.md).
 The full Italian manual is in [docs/manuale-it.md](docs/manuale-it.md).
 
 ## Contributing

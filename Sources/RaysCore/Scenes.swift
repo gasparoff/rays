@@ -44,8 +44,8 @@ public enum SceneID: String, Codable, CaseIterable, Identifiable, Sendable {
 
     public var title: String {
         switch self {
-        case .ambra: return "Ambra"
-        case .sunset: return "Tramonto"
+        case .ambra: return String(localized: "Amber")
+        case .sunset: return String(localized: "Sunset")
         case .pulse: return "Pulse"
         case .chase: return "Chase"
         case .aurora: return "Build"
@@ -55,12 +55,12 @@ public enum SceneID: String, Codable, CaseIterable, Identifiable, Sendable {
 
     public var subtitle: String {
         switch self {
-        case .ambra: return "House · respiro caldo"
-        case .sunset: return "House · groove in levare"
-        case .pulse: return "Tech house · colpi 3+3+2"
-        case .chase: return "Tech house · corsa sx–dx"
-        case .aurora: return "Salita · 16 battiti"
-        case .respiro: return "Impatto sul battere"
+        case .ambra: return String(localized: "House · warm breath")
+        case .sunset: return String(localized: "House · offbeat groove")
+        case .pulse: return String(localized: "Tech house · 3+3+2 hits")
+        case .chase: return String(localized: "Tech house · L–R chase")
+        case .aurora: return String(localized: "Build · 16 beats")
+        case .respiro: return String(localized: "Impact on the downbeat")
         }
     }
 

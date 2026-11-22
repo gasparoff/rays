@@ -77,7 +77,7 @@ final class AppModel: ObservableObject {
             loadedPatch = RigAutoSetup.preparedRig(replacing: nil, library: lib) ?? VarytecRig.tri180Test()
         } else {
             do { loadedPatch = try store.loadPatch() } catch {
-                errors.append("Impossibile leggere patch.json: \(error.localizedDescription). Il patch reale resta vuoto.")
+                errors.append(String(localized: "Could not read patch.json: \(String(describing: error.localizedDescription)). The real patch stays empty."))
             }
         }
         if fresh || (loadedPatch.fixtures.count == 1 && RigAutoSetup.preparedRig(replacing: loadedPatch, library: lib) != nil) {
@@ -89,7 +89,7 @@ final class AppModel: ObservableObject {
                     }
                     try store.savePatch(ready)
                     loadedPatch = ready
-                } catch { errors.append("Rig automatico: \(error.localizedDescription)") }
+                } catch { errors.append(String(localized: "Automatic rig: \(String(describing: error.localizedDescription))")) }
             }
         }
         var p = store.loadPreferences()
@@ -346,7 +346,7 @@ final class AppModel: ObservableObject {
     /// Returns an error message for invalid input.
     func useManualIP(_ text: String) -> String? {
         guard let ip = IPv4Address(string: text), !ip.isUnspecified, !ip.isLoopback, ip.octets[3] != 255 else {
-            return "Indirizzo IPv4 non valido."
+            return String(localized: "Invalid IPv4 address.")
         }
         prefs.manualIP = ip.description
         prefs.outputEnabled = false
@@ -430,7 +430,7 @@ final class AppModel: ObservableObject {
 
     func savePatch(_ draft: Patch) throws {
         guard draft.validate(library: library).isEmpty else {
-            throw NSError(domain: "LightSystem", code: 1, userInfo: [NSLocalizedDescriptionKey: "Correggi gli errori prima di salvare."])
+            throw NSError(domain: "LightSystem", code: 1, userInfo: [NSLocalizedDescriptionKey: String(localized: "Fix the errors before saving.")])
         }
         try store.savePatch(draft)
         patch = draft
@@ -505,7 +505,7 @@ final class AppModel: ObservableObject {
     func copyPreset(_ slot: SceneID) {
         var draft = presetLook(slot) ?? CustomScene(name: slot.title, base: slot)
         draft.id = UUID(); draft.presetSlot = nil; draft.presetBank = .house
-        draft.name += " (copia)"
+        draft.name += String(localized: " (copy)")
         beginSceneEditing(draft)
     }
 
@@ -657,7 +657,7 @@ final class AppModel: ObservableObject {
             savedShow = before.show
         }
         do { try store.savePreferences(savedPrefs); try store.saveShowSettings(savedShow) } catch {
-            storageErrors.append("Impossibile salvare le preferenze: \(error.localizedDescription)")
+            storageErrors.append(String(localized: "Could not save preferences: \(String(describing: error.localizedDescription))"))
         }
     }
 

@@ -63,14 +63,14 @@ final class MIDIService: ObservableObject {
             guard notification.pointee.messageID == .msgSetupChanged else { return }
             DispatchQueue.main.async { self?.rescan() }
         }
-        guard status == noErr else { error = "CoreMIDI non disponibile (\(status))."; return }
+        guard status == noErr else { error = String(localized: "CoreMIDI unavailable (\(String(describing: status)))."); return }
         let portStatus = MIDIInputPortCreateWithProtocol(client, "K2 in" as CFString, ._1_0, &port) { [weak self] list, refCon in
             let bytes = Self.bytes(from: list)
             guard !bytes.isEmpty else { return }
             let tag = Int(bitPattern: refCon)
             DispatchQueue.main.async { self?.receive(bytes, tag: tag) }
         }
-        guard portStatus == noErr else { error = "Porta MIDI non disponibile (\(portStatus))."; return }
+        guard portStatus == noErr else { error = String(localized: "MIDI port unavailable (\(String(describing: portStatus)))."); return }
         MIDIOutputPortCreate(client, "K2 luci" as CFString, &outPort)
         rescan()
     }
@@ -198,7 +198,7 @@ final class MIDIService: ObservableObject {
                 if case let .buildHold(held) = command { holdingBuild = held }
                 onCommand?(command)
             case let .waiting(action, _):
-                pickupMessage = "\(action.label): porta il fader al valore sullo schermo"
+                pickupMessage = String(localized: "\(String(describing: action.label)): move the fader to the value on screen")
             }
         }
     }

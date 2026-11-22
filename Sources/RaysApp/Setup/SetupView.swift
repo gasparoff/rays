@@ -19,20 +19,20 @@ struct SetupView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Configurazione").font(.system(size: 18, weight: .semibold))
+                Text("Setup").font(.system(size: 18, weight: .semibold))
                 Spacer()
-                Picker("Sezione", selection: $tab) {
-                    Text("Rete").tag(0)
-                    Text("Luci").tag(1)
+                Picker("Section", selection: $tab) {
+                    Text("Network").tag(0)
+                    Text("Lights").tag(1)
                     Text("Controller").tag(2)
-                    Text("Avanzate").tag(3)
+                    Text("Advanced").tag(3)
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
                 .frame(width: 420)
                 Spacer()
                 // ⌘. instead of Esc: Esc is always blackout and must not also close this sheet.
-                Button("Chiudi") { dismiss() }.keyboardShortcut(".", modifiers: .command).help("Chiudi · ⌘.")
+                Button("Close") { dismiss() }.keyboardShortcut(".", modifiers: .command).help("Close · ⌘.")
             }
             .padding(18)
             Divider().opacity(0.3)

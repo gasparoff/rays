@@ -159,7 +159,7 @@ public enum NetworkDiagnosis {
         var out: [String] = []
         if let socketError { out.append(socketError) }
         if interfaces.isEmpty {
-            out.append("Nessuna rete IPv4 attiva trovata. Collega Mac e ODE MK3 allo stesso router/switch.")
+            out.append(String(localized: "No active IPv4 network found. Connect the Mac and the Art-Net node to the same router or switch."))
             return out
         }
         let enttec = nodes.filter(\.isEnttec)
@@ -175,19 +175,19 @@ public enum NetworkDiagnosis {
             }
             if interfaces.contains(where: { $0.contains(odeFallbackIP) }), manualIP == nil {
                 out.append(
-                    "Il Mac è nella rete 192.168.0.x: se l'ODE MK3 non ha ricevuto un indirizzo DHCP potrebbe essere su 192.168.0.10. Puoi provarlo come IP manuale (resterà «non verificato» finché non risponde)."
+                    String(localized: "The Mac is on the 192.168.0.x network: if the ODE MK3 didn't get a DHCP address it may be at 192.168.0.10. You can try it as a manual IP (it stays “not verified” until it answers).")
                 )
             }
             out.append(
-                "Nessun ENTTEC ha risposto all'ArtPoll. Verifica alimentazione/PoE, cavo, e che ODE MK3 e Mac siano sulla stessa rete (stesso router con DHCP)."
+                String(localized: "No ENTTEC node answered ArtPoll. Check power/PoE and the cable, and that the node and the Mac are on the same network (same router with DHCP).")
             )
         }
         if enttec.count > 1 {
-            out.append("Trovati \(enttec.count) dispositivi ENTTEC: scegli quello da usare nella configurazione.")
+            out.append(String(localized: "Found \(String(describing: enttec.count)) ENTTEC devices: choose the one to use in Setup."))
         }
         if let manualIP, !interfaces.contains(where: { $0.contains(manualIP) }) {
             out.append(
-                "L'IP manuale \(manualIP) non è in nessuna rete locale del Mac: i pacchetti passerebbero dal router predefinito e probabilmente non arriverebbero."
+                String(localized: "The manual IP \(String(describing: manualIP)) is not on any of the Mac's local networks: packets would go through the default router and probably not arrive.")
             )
         }
         return out

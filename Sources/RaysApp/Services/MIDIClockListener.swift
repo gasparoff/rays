@@ -28,7 +28,7 @@ final class MIDIClockListener: ObservableObject {
             guard n.pointee.messageID == .msgSetupChanged else { return }
             DispatchQueue.main.async { self?.rescan() }
         }
-        guard status == noErr else { error = "CoreMIDI non disponibile (\(status))."; return }
+        guard status == noErr else { error = String(localized: "CoreMIDI unavailable (\(String(describing: status)))."); return }
         let clock = source
         let portStatus = MIDIInputPortCreateWithProtocol(client, "Clock in" as CFString, ._1_0, &port) { [weak self] list, _ in
             for (bytes, time) in Self.realtime(from: list) {
@@ -37,7 +37,7 @@ final class MIDIClockListener: ObservableObject {
                 DispatchQueue.main.async { self?.handle(events) }
             }
         }
-        guard portStatus == noErr else { error = "Porta MIDI non disponibile (\(portStatus))."; return }
+        guard portStatus == noErr else { error = String(localized: "MIDI port unavailable (\(String(describing: portStatus)))."); return }
         error = nil
         rescan()
     }

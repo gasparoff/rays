@@ -39,7 +39,7 @@ public struct SceneRGB: Codable, Equatable, Hashable, Sendable {
 
 /// A user scene: base choreography, palette, energy, levels and an optional track program. Persisted as JSON.
 public struct CustomScene: Codable, Equatable, Identifiable, Sendable {
-    public static let defaultName = "La mia scena"
+    public static let defaultName = String(localized: "My scene")
     public static let maxNameLength = 40
     public static let colorCount = 3
 
@@ -276,9 +276,9 @@ public enum CustomSceneDocument {
         public var errorDescription: String? {
             switch self {
             case .unsupportedVersion(let v):
-                return "Il file delle scene personalizzate è di una versione più recente (\(v)): non è stato modificato."
+                return String(localized: "The custom scenes file comes from a newer version (\(String(describing: v))): it was left unchanged.")
             case .unreadable(let detail):
-                return "Il file delle scene personalizzate non è leggibile e non è stato modificato (\(detail))."
+                return String(localized: "The custom scenes file can't be read and was left unchanged (\(String(describing: detail))).")
             }
         }
     }
@@ -294,14 +294,14 @@ public enum CustomSceneDocument {
         let decoder = JSONDecoder()
         if let list = try? decoder.decode([CustomScene].self, from: data) { return dedupe(list) }
         guard let probe = try? decoder.decode(VersionProbe.self, from: data) else {
-            throw DocumentError.unreadable("JSON non valido")
+            throw DocumentError.unreadable(String(localized: "invalid JSON"))
         }
-        guard let version = probe.version else { throw DocumentError.unreadable("versione mancante") }
+        guard let version = probe.version else { throw DocumentError.unreadable(String(localized: "missing version")) }
         guard version <= currentVersion, version >= 1 else { throw DocumentError.unsupportedVersion(version) }
         do {
             return dedupe(try decoder.decode(Envelope.self, from: data).scenes)
         } catch {
-            throw DocumentError.unreadable("elenco scene non valido")
+            throw DocumentError.unreadable(String(localized: "invalid scene list"))
         }
     }
 

@@ -11,24 +11,24 @@ public enum TrackSound: String, Codable, CaseIterable, Identifiable, Sendable {
 
     public var title: String {
         switch self {
-        case .kick: return "Cassa"
+        case .kick: return String(localized: "Kick")
         case .clap: return "Clap"
         case .hat: return "Hi-hat"
-        case .bass: return "Basso"
-        case .accent: return "Accento"
-        case .free: return "Libero"
+        case .bass: return String(localized: "Bass")
+        case .accent: return String(localized: "Accent")
+        case .free: return String(localized: "Free")
         }
     }
 
     /// One-line hint shown in menus.
     public var hint: String {
         switch self {
-        case .kick: return "Tutti i quarti, al centro"
-        case .clap: return "Battiti 2 e 4, bianco caldo"
-        case .hat: return "In levare, laterali alternate"
-        case .bass: return "Giro di 2 battute, onde lunghe"
-        case .accent: return "Un colpo ogni 4 battute"
-        case .free: return "Griglia vuota in sedicesimi"
+        case .kick: return String(localized: "Every quarter, in the center")
+        case .clap: return String(localized: "Beats 2 and 4, warm white")
+        case .hat: return String(localized: "Offbeats, alternating sides")
+        case .bass: return String(localized: "2-bar groove, long waves")
+        case .accent: return String(localized: "One hit every 4 bars")
+        case .free: return String(localized: "Empty sixteenth grid")
         }
     }
 }
@@ -45,9 +45,9 @@ public enum TrackMotion: String, Codable, CaseIterable, Identifiable, Sendable {
 
     public var title: String {
         switch self {
-        case .together: return "Insieme"
-        case .alternate: return "Alterna"
-        case .chase: return "Corsa"
+        case .together: return String(localized: "Together")
+        case .alternate: return String(localized: "Alternate")
+        case .chase: return String(localized: "Chase")
         }
     }
 }
@@ -66,10 +66,10 @@ public enum TrackDirection: String, Codable, CaseIterable, Identifiable, Sendabl
 
     public var title: String {
         switch self {
-        case .forward: return "Sx → Dx"
-        case .backward: return "Dx → Sx"
-        case .bounce: return "Avanti e indietro"
-        case .center: return "Dal centro"
+        case .forward: return String(localized: "L → R")
+        case .backward: return String(localized: "R → L")
+        case .bounce: return String(localized: "Back and forth")
+        case .center: return String(localized: "From the center")
         }
     }
 }
@@ -101,8 +101,8 @@ public enum TrackBlend: String, Codable, CaseIterable, Identifiable, Sendable {
 
     public var title: String {
         switch self {
-        case .max: return "Più forte"
-        case .add: return "Somma"
+        case .max: return String(localized: "Strongest")
+        case .add: return String(localized: "Sum")
         }
     }
 }
@@ -141,11 +141,11 @@ public struct TrackTarget: Codable, Equatable, Hashable, Sendable {
         public var id: String { rawValue }
         public var title: String {
             switch self {
-            case .all: return "Tutte"
-            case .center: return "Centro"
-            case .sides: return "Laterali"
-            case .left: return "Sinistra"
-            case .right: return "Destra"
+            case .all: return String(localized: "All")
+            case .center: return String(localized: "Center")
+            case .sides: return String(localized: "Sides")
+            case .left: return String(localized: "Left")
+            case .right: return String(localized: "Right")
             }
         }
     }
@@ -434,21 +434,21 @@ public enum PatternFill: String, CaseIterable, Identifiable, Sendable {
 
     public var title: String {
         switch self {
-        case .kick: return "Cassa"
+        case .kick: return String(localized: "Kick")
         case .clap: return "Clap"
         case .hat: return "Hi-hat"
-        case .bass: return "Basso"
-        case .clear: return "Libero"
+        case .bass: return String(localized: "Bass")
+        case .clear: return String(localized: "Free")
         }
     }
 
     public var hint: String {
         switch self {
-        case .kick: return "Tutti i quarti"
-        case .clap: return "Battiti 2 e 4"
-        case .hat: return "In levare (ottavi)"
-        case .bass: return "Ritmo lungo 3+3+2"
-        case .clear: return "Svuota la griglia"
+        case .kick: return String(localized: "Every quarter")
+        case .clap: return String(localized: "Beats 2 and 4")
+        case .hat: return String(localized: "Offbeats (eighths)")
+        case .bass: return String(localized: "Long 3+3+2 rhythm")
+        case .clear: return String(localized: "Clear the grid")
         }
     }
 

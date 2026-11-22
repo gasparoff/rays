@@ -37,7 +37,7 @@ final class PatchTests: XCTestCase {
 
     func testUnknownProfileIsRejected() {
         let p = Patch(fixtures: [PatchedFixture(label: "?", profileID: "varytec.unknown", universe: 0, address: 1)])
-        XCTAssertTrue(p.validate(library: lib).first!.message.contains("sconosciuto"))
+        XCTAssertTrue(p.validate(library: lib).first!.message.contains("unknown"))
         let frames = DMXComposer.compose(patch: p, library: lib, colors: [LightColor(1, 1, 1, 1)], master: 1, blackout: false)
         XCTAssertTrue(frames.values.allSatisfy { $0.allSatisfy { $0 == 0 } }, "unknown profile never writes channels")
     }

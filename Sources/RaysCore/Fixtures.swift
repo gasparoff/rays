@@ -8,14 +8,14 @@ public enum ChannelKind: String, Codable, CaseIterable, Sendable {
     public var label: String {
         switch self {
         case .dimmer: return "Dimmer"
-        case .red: return "Rosso"
-        case .green: return "Verde"
-        case .blue: return "Blu"
-        case .white: return "Bianco"
-        case .blinder: return "Blinder bianco indipendente"
-        case .amber: return "Ambra"
-        case .constant: return "Valore fisso"
-        case .ignore: return "Non usato (0)"
+        case .red: return String(localized: "Red")
+        case .green: return String(localized: "Green")
+        case .blue: return String(localized: "Blue")
+        case .white: return String(localized: "White")
+        case .blinder: return String(localized: "Independent white blinder")
+        case .amber: return String(localized: "Amber")
+        case .constant: return String(localized: "Fixed value")
+        case .ignore: return String(localized: "Unused (0)")
         }
     }
 }
@@ -45,9 +45,9 @@ public enum FixtureRole: String, Codable, CaseIterable, Identifiable, Sendable {
 
     public var label: String {
         switch self {
-        case .left: return "Sinistra"
-        case .center: return "Centro"
-        case .right: return "Destra"
+        case .left: return String(localized: "Left")
+        case .center: return String(localized: "Center")
+        case .right: return String(localized: "Right")
         }
     }
 }
@@ -76,10 +76,10 @@ public struct FixtureProfile: Codable, Hashable, Identifiable, Sendable {
 
     public var problems: [String] {
         var p: [String] = []
-        if channels.isEmpty { p.append("Il profilo «\(name)» non ha canali.") }
-        if channels.count > 512 { p.append("Il profilo «\(name)» supera 512 canali.") }
+        if channels.isEmpty { p.append(String(localized: "Profile “\(String(describing: name))” has no channels.")) }
+        if channels.count > 512 { p.append(String(localized: "Profile “\(String(describing: name))” exceeds 512 channels.")) }
         let light: Set<ChannelKind> = [.dimmer, .red, .green, .blue, .white, .blinder, .amber]
-        if !channels.contains(where: { light.contains($0.kind) }) { p.append("Il profilo «\(name)» non ha canali luce.") }
+        if !channels.contains(where: { light.contains($0.kind) }) { p.append(String(localized: "Profile “\(String(describing: name))” has no light channels.")) }
         return p
     }
 
@@ -277,23 +277,23 @@ public struct Patch: Codable, Equatable, Sendable {
         for profile in customProfiles { issues += profile.problems.map(PatchIssue.init) }
         for f in fixtures {
             guard let profile = lib.profile(id: f.profileID) else {
-                issues.append(PatchIssue(message: "\(f.label): profilo sconosciuto «\(f.profileID)». Nessun dato verrà inviato."))
+                issues.append(PatchIssue(message: String(localized: "\(String(describing: f.label)): unknown profile “\(String(describing: f.profileID))”. No data will be sent.")))
                 continue
             }
             if !allowedUniverses.contains(f.universe) {
                 issues.append(
                     PatchIssue(
                         message:
-                            "\(f.label): universo \(f.universe) non disponibile (ammessi \(allowedUniverses.lowerBound)–\(allowedUniverses.upperBound))."
+                            String(localized: "\(String(describing: f.label)): universe \(String(describing: f.universe)) is not available (allowed \(String(describing: allowedUniverses.lowerBound))–\(String(describing: allowedUniverses.upperBound))).")
                     ))
             }
             guard (1...512).contains(f.address) else {
-                issues.append(PatchIssue(message: "\(f.label): indirizzo \(f.address) fuori da 1–512."))
+                issues.append(PatchIssue(message: String(localized: "\(String(describing: f.label)): address \(String(describing: f.address)) is outside 1–512.")))
                 continue
             }
             let end = f.address + profile.footprint - 1
             if profile.footprint < 1 || end > 512 {
-                issues.append(PatchIssue(message: "\(f.label): canali \(f.address)–\(end) oltre il limite di 512."))
+                issues.append(PatchIssue(message: String(localized: "\(String(describing: f.label)): channels \(String(describing: f.address))–\(String(describing: end)) go past the 512 limit.")))
                 continue
             }
             let range = f.address...end
@@ -301,7 +301,7 @@ public struct Patch: Codable, Equatable, Sendable {
                 issues.append(
                     PatchIssue(
                         message:
-                            "\(f.label) (\(range.lowerBound)–\(range.upperBound)) si sovrappone a \(other.fixture.label) (\(other.range.lowerBound)–\(other.range.upperBound)) nell'universo \(f.universe)."
+                            String(localized: "\(String(describing: f.label)) (\(String(describing: range.lowerBound))–\(String(describing: range.upperBound))) overlaps \(String(describing: other.fixture.label)) (\(String(describing: other.range.lowerBound))–\(String(describing: other.range.upperBound))) in universe \(String(describing: f.universe)).")
                     ))
             }
             ranges.append((f, range))

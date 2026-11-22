@@ -15,13 +15,13 @@ public enum OutputReadiness: Equatable, Sendable {
 
     public var message: String {
         switch self {
-        case .ready: return "Pronto"
-        case .noPatch: return "Configura le luci (patch vuoto)"
-        case .invalidPatch(let m): return "Patch non valido: \(m)"
-        case .notConfirmed: return "Conferma modello, modalità e indirizzi nella configurazione"
+        case .ready: return String(localized: "Ready")
+        case .noPatch: return String(localized: "Set up your lights (the patch is empty)")
+        case .invalidPatch(let m): return String(localized: "Invalid patch: \(String(describing: m))")
+        case .notConfirmed: return String(localized: "Confirm model, mode and addresses in Setup")
         case .socketUnavailable(let m): return m
-        case .noDevice: return "Nessun ENTTEC selezionato"
-        case .noMatchingUniverse: return "Il nodo non ha in uscita gli universi del patch"
+        case .noDevice: return String(localized: "No DMX interface selected")
+        case .noMatchingUniverse: return String(localized: "The node doesn't output the patch's universes")
         }
     }
 }

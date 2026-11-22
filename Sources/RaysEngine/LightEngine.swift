@@ -477,7 +477,7 @@ public final class LightEngine: @unchecked Sendable {
         if patch.fixtures.isEmpty { return (.noPatch, nil) }
         if let issue = patchIssues.first { return (.invalidPatch(issue.message), nil) }
         if !patchConfirmed { return (.notConfirmed, nil) }
-        if !artnet.isOpen { return (.socketUnavailable(artnet.socketError ?? "Socket Art-Net chiuso"), nil) }
+        if !artnet.isOpen { return (.socketUnavailable(artnet.socketError ?? String(localized: "Art-Net socket closed")), nil) }
         guard let target = artnet.target(now: now, patchUniverses: patch.universes) else { return (.noDevice, nil) }
         if target.verified && !target.fresh { return (.noDevice, target) }
         if !Set(patch.universes).isSubset(of: Set(target.universes)) { return (.noMatchingUniverse, target) }

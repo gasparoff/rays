@@ -19,7 +19,7 @@ final class DirectCableNetwork: ObservableObject {
     @Published var selectedInterface = ""
     @Published private(set) var status = ""
     @Published private(set) var busy = false
-    @Published private(set) var decision: DirectCablePolicy.Decision = .unavailable("Collega l’adattatore Ethernet.")
+    @Published private(set) var decision: DirectCablePolicy.Decision = .unavailable(String(localized: "Connect the Ethernet adapter."))
     @Published private(set) var canRemoveAlias = false
     private var allAddresses: [DirectCablePolicy.Address] = []
     private var automaticAttempts: Set<String> = []
@@ -73,16 +73,16 @@ final class DirectCableNetwork: ObservableObject {
     func evaluateSelection() {
         guard let adapter = adapters.first(where: { $0.id == selectedInterface }) else {
             decision = .unavailable(adapters.filter(\.active).count > 1
-                                    ? "Scegli l’adattatore collegato all’ENTTEC."
-                                    : "Collega l’adattatore Ethernet e accendi l’ODE.")
+                                    ? String(localized: "Choose the adapter connected to the ENTTEC.")
+                                    : String(localized: "Connect the Ethernet adapter and power on the ODE."))
             if case let .unavailable(message) = decision { status = message }
             return
         }
         decision = DirectCablePolicy.evaluate(interface: adapter.id, isWired: true,
                                                isActive: adapter.active, addresses: allAddresses)
         switch decision {
-        case .ready: status = "Ethernet pronta · \(adapter.id) · Internet rimane sulla connessione attuale."
-        case .addAlias: status = "Prepara il cavo diretto all’ODE. macOS chiederà l’autorizzazione amministratore."
+        case .ready: status = String(localized: "Ethernet ready · \(String(describing: adapter.id)) · the Internet stays on the current connection.")
+        case .addAlias: status = String(localized: "Prepare the direct cable to the ODE. macOS will ask for administrator permission.")
         case let .unavailable(message): status = message
         }
         canRemoveAlias = UserDefaults.standard.string(forKey: ownershipKey) == adapter.id &&
@@ -106,13 +106,13 @@ final class DirectCableNetwork: ObservableObject {
         let selected = selectedInterface
         busy = true
         let result = await Self.runAdministratorCommand(command,
-            prompt: "RAYS aggiunge un indirizzo temporaneo al solo cavo Ethernet delle luci. Wi-Fi, DHCP e Internet non vengono modificati.")
+            prompt: String(localized: "RAYS adds a temporary address to the lights' Ethernet cable only. Wi-Fi, DHCP and the Internet are not changed."))
         busy = false
         if result.code == 0 {
             UserDefaults.standard.set(selected, forKey: ownershipKey)
             refresh()
         } else {
-            status = result.message.contains("-128") ? "Preparazione annullata." : "Impossibile preparare Ethernet: \(result.message)"
+            status = result.message.contains("-128") ? String(localized: "Preparation canceled.") : String(localized: "Could not prepare Ethernet: \(String(describing: result.message))")
         }
     }
 
@@ -123,12 +123,12 @@ final class DirectCableNetwork: ObservableObject {
               let command = DirectCablePolicy.removalCommand(interface: owned) else { return }
         busy = true
         let result = await Self.runAdministratorCommand(command,
-            prompt: "RAYS rimuove solo l’indirizzo temporaneo che ha aggiunto al cavo delle luci.")
+            prompt: String(localized: "RAYS removes only the temporary address it added to the lights' cable."))
         busy = false
         if result.code == 0 {
             UserDefaults.standard.removeObject(forKey: ownershipKey)
             refresh()
-        } else { status = "Ripristino annullato o non riuscito." }
+        } else { status = String(localized: "Restore canceled or failed.") }
     }
 
     private nonisolated static func runAdministratorCommand(_ command: String, prompt: String) async -> (code: Int32, message: String) {

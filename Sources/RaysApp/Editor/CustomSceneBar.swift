@@ -11,11 +11,11 @@ struct CustomSceneBar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
         HStack(spacing: 10) {
-            Text("LE MIE SCENE")
+            Text("MY SCENES")
                 .font(.system(size: 10, weight: .semibold)).tracking(1.3)
                 .foregroundStyle(Theme.tertiary)
             if store.personalScenes.isEmpty {
-                Text("Nessuna scena salvata")
+                Text("No saved scenes")
                     .font(.system(size: 12)).foregroundStyle(Theme.secondary)
                 Spacer(minLength: 4)
             } else {
@@ -28,7 +28,7 @@ struct CustomSceneBar: View {
                 }
             }
             Button { model.beginSceneEditing(nil) } label: {
-                Label("Nuova scena", systemImage: "plus")
+                Label("New scene", systemImage: "plus")
                     .font(.system(size: 12, weight: .semibold))
                     .padding(.horizontal, 12).padding(.vertical, 8)
                     .foregroundStyle(Theme.amber)
@@ -36,27 +36,27 @@ struct CustomSceneBar: View {
                     .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.amber.opacity(0.6)))
             }
             .buttonStyle(.plain)
-            .help("Coreografia, colori, movimento e struttura sul battito. L’anteprima si aggiorna mentre lavori.")
+            .help("Choreography, colors, movement and structure on the beat. The preview updates as you work.")
         }
         .frame(height: 38)
         .accessibilityElement(children: .contain)
         if let error = store.error {
             HStack {
                 Text(error).font(.system(size: 11)).foregroundStyle(Theme.warn).lineLimit(1).help(error)
-                Button(store.fileIsUnreadable ? "Conserva copia e salva" : "Riprova") {
+                Button(store.fileIsUnreadable ? String(localized: "Keep a copy and save") : String(localized: "Try again")) {
                     if store.fileIsUnreadable { store.replaceUnreadableFile() } else { store.retrySave() }
                 }.buttonStyle(.link)
             }
         }
         }
-        .confirmationDialog("Eliminare «\(sceneToDelete?.name ?? "")»?", isPresented: $showDeleteConfirmation) {
-            Button("Elimina", role: .destructive) {
+        .confirmationDialog("Delete “\(String(describing: sceneToDelete?.name ?? ""))”?", isPresented: $showDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
                 if let scene = sceneToDelete { model.deleteCustomScene(scene) }
                 sceneToDelete = nil
             }
-            Button("Annulla", role: .cancel) { sceneToDelete = nil }
+            Button("Cancel", role: .cancel) { sceneToDelete = nil }
         } message: {
-            Text("La scena e le sue tracce verranno rimosse.")
+            Text("The scene and its tracks will be removed.")
         }
     }
 
@@ -73,7 +73,7 @@ struct CustomSceneBar: View {
                     Text(scene.name).lineLimit(1)
                     if scene.program != nil {
                         Image(systemName: "waveform").font(.system(size: 9, weight: .semibold)).foregroundStyle(Theme.lavender)
-                            .accessibilityLabel("con struttura")
+                            .accessibilityLabel("with structure")
                     }
                 }
                 .font(.system(size: 12, weight: .medium))
@@ -82,8 +82,8 @@ struct CustomSceneBar: View {
             }
             .buttonStyle(.plain)
             .help("\(scene.name) · \(scene.base.title)")
-            .accessibilityLabel("Scena \(scene.name)")
-            .accessibilityValue(active ? "attiva" : "")
+            .accessibilityLabel("Scene \(String(describing: scene.name))")
+            .accessibilityValue(active ? String(localized: "active") : "")
             Button { model.beginSceneEditing(scene) } label: {
                 Image(systemName: "pencil").font(.system(size: 10.5, weight: .semibold))
                     .frame(width: 24, height: 24)
@@ -93,16 +93,16 @@ struct CustomSceneBar: View {
             .buttonStyle(.plain)
             .padding(.trailing, 5)
             .foregroundStyle(Theme.secondary)
-            .help("Modifica \(scene.name)")
-            .accessibilityLabel("Modifica \(scene.name)")
+            .help("Edit \(String(describing: scene.name))")
+            .accessibilityLabel("Edit \(String(describing: scene.name))")
         }
         .background(RoundedRectangle(cornerRadius: 8).fill(active ? Theme.amber.opacity(0.18) : Color.white.opacity(0.05)))
         .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(active ? Theme.amber : Theme.stroke))
         .contextMenu {
-            Button("Modifica…") { model.beginSceneEditing(scene) }
-            Button("Duplica") { store.duplicate(id: scene.id) }
+            Button("Edit…") { model.beginSceneEditing(scene) }
+            Button("Duplicate") { store.duplicate(id: scene.id) }
             Divider()
-            Button("Elimina…", role: .destructive) { sceneToDelete = scene; showDeleteConfirmation = true }
+            Button("Delete…", role: .destructive) { sceneToDelete = scene; showDeleteConfirmation = true }
         }
     }
 }

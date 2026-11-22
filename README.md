@@ -15,8 +15,7 @@
   <a href="CONTRIBUTING.md"><img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen"></a>
 </p>
 
-<!-- TODO: replace with a 10-second GIF of the stage preview reacting to a beat -->
-<p align="center"><img src="docs/images/hero.gif" alt="RAYS stage preview following the beat" width="720"></p>
+<!-- Hero GIF (stage preview following the beat) will go at docs/images/hero.gif -->
 
 RAYS turns a Mac into a lighting console that **follows the music by itself**. It locks to
 the tempo of your DJ console or any Ableton Link app, and plays original choreographies on

@@ -1,0 +1,35 @@
+{
+  "id": "varytec.pad7-rgbwauv-6ch",
+  "name": "LED Pad 7 7x10W 6in1 RGBWAUV",
+  "manufacturer": "Varytec",
+  "mode": "6 CH",
+  "isGeneric": false,
+  "isVerified": false,
+  "notes": "Manuale ufficiale ID 390703 (01.07.2020), p.41 (7.5). R, G, B, W, ambra; UV (6) tenuto a 0, RAYS non comanda UV. Modo 1 CH (selezione colore, p.41) non supportato. Non verificato su hardware.",
+  "channels": [
+    {
+      "kind": "red",
+      "value": 0
+    },
+    {
+      "kind": "green",
+      "value": 0
+    },
+    {
+      "kind": "blue",
+      "value": 0
+    },
+    {
+      "kind": "white",
+      "value": 0
+    },
+    {
+      "kind": "amber",
+      "value": 0
+    },
+    {
+      "kind": "ignore",
+      "value": 0
+    }
+  ]
+}

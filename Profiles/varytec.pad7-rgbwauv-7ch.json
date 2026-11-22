@@ -1,0 +1,39 @@
+{
+  "id": "varytec.pad7-rgbwauv-7ch",
+  "name": "LED Pad 7 7x10W 6in1 RGBWAUV",
+  "manufacturer": "Varytec",
+  "mode": "7 CH",
+  "isGeneric": false,
+  "isVerified": false,
+  "notes": "Manuale ufficiale ID 390703 (01.07.2020), p.42 (7.6). Dimmer, R, G, B, W, ambra; UV (7) tenuto a 0. Non verificato su hardware.",
+  "channels": [
+    {
+      "kind": "dimmer",
+      "value": 0
+    },
+    {
+      "kind": "red",
+      "value": 0
+    },
+    {
+      "kind": "green",
+      "value": 0
+    },
+    {
+      "kind": "blue",
+      "value": 0
+    },
+    {
+      "kind": "white",
+      "value": 0
+    },
+    {
+      "kind": "amber",
+      "value": 0
+    },
+    {
+      "kind": "ignore",
+      "value": 0
+    }
+  ]
+}

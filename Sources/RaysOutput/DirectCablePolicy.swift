@@ -24,6 +24,15 @@ public struct DirectCablePolicy {
         case unavailable(String)
     }
 
+    /// True only for a BSD Ethernet name such as `en8`: "en" and one to three ASCII digits,
+    /// nothing else (no whitespace, no newline). Every command below embeds this name in a
+    /// shell run with administrator rights, so it is checked character by character.
+    public static func isWiredInterfaceName(_ name: String) -> Bool {
+        let bytes = Array(name.utf8)
+        guard (3...5).contains(bytes.count), bytes[0] == UInt8(ascii: "e"), bytes[1] == UInt8(ascii: "n") else { return false }
+        return bytes.dropFirst(2).allSatisfy { (UInt8(ascii: "0")...UInt8(ascii: "9")).contains($0) }
+    }
+
     public static func ipv4(_ text: String) -> UInt32? {
         let parts = text.split(separator: ".", omittingEmptySubsequences: false)
         guard parts.count == 4 else { return nil }
@@ -41,8 +50,7 @@ public struct DirectCablePolicy {
         interface: String, isWired: Bool, isActive: Bool,
         addresses: [Address]
     ) -> Decision {
-        guard interface.range(of: "^en[0-9]{1,3}$", options: .regularExpression) != nil,
-            isWired, isActive
+        guard isWiredInterfaceName(interface), isWired, isActive
         else {
             return .unavailable(String(localized: "Connect the Ethernet cable from the Mac to the ENTTEC and power on the ODE."))
         }
@@ -81,7 +89,7 @@ public struct DirectCablePolicy {
     }
 
     public static func removalCommand(interface: String) -> String? {
-        guard interface.range(of: "^en[0-9]{1,3}$", options: .regularExpression) != nil else { return nil }
+        guard isWiredInterfaceName(interface) else { return nil }
         return "/sbin/ifconfig \(interface) inet \(localAddress) -alias"
     }
 }

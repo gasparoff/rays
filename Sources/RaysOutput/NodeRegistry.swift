@@ -43,12 +43,25 @@ public struct NodeRegistry: Sendable {
     public private(set) var nodes: [String: DiscoveredNode] = [:]
     public var staleAfter: TimeInterval = 10
     public var forgetAfter: TimeInterval = 90
+    /// Most nodes remembered at once. Art-Net is unauthenticated: anyone on the LAN can send
+    /// ArtPollReply packets with made-up MAC addresses, and memory must not grow with them.
+    public var capacity = 64
 
     public init() {}
 
+    /// Records one reply. When the registry is full, a new identity replaces the least recently
+    /// seen stale node (never `keeping`); if every node is fresh, the new one is ignored.
     @discardableResult
-    public mutating func ingest(_ reply: ArtPollReply, from sender: IPv4Address, at now: TimeInterval) -> DiscoveredNode {
+    public mutating func ingest(
+        _ reply: ArtPollReply, from sender: IPv4Address, at now: TimeInterval, keeping: String? = nil
+    ) -> DiscoveredNode {
         let identity = reply.macString.map { "mac:" + $0 } ?? "ip:" + sender.description
+        if nodes[identity] == nil, nodes.count >= capacity, !makeRoom(now: now, keeping: keeping) {
+            return DiscoveredNode(
+                id: identity, ip: sender, reportedIP: reply.ip, shortName: reply.shortName, longName: reply.longName,
+                nodeReport: reply.nodeReport, mac: reply.macString, estaManufacturer: reply.estaManufacturer, oem: reply.oem,
+                firmwareVersion: reply.firmwareVersion, portsByBind: [:], lastSeen: now, isEnttec: false)
+        }
         var node =
             nodes[identity]
             ?? DiscoveredNode(
@@ -71,6 +84,16 @@ public struct NodeRegistry: Sendable {
         if identity.hasPrefix("mac:") { nodes.removeValue(forKey: "ip:" + sender.description) }
         nodes[identity] = node
         return node
+    }
+
+    /// Forgets the least recently seen stale node other than `keeping`. False when none qualifies.
+    private mutating func makeRoom(now: TimeInterval, keeping: String?) -> Bool {
+        let victim = nodes.values
+            .filter { $0.id != keeping && now - $0.lastSeen > staleAfter }
+            .min { $0.lastSeen < $1.lastSeen }
+        guard let victim else { return false }
+        nodes.removeValue(forKey: victim.id)
+        return true
     }
 
     /// Marks stale nodes and forgets very old ones (except `keeping`).

@@ -35,14 +35,18 @@ final class XDJBeatListener: ObservableObject {
     }
 
     private func launch() {
-        let resources = Bundle.main.resourceURL?.appendingPathComponent("BeatLinkHelper")
-        // Sources/RaysApp/Services/XDJBeatListener.swift -> project root (development runs only).
+        var candidates = [Bundle.main.resourceURL?.appendingPathComponent("BeatLinkHelper")]
+        #if DEBUG
+        // Development runs only: Sources/RaysApp/Services/XDJBeatListener.swift -> project root.
+        // Release builds never look outside their own bundle, so a file planted at the build
+        // machine's source path on another Mac can't be launched as the helper.
         let project = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
             .deletingLastPathComponent().deletingLastPathComponent()
-        let helper = [resources, project.appendingPathComponent("Vendor/BeatLinkHelper")]
-            .compactMap { $0 }.first {
-                FileManager.default.isExecutableFile(atPath: $0.appendingPathComponent("Contents/MacOS/Beat Link Trigger").path)
-            }
+        candidates.append(project.appendingPathComponent("Vendor/BeatLinkHelper"))
+        #endif
+        let helper = candidates.compactMap { $0 }.first {
+            FileManager.default.isExecutableFile(atPath: $0.appendingPathComponent("Contents/MacOS/Beat Link Trigger").path)
+        }
         guard let helper else {
             error = String(localized: "Beat Link component missing: Pro DJ Link is not available in this build (see Scripts/bootstrap.sh).")
             return

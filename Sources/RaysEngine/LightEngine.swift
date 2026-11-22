@@ -330,14 +330,14 @@ public final class LightEngine: @unchecked Sendable {
 
     /// Brief static check using the same validated patch and socket as the show. If output was
     /// off it is armed for the test and black frames + disarm follow; if it was on, the show resumes.
+    /// Ignored during blackout: blackout always wins, so a test never lights a blacked-out rig.
     public func runDiagnostic(_ color: LightColor, duration: TimeInterval = 5, target: DiagnosticTarget = .all) {
         queue.async {
-            guard color.isFinite, self.readinessLocked(now: self.clock()).0 == .ready else { return }
+            guard color.isFinite, !self.blackout, self.readinessLocked(now: self.clock()).0 == .ready else { return }
             if self.diagnosticColor == nil { self.armedBeforeDiagnostic = self.armed }
             self.diagnosticColor = color.clamped
             self.diagnosticTarget = target
             self.diagnosticEnd = self.clock() + min(10, max(0.5, duration.isFinite ? duration : 5))
-            self.blackout = false
             self.armed = true
             self.tick()
         }

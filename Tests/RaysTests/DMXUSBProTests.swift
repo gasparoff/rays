@@ -30,6 +30,35 @@ final class DMXUSBProTests: XCTestCase {
         XCTAssertEqual(m.last, 0xE7)
     }
 
+    func testStalledDeviceFailsFastInsteadOfBlockingTheEngine() throws {
+        var fds: [Int32] = [0, 0]
+        XCTAssertEqual(pipe(&fds), 0)
+        defer { Darwin.close(fds[0]) }
+        let port = POSIXSerialPort(adopting: fds[1], writeTimeout: 0.05)
+        defer { port.close() }
+        // Nobody reads the pipe: fill its buffer so the next frame cannot be written.
+        let chunk = [UInt8](repeating: 0, count: 4096)
+        while chunk.withUnsafeBytes({ Darwin.write(fds[1], $0.baseAddress, $0.count) }) > 0 {}
+        let start = Date()
+        XCTAssertThrowsError(try port.write(DMXUSBPro.sendDMX([UInt8](repeating: 255, count: 512)))) { error in
+            XCTAssertEqual((error as? SocketError)?.code, ETIMEDOUT)
+        }
+        XCTAssertLessThan(Date().timeIntervalSince(start), 1, "a stalled widget must not hold the engine queue")
+    }
+
+    func testHealthyDeviceReceivesTheWholeFrame() throws {
+        var fds: [Int32] = [0, 0]
+        XCTAssertEqual(pipe(&fds), 0)
+        defer { Darwin.close(fds[0]) }
+        let port = POSIXSerialPort(adopting: fds[1])
+        defer { port.close() }
+        let frame = DMXUSBPro.sendDMX([1, 2, 3])
+        try port.write(frame)
+        var buffer = [UInt8](repeating: 0, count: 64)
+        let n = buffer.withUnsafeMutableBytes { Darwin.read(fds[0], $0.baseAddress, $0.count) }
+        XCTAssertEqual(Array(buffer[0..<n]), frame)
+    }
+
     func testShortFramesArePaddedTo24SlotsAndLongOnesTruncated() {
         let m = DMXUSBPro.sendDMX([255, 128])
         XCTAssertEqual(Array(m[0..<4]), [0x7E, 0x06, 25, 0])
@@ -93,7 +122,7 @@ final class DMXUSBProTests: XCTestCase {
         let port = POSIXSerialPort()
         try port.open(path: String(cString: name))
         defer { port.close() }
-        let frame = DMXUSBPro.sendDMX([0x0A, 0x0D, 0x7E, 0xE7, 0x11, 0x13])   // CR/LF/XON/XOFF must pass untouched
+        let frame = DMXUSBPro.sendDMX([0x0A, 0x0D, 0x7E, 0xE7, 0x11, 0x13])  // CR/LF/XON/XOFF must pass untouched
         try port.write(frame)
         var received: [UInt8] = []
         var buffer = [UInt8](repeating: 0, count: 1024)
@@ -106,4 +135,3 @@ final class DMXUSBProTests: XCTestCase {
         XCTAssertThrowsError(try POSIXSerialPort().open(path: "/dev/cu.usbserial-does-not-exist"))
     }
 }
-

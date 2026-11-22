@@ -9,11 +9,13 @@ final class OutputLifecycleTests: XCTestCase {
         let transport = FakeTransport()
         let clock = ManualClock()
         let source = LocalTempoClock(bpm: 120, now: { clock.now })
-        let engine = LightEngine(tempo: source, transport: transport, interfaces: { [Fixture.lan] },
-                                 clock: { clock.now }, runsTimer: false)
-        var patch = Patch(fixtures: universes.map {
-            .init(label: "Test U\($0)", profileID: "generic.rgb3", universe: $0, address: 1)
-        })
+        let engine = LightEngine(
+            tempo: source, transport: transport, interfaces: { [Fixture.lan] },
+            clock: { clock.now }, runsTimer: false)
+        var patch = Patch(
+            fixtures: universes.map {
+                .init(label: "Test U\($0)", profileID: "generic.rgb3", universe: $0, address: 1)
+            })
         patch.setConfirmed(true, library: ProfileLibrary())
         engine.start(); engine.setPatch(patch); engine.setMaster(1)
         engine.sync { transport.receive?(Fixture.pollReply(), .init(192, 168, 1, 50)) }
@@ -53,6 +55,35 @@ final class OutputLifecycleTests: XCTestCase {
         XCTAssertTrue(transport.dmxPackets.last!.bytes[18...].allSatisfy { $0 == 0 })
         engine.setBlackout(false)
         XCTAssertFalse(state(engine).armed, "Clearing blackout must not arm a cancelled diagnostic")
+    }
+
+    func testDiagnosticIsIgnoredDuringBlackout() {
+        let (engine, transport, clock) = rig()
+        engine.setArmed(true)
+        engine.setBlackout(true)
+        XCTAssertTrue(state(engine).blackout)
+        engine.runDiagnostic(.init(1, 1, 1), duration: 5)
+        let during = state(engine)
+        XCTAssertTrue(during.blackout, "A diagnostic must never clear blackout")
+        XCTAssertFalse(during.isTesting)
+        XCTAssertTrue(transport.dmxPackets.last!.bytes[18...].allSatisfy { $0 == 0 })
+        clock.now += 5.1
+        let after = state(engine)
+        XCTAssertTrue(after.blackout)
+        XCTAssertTrue(after.armed, "The output the user turned on stays on, still blacked out")
+        XCTAssertTrue(transport.dmxPackets.last!.bytes[18...].allSatisfy { $0 == 0 })
+    }
+
+    func testDiagnosticIsIgnoredDuringBlackoutWithOutputOff() {
+        let (engine, transport, _) = rig()
+        engine.setBlackout(true)
+        let sentBefore = transport.dmxPackets.count
+        engine.runDiagnostic(.init(1, 0, 0))
+        let s = state(engine)
+        XCTAssertTrue(s.blackout)
+        XCTAssertFalse(s.armed, "A diagnostic during blackout must not arm the output")
+        XCTAssertFalse(s.isTesting)
+        XCTAssertTrue(transport.dmxPackets.dropFirst(sentBefore).allSatisfy { $0.bytes[18...].allSatisfy { $0 == 0 } })
     }
 
     func testStaleNodePausesAndAttemptsFinalZeroFrame() {
@@ -224,7 +255,7 @@ final class OutputLifecycleTests: XCTestCase {
 
     func testSACNConfiguredPortIsNotAnArtNetSubscriber() throws {
         var bytes = Fixture.pollReply()
-        bytes[182] = 1 // GoodOutput bit0 means sACN conversion.
+        bytes[182] = 1  // GoodOutput bit0 means sACN conversion.
         let reply = try ArtPollReply.parse(bytes)
         XCTAssertEqual(reply.outputPorts.map(\.portAddress), [PortAddress(1)!])
     }
@@ -267,8 +298,9 @@ final class OutputSettingsTests: XCTestCase {
     func testSwitchingDriverDisarmsAndSendsBlackOnTheOldDriver() throws {
         let t = FakeTransport()
         let clock = ManualClock()
-        let engine = LightEngine(tempo: LocalTempoClock(), transport: t, interfaces: { [Fixture.lan] },
-                                 clock: { clock.now }, runsTimer: false)
+        let engine = LightEngine(
+            tempo: LocalTempoClock(), transport: t, interfaces: { [Fixture.lan] },
+            clock: { clock.now }, runsTimer: false)
         engine.start()
         XCTAssertEqual(engine.outputDriverID, "artnet")
         engine.useOutputDriver("sacn", registry: OutputSettings().registry)

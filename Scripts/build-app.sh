@@ -8,30 +8,44 @@ cd "$ROOT"
 
 APP_NAME="RAYS"
 BUNDLE_ID="io.github.gasparoff.rays"
-VERSION="1.5.5"
-BUILD_NUMBER="$(date +%Y%m%d%H%M)"
+# Release builds pass RAYS_VERSION (e.g. from the git tag); local builds keep the last version.
+VERSION="${RAYS_VERSION:-1.5.5}"
+BUILD_NUMBER="${RAYS_BUILD_NUMBER:-$(date +%Y%m%d%H%M)}"
+# Pro DJ Link needs the Beat Link helper (Scripts/bootstrap.sh). Without it the app is built
+# anyway and Pro DJ Link is unavailable; set RAYS_REQUIRE_BEATLINK=1 to fail instead.
+REQUIRE_BEATLINK="${RAYS_REQUIRE_BEATLINK:-0}"
+HELPER="Vendor/BeatLinkHelper"
+HAS_BEATLINK=0
+if [ -x "$HELPER/Contents/MacOS/Beat Link Trigger" ]; then HAS_BEATLINK=1; fi
 DIST="${LIGHT_SYSTEM_DIST:-$ROOT/dist}"
 APP="$DIST/$APP_NAME.app"
 
 if [ ! -f "Vendor/link/include/ableton/Link.hpp" ] || [ ! -f "Vendor/link/modules/asio-standalone/asio/include/asio.hpp" ]; then
-  echo "Errore: manca l'SDK Ableton Link in Vendor/link (con il sottomodulo asio-standalone)." >&2
+  echo "Error: the Ableton Link SDK is missing from Vendor/link (with its asio-standalone submodule). Run make bootstrap." >&2
   exit 1
 fi
 
 # Never remove a bundle whose executable is in use.
 if /bin/ps -axo command= | /usr/bin/grep -Fqx "$APP/Contents/MacOS/LightSystem"; then
-  echo "Errore: questa app è aperta. Chiudila, oppure imposta LIGHT_SYSTEM_DIST per creare una copia separata." >&2
+  echo "Error: this app is running. Quit it, or set LIGHT_SYSTEM_DIST to build a separate copy." >&2
   exit 1
 fi
 
-echo "==> Compilazione adattatore Beat Link"
-"$ROOT/Scripts/build-beatlink-helper.sh"
+if [ "$HAS_BEATLINK" = 1 ]; then
+  echo "==> Beat Link adapter"
+  "$ROOT/Scripts/build-beatlink-helper.sh"
+elif [ "$REQUIRE_BEATLINK" = 1 ]; then
+  echo "Error: Vendor/BeatLinkHelper is missing and RAYS_REQUIRE_BEATLINK=1. Run make bootstrap." >&2
+  exit 1
+else
+  echo "Warning: Vendor/BeatLinkHelper is missing; building without Pro DJ Link (see Scripts/bootstrap.sh)." >&2
+fi
 
 echo "==> swift build -c release"
 swift build -c release --product LightSystem
 BIN_DIR="$(swift build -c release --show-bin-path)"
 
-echo "==> Assemblaggio bundle"
+echo "==> Assembling the bundle"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/Licenses" "$APP/Contents/Resources/Profiles" \
   "$APP/Contents/Resources/Controllers"
@@ -46,27 +60,28 @@ cp "Vendor/link/GNU-GPL-v2.0.md" "$APP/Contents/Resources/Licenses/GNU-GPL-v2.0.
 cp "Vendor/link/modules/asio-standalone/asio/LICENSE_1_0.txt" "$APP/Contents/Resources/Licenses/ASIO-BSL-1.0.txt" 2>/dev/null \
   || cp "Vendor/link/modules/asio-standalone/LICENSE_1_0.txt" "$APP/Contents/Resources/Licenses/ASIO-BSL-1.0.txt" 2>/dev/null || true
 cat > "$APP/Contents/Resources/Licenses/NOTICE.txt" <<'EOF'
-RAYS include Ableton Link (Copyright 2016, Ableton AG), concesso in licenza
-GNU General Public License v2 o successiva, e ASIO standalone (Boost Software License 1.0).
+RAYS source code is released under the MIT License:
+https://github.com/gasparoff/rays
 
-Questa build è destinata a uso privato locale. Distribuire l'app ad altri richiede di
-rilasciare l'intero programma sotto GPL insieme al codice sorgente completo, oppure di
-ottenere una licenza commerciale di Link da Ableton (link-devs@ableton.com).
+This application includes Ableton Link (Copyright 2016, Ableton AG), licensed under the
+GNU General Public License v2 or later, and standalone ASIO (Boost Software License 1.0).
+The application as a whole is therefore distributed under the GNU GPL v2 or later.
+The complete corresponding source code is available at the address above.
+
+When present, the Pro DJ Link helper runs Beat Link (Deep Symmetry, Eclipse Public
+License 2.0) as a separate process; its licenses are in the BeatLink folder.
 EOF
 
 # Self-contained headless Beat Link runtime. The user's installed BLT is untouched.
-HELPER="Vendor/BeatLinkHelper"
-if [ ! -x "$HELPER/Contents/MacOS/Beat Link Trigger" ]; then
-  echo "Errore: manca Vendor/BeatLinkHelper, necessario per la scoperta automatica della console." >&2
-  exit 1
+if [ "$HAS_BEATLINK" = 1 ]; then
+  cp -R "$HELPER" "$APP/Contents/Resources/BeatLinkHelper"
+  # Source included for the tiny adapter; Clojure is used only by the build compiler.
+  cp "Sources/BeatLinkHelper/LightSystemBeatLink.java" "$APP/Contents/Resources/BeatLinkHelper/Contents/app/LightSystemBeatLink.java"
+  rm -f "$APP/Contents/Resources/BeatLinkHelper/Contents/app/lightsystem.clj"
+  cp -R "$HELPER/Licenses" "$APP/Contents/Resources/Licenses/BeatLink"
+  # The original launcher signature covers its old configuration; sign our private copy.
+  codesign --force --sign - --timestamp=none "$APP/Contents/Resources/BeatLinkHelper/Contents/MacOS/Beat Link Trigger"
 fi
-cp -R "$HELPER" "$APP/Contents/Resources/BeatLinkHelper"
-# Source included for the tiny adapter; Clojure is used only by the build compiler.
-cp "Sources/BeatLinkHelper/LightSystemBeatLink.java" "$APP/Contents/Resources/BeatLinkHelper/Contents/app/LightSystemBeatLink.java"
-rm -f "$APP/Contents/Resources/BeatLinkHelper/Contents/app/lightsystem.clj"
-cp -R "$HELPER/Licenses" "$APP/Contents/Resources/Licenses/BeatLink"
-# The original launcher signature covers its old configuration; sign our private copy.
-codesign --force --sign - --timestamp=none "$APP/Contents/Resources/BeatLinkHelper/Contents/MacOS/Beat Link Trigger"
 
 # Original three-triangle icon, kept as-is (never regenerated over).
 ICON_KEY=""
@@ -74,7 +89,7 @@ if [ -f "Assets/LightSystem.icns" ]; then
   cp "Assets/LightSystem.icns" "$APP/Contents/Resources/AppIcon.icns"
   ICON_KEY="<key>CFBundleIconFile</key><string>AppIcon</string>"
 else
-  echo "Avviso: Assets/LightSystem.icns mancante, app senza icona." >&2
+  echo "Warning: Assets/LightSystem.icns is missing; the app has no icon." >&2
 fi
 
 cat > "$APP/Contents/Info.plist" <<EOF
@@ -98,15 +113,15 @@ cat > "$APP/Contents/Info.plist" <<EOF
   <key>NSSupportsAutomaticTermination</key><false/>
   <key>NSSupportsSuddenTermination</key><false/>
   <key>NSLocalNetworkUsageDescription</key>
-  <string>RAYS usa la rete locale per trovare l'interfaccia luci ENTTEC ODE MK3 e inviarle i dati DMX via Art-Net, per rilevare la console Pro DJ Link e per sincronizzarsi a tempo con Ableton Live e altre app tramite Ableton Link.</string>
-  <key>NSHumanReadableCopyright</key><string>Include Ableton Link © Ableton AG (GPLv2+). Uso privato.</string>
+  <string>RAYS uses the local network to find your DMX interface and send it light data (Art-Net or sACN), to detect Pro DJ Link consoles and to stay in time with other apps through Ableton Link.</string>
+  <key>NSHumanReadableCopyright</key><string>© Manuel Gasparini. MIT source; includes Ableton Link © Ableton AG (GPLv2+).</string>
 </dict>
 </plist>
 EOF
 plutil -lint "$APP/Contents/Info.plist" >/dev/null
 
-echo "==> Firma ad hoc"
+echo "==> Ad hoc signature"
 codesign --force --deep --sign - --timestamp=none "$APP"
 codesign --verify --strict "$APP"
 
-echo "Fatto: $APP"
+echo "Done: $APP"

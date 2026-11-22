@@ -23,3 +23,21 @@ jobs:
         run: swift --version
       - name: Test
         run: swift test --parallel
+
+  app:
+    # Builds RAYS.app without the Beat Link helper so every change yields a runnable app.
+    # Download it from the run's Artifacts (Pro DJ Link is disabled in this build).
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build RAYS.app
+        run: Scripts/build-app.sh
+      - name: Zip
+        run: ditto -c -k --sequesterRsrc --keepParent dist/RAYS.app dist/RAYS-${{ github.sha }}.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RAYS-app
+          path: dist/RAYS-*.zip
+          retention-days: 14

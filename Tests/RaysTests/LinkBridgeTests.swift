@@ -19,7 +19,8 @@ final class LinkBridgeTests: XCTestCase {
         ls_link_set_tempo(link, 97.5)
         XCTAssertEqual(ls_link_capture(link, 4).tempo, 97.5, accuracy: 0.0001)
         ls_link_set_tempo(link, 5000)
-        let deadline = Date().addingTimeInterval(0.3)
+        // Generous deadline: under `swift test --parallel` the runner can be busy for a while.
+        let deadline = Date().addingTimeInterval(2)
         while abs(ls_link_capture(link, 4).tempo - 999) > 0.0001 && Date() < deadline { Thread.sleep(forTimeInterval: 0.002) }
         XCTAssertEqual(ls_link_capture(link, 4).tempo, 999, accuracy: 0.0001, "tempo clamped to Link range")
     }
@@ -28,10 +29,14 @@ final class LinkBridgeTests: XCTestCase {
     func testFollowBeatAlignsTempoAndPhase() throws {
         let link = try XCTUnwrap(ls_link_create(120))
         defer { ls_link_destroy(link) }
+        let before = Date()
         ls_link_follow_beat(link, 128, 2)
         let state = ls_link_capture(link, 4)
+        // The phase keeps moving between the two calls: allow for the time actually elapsed,
+        // so a busy test runner can't turn scheduling delay into a failure.
+        let elapsedBeats = Date().timeIntervalSince(before) * 128 / 60
         XCTAssertEqual(state.tempo, 128, accuracy: 0.0001)
-        XCTAssertEqual(state.phase, 2, accuracy: 0.05)
+        XCTAssertEqual(state.phase, 2, accuracy: 0.05 + elapsedBeats)
         ls_link_follow_beat(link, 128, 7)  // invalid beat-in-bar is ignored
         XCTAssertEqual(ls_link_capture(link, 4).tempo, 128, accuracy: 0.0001)
     }

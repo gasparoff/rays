@@ -1,0 +1,20 @@
+name-template: 'RAYS v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: 'New hardware'
+    labels: [fixture, controller, output]
+  - title: 'Features'
+    labels: [feature, idea]
+  - title: 'Fixes'
+    labels: [bug]
+  - title: 'Docs and translations'
+    labels: [docs, translation]
+change-template: '- $TITLE (#$NUMBER) @$AUTHOR'
+version-resolver:
+  major: { labels: [breaking] }
+  minor: { labels: [feature, fixture, controller, output] }
+  default: patch
+template: |
+  $CHANGES
+
+  Thanks to everyone who contributed: $CONTRIBUTORS

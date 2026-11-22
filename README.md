@@ -36,8 +36,8 @@ subscription.
   Build → Drop gesture, Flash, Blackout.
 - **Made for real gigs.** Auto-discovery of Art-Net nodes and consoles, automatic reconnection,
   safe blackout, no App Nap while lights are on.
-- **Hackable.** A Foundation-only core (`LightCore`) with ~200 unit tests and fixtures described
-  in plain JSON.
+- **Hackable.** Foundation-only core modules with ~200 unit tests, and fixtures and controller
+  layouts described in plain JSON.
 
 ## Quick start
 
@@ -79,11 +79,16 @@ see [Add a fixture](docs/adding-a-fixture.md). Every new profile is a welcome fi
 
 | Module | What lives there |
 |---|---|
-| `Sources/LightCore` | Foundation-only engine: Art-Net, discovery, patch, fixture profiles, scenes, sequencer, MIDI routing. Fully unit-tested. |
-| `Sources/LightSystem` | The macOS app: SwiftUI views, editor, MIDI and network services. |
+| `Sources/RaysOutput` | Art-Net packets, node discovery, UDP transport, the `OutputDriver` protocol and registry. |
+| `Sources/RaysTempo` | Tempo snapshots, internal clock, tap tempo, Pro DJ Link beats, the `TempoSource` registry. |
+| `Sources/RaysCore` | Fixtures, patch, profiles, scenes, choreography, scene programs, sequencer, DMX composer, stage geometry. |
+| `Sources/RaysControl` | MIDI decoding, `ControlAction`s, the router (Learn, soft takeover), Xone:K2 layouts, `ControllerProfile` JSON. |
+| `Sources/RaysEngine` | The 30 Hz `LightEngine` and the JSON config store. |
+| `Sources/RaysApp` | The macOS app (`Stage/`, `Editor/`, `Setup/`, `Live/`, `Services/`, `Theme/`); builds the `LightSystem` executable. |
 | `Sources/LinkBridge` | Thin C bridge over the official Ableton Link C++ SDK. |
 | `Sources/BeatLinkHelper` | Headless Java adapter over Beat Link, run as a child process. |
 | `Profiles/` | Community fixture profiles (JSON), bundled into the app. |
+| `Controllers/` | Controller layouts (JSON), bundled into the app. |
 
 More in [docs/architecture.md](docs/architecture.md).
 

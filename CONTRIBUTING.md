@@ -24,13 +24,18 @@ Scripts/build-app.sh
 ```
 
 Requirements: macOS 14+, Xcode 16 or a Swift 6 toolchain.
-You don't need any lighting hardware to work on most of the code: `LightCore` is
+You don't need any lighting hardware to work on most of the code: the `Rays*` library modules are
 Foundation-only and fully covered by unit tests, and the app's stage preview works offline.
 
 ## Ground rules for code
 
-- **Keep `LightCore` Foundation-only.** No SwiftUI, AppKit or CoreMIDI there. Anything that can be
-  tested without hardware belongs in the core.
+- **Keep the library modules Foundation-only.** No SwiftUI, AppKit or CoreMIDI in `RaysOutput`,
+  `RaysTempo`, `RaysCore`, `RaysControl` or `RaysEngine`. Anything that can be tested without
+  hardware belongs there, not in `RaysApp`. Lower layers never import higher ones (see
+  [architecture](docs/architecture.md#modules)).
+- **Formatting:** `.swift-format` describes the house style. Run
+  `swift format lint --configuration .swift-format <files you touched>`; don't reformat files you
+  didn't change.
 - **Every behavior change comes with a test** in `Tests/LightCoreTests`.
 - **Never break saved user data.** Scene, patch and MIDI files in
   `~/Library/Application Support/Light System/` must keep loading. If you change a `Codable`

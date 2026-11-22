@@ -5,6 +5,9 @@ import XCTest
 final class ScenePreviewTests: XCTestCase {
     func testCancelRestoresStoppedShowWithoutArmingOutput() {
         let clock = ManualClock(), transport = FakeTransport()
+        // Start the timeline at 0: stop() runs asynchronously and may read the clock before the
+        // first step, so a jump back from ManualClock's default 1000 s would freeze the Stop fade.
+        clock.now = 0
         let tempo = LocalTempoClock(bpm: 120, now: { clock.now })
         let engine = LightEngine(tempo: tempo, transport: transport, interfaces: { [Fixture.lan] }, clock: { clock.now }, runsTimer: false)
         var snapshot = EngineSnapshot()

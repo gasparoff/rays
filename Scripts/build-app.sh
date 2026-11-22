@@ -79,7 +79,9 @@ EOF
 
 # Self-contained headless Beat Link runtime. The user's installed BLT is untouched.
 if [ "$HAS_BEATLINK" = 1 ]; then
-  cp -R "$HELPER" "$APP/Contents/Resources/BeatLinkHelper"
+  # Only the bundle itself: anything else at its root (Licenses/) would break the code signature.
+  mkdir -p "$APP/Contents/Resources/BeatLinkHelper"
+  cp -R "$HELPER/Contents" "$APP/Contents/Resources/BeatLinkHelper/Contents"
   # Source included for the tiny adapter; Clojure is used only by the build compiler.
   cp "Sources/BeatLinkHelper/LightSystemBeatLink.java" "$APP/Contents/Resources/BeatLinkHelper/Contents/app/LightSystemBeatLink.java"
   rm -f "$APP/Contents/Resources/BeatLinkHelper/Contents/app/lightsystem.clj"

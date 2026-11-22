@@ -50,7 +50,8 @@ final class EditorWindowState: ObservableObject {
     /// Called before the editor appears so its first layout already uses the final size. `enter` checks the window.
     func prepareEnter(_ window: NSWindow?) {
         guard !active, pendingRestore == nil, let window, !window.styleMask.contains(.fullScreen),
-              let screen = window.screen ?? NSScreen.main, !window.frame.equalTo(screen.visibleFrame) else { return }
+            let screen = window.screen ?? NSScreen.main, !window.frame.equalTo(screen.visibleFrame)
+        else { return }
         frozenContentSize = window.contentRect(forFrameRect: screen.visibleFrame).size
     }
 
@@ -82,7 +83,7 @@ final class EditorWindowState: ObservableObject {
 
     /// `animated` false is used while quitting: no animations and no full-screen transition.
     func restore(animated: Bool = true) {
-        guard active else { cancelReveal(); return } // closed before `enter`: drop a prepared size
+        guard active else { cancelReveal(); return }  // closed before `enter`: drop a prepared size
         active = false
         guard let window else { return }
         window.isDocumentEdited = false
@@ -95,8 +96,10 @@ final class EditorWindowState: ObservableObject {
         }
         if full {
             guard animated else { return }
-            let observer = NotificationCenter.default.addObserver(forName: NSWindow.didExitFullScreenNotification,
-                                                                  object: window, queue: .main) { [weak self] _ in
+            let observer = NotificationCenter.default.addObserver(
+                forName: NSWindow.didExitFullScreenNotification,
+                object: window, queue: .main
+            ) { [weak self] _ in
                 MainActor.assumeIsolated { self?.finishPendingRestore() }
             }
             pendingRestore = (observer, frame)

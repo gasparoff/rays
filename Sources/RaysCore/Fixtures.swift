@@ -64,8 +64,10 @@ public struct FixtureProfile: Codable, Hashable, Identifiable, Sendable {
     public var notes: String
     public var channels: [ChannelDefinition]
 
-    public init(id: String, name: String, manufacturer: String = "Generico", mode: String = "", isGeneric: Bool = true,
-                isVerified: Bool = false, notes: String = "", channels: [ChannelDefinition]) {
+    public init(
+        id: String, name: String, manufacturer: String = "Generico", mode: String = "", isGeneric: Bool = true,
+        isVerified: Bool = false, notes: String = "", channels: [ChannelDefinition]
+    ) {
         self.id = id; self.name = name; self.manufacturer = manufacturer; self.mode = mode
         self.isGeneric = isGeneric; self.isVerified = isVerified; self.notes = notes; self.channels = channels
     }
@@ -115,17 +117,22 @@ public struct FixtureProfile: Codable, Hashable, Identifiable, Sendable {
 
 /// Built-in fixture profiles plus the ones loaded from JSON files.
 public struct ProfileLibrary: Sendable {
-    public static let builtIn: [FixtureProfile] = [
-        FixtureProfile(id: "generic.rgb3", name: "Generico RGB", mode: "3 canali",
-                       notes: "R, G, B", channels: [.init(.red), .init(.green), .init(.blue)]),
-        FixtureProfile(id: "generic.rgbw4", name: "Generico RGBW", mode: "4 canali",
-                       notes: "R, G, B, W", channels: [.init(.red), .init(.green), .init(.blue), .init(.white)]),
-        FixtureProfile(id: "generic.drgb4", name: "Generico Dimmer+RGB", mode: "4 canali",
-                       notes: "Dimmer, R, G, B", channels: [.init(.dimmer), .init(.red), .init(.green), .init(.blue)]),
-        FixtureProfile(id: "generic.drgbw5", name: "Generico Dimmer+RGBW", mode: "5 canali",
-                       notes: "Dimmer, R, G, B, W",
-                       channels: [.init(.dimmer), .init(.red), .init(.green), .init(.blue), .init(.white)]),
-    ] + VarytecRig.profiles
+    public static let builtIn: [FixtureProfile] =
+        [
+            FixtureProfile(
+                id: "generic.rgb3", name: "Generico RGB", mode: "3 canali",
+                notes: "R, G, B", channels: [.init(.red), .init(.green), .init(.blue)]),
+            FixtureProfile(
+                id: "generic.rgbw4", name: "Generico RGBW", mode: "4 canali",
+                notes: "R, G, B, W", channels: [.init(.red), .init(.green), .init(.blue), .init(.white)]),
+            FixtureProfile(
+                id: "generic.drgb4", name: "Generico Dimmer+RGB", mode: "4 canali",
+                notes: "Dimmer, R, G, B", channels: [.init(.dimmer), .init(.red), .init(.green), .init(.blue)]),
+            FixtureProfile(
+                id: "generic.drgbw5", name: "Generico Dimmer+RGBW", mode: "5 canali",
+                notes: "Dimmer, R, G, B, W",
+                channels: [.init(.dimmer), .init(.red), .init(.green), .init(.blue), .init(.white)]),
+        ] + VarytecRig.profiles
 
     public private(set) var profiles: [FixtureProfile]
 
@@ -136,14 +143,19 @@ public struct ProfileLibrary: Sendable {
 
     public func profile(id: String) -> FixtureProfile? { profiles.first { $0.id == id } }
 
-    public func adding(_ more: [FixtureProfile]) -> ProfileLibrary { ProfileLibrary(extra: Array(profiles.dropFirst(Self.builtIn.count)) + more) }
+    public func adding(_ more: [FixtureProfile]) -> ProfileLibrary {
+        ProfileLibrary(extra: Array(profiles.dropFirst(Self.builtIn.count)) + more)
+    }
 
     /// Loads every `*.json` FixtureProfile in `directory` and its subfolders (e.g. one folder per
     /// manufacturer), in path order; invalid files are reported, not fatal.
     public static func loadProfiles(in directory: URL) -> (profiles: [FixtureProfile], errors: [String]) {
         let base = directory.standardizedFileURL.path
-        guard let enumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil,
-                                                              options: [.skipsHiddenFiles]) else {
+        guard
+            let enumerator = FileManager.default.enumerator(
+                at: directory, includingPropertiesForKeys: nil,
+                options: [.skipsHiddenFiles])
+        else {
             return ([], [])
         }
         let files = enumerator.compactMap { $0 as? URL }
@@ -156,8 +168,11 @@ public struct ProfileLibrary: Sendable {
             let relative = path.hasPrefix(base + "/") ? String(path.dropFirst(base.count + 1)) : file.lastPathComponent
             do {
                 let data = try Data(contentsOf: file)
-                if let list = try? JSONDecoder().decode([FixtureProfile].self, from: data) { result += list }
-                else { result.append(try JSONDecoder().decode(FixtureProfile.self, from: data)) }
+                if let list = try? JSONDecoder().decode([FixtureProfile].self, from: data) {
+                    result += list
+                } else {
+                    result.append(try JSONDecoder().decode(FixtureProfile.self, from: data))
+                }
             } catch {
                 errors.append("\(relative): \(error.localizedDescription)")
             }
@@ -215,9 +230,13 @@ public struct Patch: Codable, Equatable, Sendable {
         // Same keys as PatchedFixture minus `role`, so fingerprints confirmed before roles existed stay valid.
         struct CanonFixture: Encodable { var id: UUID; var label: String; var profileID: String; var universe: Int; var address: Int }
         struct Canon: Encodable { var fixtures: [CanonFixture]; var profiles: [FixtureProfile?] }
-        let canon = Canon(fixtures: fixtures.map { CanonFixture(id: $0.id, label: $0.label, profileID: $0.profileID,
-                                                                universe: $0.universe, address: $0.address) },
-                          profiles: fixtures.map { lib.profile(id: $0.profileID) })
+        let canon = Canon(
+            fixtures: fixtures.map {
+                CanonFixture(
+                    id: $0.id, label: $0.label, profileID: $0.profileID,
+                    universe: $0.universe, address: $0.address)
+            },
+            profiles: fixtures.map { lib.profile(id: $0.profileID) })
         let data = (try? encoder.encode(canon)) ?? Data()
         var hash: UInt64 = 0xcbf29ce484222325
         for byte in data { hash = (hash ^ UInt64(byte)) &* 0x100000001b3 }
@@ -262,7 +281,11 @@ public struct Patch: Codable, Equatable, Sendable {
                 continue
             }
             if !allowedUniverses.contains(f.universe) {
-                issues.append(PatchIssue(message: "\(f.label): universo \(f.universe) non disponibile (ammessi \(allowedUniverses.lowerBound)–\(allowedUniverses.upperBound))."))
+                issues.append(
+                    PatchIssue(
+                        message:
+                            "\(f.label): universo \(f.universe) non disponibile (ammessi \(allowedUniverses.lowerBound)–\(allowedUniverses.upperBound))."
+                    ))
             }
             guard (1...512).contains(f.address) else {
                 issues.append(PatchIssue(message: "\(f.label): indirizzo \(f.address) fuori da 1–512."))
@@ -275,7 +298,11 @@ public struct Patch: Codable, Equatable, Sendable {
             }
             let range = f.address...end
             for other in ranges where other.fixture.universe == f.universe && other.range.overlaps(range) {
-                issues.append(PatchIssue(message: "\(f.label) (\(range.lowerBound)–\(range.upperBound)) si sovrappone a \(other.fixture.label) (\(other.range.lowerBound)–\(other.range.upperBound)) nell'universo \(f.universe)."))
+                issues.append(
+                    PatchIssue(
+                        message:
+                            "\(f.label) (\(range.lowerBound)–\(range.upperBound)) si sovrappone a \(other.fixture.label) (\(other.range.lowerBound)–\(other.range.upperBound)) nell'universo \(f.universe)."
+                    ))
             }
             ranges.append((f, range))
         }
@@ -286,8 +313,10 @@ public struct Patch: Codable, Equatable, Sendable {
     public mutating func addGroup(profile: FixtureProfile, count: Int, startAddress: Int, universe: Int) {
         let base = fixtures.count
         for i in 0..<max(0, count) {
-            fixtures.append(PatchedFixture(label: "Luce \(base + i + 1)", profileID: profile.id, universe: universe,
-                                           address: startAddress + i * profile.footprint))
+            fixtures.append(
+                PatchedFixture(
+                    label: "Luce \(base + i + 1)", profileID: profile.id, universe: universe,
+                    address: startAddress + i * profile.footprint))
         }
     }
 }

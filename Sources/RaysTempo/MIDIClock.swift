@@ -47,7 +47,7 @@ public struct MIDIClockParser: Sendable {
             case 0xFC: if running { running = false; out.append(.stop) }
             case 0xF2: pendingStatus = 0xF2; pending.removeAll()
             case 0x80...0xFF:
-                if byte < 0xF8 { pendingStatus = 0; pending.removeAll() }   // other status: drop SPP state
+                if byte < 0xF8 { pendingStatus = 0; pending.removeAll() }  // other status: drop SPP state
             default:
                 guard pendingStatus == 0xF2 else { continue }
                 pending.append(byte)
@@ -102,8 +102,9 @@ public final class MIDIClockTempoSource: TempoSource, @unchecked Sendable {
         if fresh, parser.running, let last = parser.lastTick {
             beat += min(max(0, now() - last) * bpm / 60, 1 / Double(MIDIClockParser.ticksPerBeat))
         }
-        return TempoSnapshot(bpm: bpm, beat: beat, phase: pmod(beat, 4), isPlaying: parser.running && fresh,
-                             kind: .midiClock, externalClock: parser.running && fresh)
+        return TempoSnapshot(
+            bpm: bpm, beat: beat, phase: pmod(beat, 4), isPlaying: parser.running && fresh,
+            kind: .midiClock, externalClock: parser.running && fresh)
     }
 
     /// The clock owns the tempo; a manual change only sets the value used before ticks arrive.

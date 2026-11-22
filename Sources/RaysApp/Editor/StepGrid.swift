@@ -55,27 +55,31 @@ struct StepGrid: View, Equatable {
                 }
             }
             .contentShape(Rectangle())
-            .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
-                .onChanged { value in
-                    let x = Double(value.location.x / max(1, geo.size.width))
-                    guard let step = viewport.sourceStep(atFraction: x, stepsPerBeat: track.stepsPerBeat, lengthBeats: track.lengthBeats)
-                    else { return }
-                    if var current = stroke {
-                        let position = Int(floor(x * Double(viewport.span * track.stepsPerBeat)))
-                        // Pointer events can jump over narrow cells: paint the interval too.
-                        let previous = lastPaintPosition ?? position
-                        for cell in min(previous, position)...max(previous, position) {
-                            let source = (viewport.start * track.stepsPerBeat + cell) % track.steps.count
-                            if !current.stroke.touched.contains(source) { session.paint(&current, step: source) }
+            .gesture(
+                DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                    .onChanged { value in
+                        let x = Double(value.location.x / max(1, geo.size.width))
+                        guard
+                            let step = viewport.sourceStep(atFraction: x, stepsPerBeat: track.stepsPerBeat, lengthBeats: track.lengthBeats)
+                        else { return }
+                        if var current = stroke {
+                            let position = Int(floor(x * Double(viewport.span * track.stepsPerBeat)))
+                            // Pointer events can jump over narrow cells: paint the interval too.
+                            let previous = lastPaintPosition ?? position
+                            for cell in min(previous, position)...max(previous, position) {
+                                let source = (viewport.start * track.stepsPerBeat + cell) % track.steps.count
+                                if !current.stroke.touched.contains(source) { session.paint(&current, step: source) }
+                            }
+                            stroke = current
+                            lastPaintPosition = position
+                        } else {
+                            stroke = session.beginPaint(track.id, step: step)
+                            lastPaintPosition = Int(floor(x * Double(viewport.span * track.stepsPerBeat)))
                         }
-                        stroke = current
-                        lastPaintPosition = position
-                    } else {
-                        stroke = session.beginPaint(track.id, step: step)
-                        lastPaintPosition = Int(floor(x * Double(viewport.span * track.stepsPerBeat)))
                     }
-                }
-                .onEnded { _ in stroke = nil; lastPaintPosition = nil })
+                    .onEnded { _ in
+                        stroke = nil; lastPaintPosition = nil
+                    })
         }
         .help(helpText)
         .accessibilityElement(children: .contain)
@@ -94,7 +98,8 @@ struct StepGrid: View, Equatable {
     private var helpText: String {
         var s = "\(track.name): \(rowCaption(track)). Clic: forte → debole → spento; trascina per disegnare lo stesso valore."
         if track.lengthBeats < viewport.total || viewport.start > 0 {
-            s += " Il ciclo di \(beatsTitle(track.lengthBeats)) si ripete (riquadri tratteggiati): ogni ripetizione modifica lo stesso passo."
+            s +=
+                " Il ciclo di \(beatsTitle(track.lengthBeats)) si ripete (riquadri tratteggiati): ogni ripetizione modifica lo stesso passo."
         }
         return s
     }
@@ -121,8 +126,9 @@ struct RulerView: View {
                     ctx.fill(Path(CGRect(x: x - 0.5, y: 2, width: 1, height: size.height - 2)), with: .color(Theme.amber.opacity(0.5)))
                 }
                 if fine > 1 && perBeat >= 44 {
-                    ctx.draw(Text("&").font(.system(size: 10.5)).foregroundColor(Theme.tertiary),
-                             at: CGPoint(x: x + perBeat / 2 + 3, y: size.height / 2), anchor: .leading)
+                    ctx.draw(
+                        Text("&").font(.system(size: 10.5)).foregroundColor(Theme.tertiary),
+                        at: CGPoint(x: x + perBeat / 2 + 3, y: size.height / 2), anchor: .leading)
                 }
             }
         }

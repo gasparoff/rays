@@ -34,8 +34,10 @@ struct ControllerSetup: View {
                     .pickerStyle(.segmented).frame(width: 280)
                     .help("Live v2 segue la disposizione della console. I controlli personalizzati con Impara restano prioritari.")
                     K2Guide()
-                    Text("Preset automatico · canale \(midi.channel). Per personalizzare: «Impara», poi muovi il controllo. I fader entrano in azione quando raggiungono il valore sullo schermo.")
-                        .font(note).foregroundStyle(Theme.tertiary)
+                    Text(
+                        "Preset automatico · canale \(midi.channel). Per personalizzare: «Impara», poi muovi il controllo. I fader entrano in azione quando raggiungono il valore sullo schermo."
+                    )
+                    .font(note).foregroundStyle(Theme.tertiary)
                     if let error = midi.error { Text(error).font(note).foregroundStyle(Theme.warn) }
                     if let pickup = midi.pickupMessage { Text(pickup).font(note).foregroundStyle(Theme.amber) }
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 18), GridItem(.flexible())], alignment: .leading, spacing: 8) {
@@ -55,20 +57,27 @@ struct ControllerSetup: View {
                     let routed = midi.connectedControllers.compactMap { c in c.profile.map { (name: c.name, profile: $0) } }
                     let learnOnly = midi.connectedControllers.filter { $0.profile == nil }.map(\.name)
                     if routed.isEmpty && learnOnly.isEmpty {
-                        Text(midi.profiles.isEmpty
-                             ? "Nessun layout controller caricato."
-                             : "Nessun controller collegato tra quelli descritti: \(midi.profiles.map(\.name).joined(separator: ", ")).")
-                            .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+                        Text(
+                            midi.profiles.isEmpty
+                                ? "Nessun layout controller caricato."
+                                : "Nessun controller collegato tra quelli descritti: \(midi.profiles.map(\.name).joined(separator: ", "))."
+                        )
+                        .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
                     }
                     ForEach(routed, id: \.name) { c in ProfileGuide(portName: c.name, profile: c.profile) }
                     if !learnOnly.isEmpty {
                         Label("Solo Impara · \(learnOnly.joined(separator: ", "))", systemImage: "dot.radiowaves.left.and.right")
                             .font(small).foregroundStyle(Theme.secondary)
                     }
-                    Toggle("Ascolta tutti gli ingressi MIDI per «Impara»", isOn: Binding(
-                        get: { midi.map.learnFromAllInputs }, set: { midi.setLearnFromAllInputs($0) }))
-                        .font(small)
-                        .help("Spento: RAYS ascolta solo la Xone K2 e i controller descritti in Controllers/. Acceso: anche ogni altro ingresso MIDI, per assegnargli funzioni con «Impara».")
+                    Toggle(
+                        "Ascolta tutti gli ingressi MIDI per «Impara»",
+                        isOn: Binding(
+                            get: { midi.map.learnFromAllInputs }, set: { midi.setLearnFromAllInputs($0) })
+                    )
+                    .font(small)
+                    .help(
+                        "Spento: RAYS ascolta solo la Xone K2 e i controller descritti in Controllers/. Acceso: anche ogni altro ingresso MIDI, per assegnargli funzioni con «Impara»."
+                    )
                     Text("I layout si trovano in Controllers/ dentro l’app e in Application Support/Light System/Controllers.")
                         .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
                 }
@@ -84,7 +93,9 @@ struct ControllerSetup: View {
                         Text("MIDI Clock").tag(BeatSource.midiClock)
                     }
                     .pickerStyle(.segmented).labelsHidden().frame(width: 360)
-                    .help("Automatico cerca la console Pro DJ Link e ne invia tempo e battiti ad Ableton Link. Senza console usa Link o il tempo interno.")
+                    .help(
+                        "Automatico cerca la console Pro DJ Link e ne invia tempo e battiti ad Ableton Link. Senza console usa Link o il tempo interno."
+                    )
                     if model.prefs.beatSource == .midiClock {
                         MIDIClockStatus()
                     } else if model.prefs.beatSource != .link {
@@ -97,8 +108,10 @@ struct ControllerSetup: View {
                             .pickerStyle(.segmented).frame(width: 300)
                             Text(xdjStatus).font(small).foregroundStyle(xdj.isLive ? Theme.good : Theme.secondary)
                         }
-                        Text("Beat Link integrato rileva la console e segue il deck master in riproduzione. BPM e battiti passano ad Ableton Link senza aprire Beat Link Trigger o Carabiner. Collega console, Mac e ODE allo switch; il Wi-Fi resta disponibile per Internet.")
-                            .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+                        Text(
+                            "Beat Link integrato rileva la console e segue il deck master in riproduzione. BPM e battiti passano ad Ableton Link senza aprire Beat Link Trigger o Carabiner. Collega console, Mac e ODE allo switch; il Wi-Fi resta disponibile per Internet."
+                        )
+                        .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
                     } else {
                         Text("Ableton Link è attivo. Il collegamento diretto alla console è disabilitato.")
                             .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
@@ -131,15 +144,22 @@ struct LearnRow: View {
         let isLearning = midi.learning == action
         HStack(spacing: 8) {
             Text(title).font(.system(size: 12.5, weight: .medium)).frame(width: 90, alignment: .leading)
-            Text(isLearning ? (action.isContinuous ? "Muovi un fader…" : "Premi un tasto…")
-                 : (midi.effectiveControl(action)?.label ?? "—"))
-                .font(small).foregroundStyle(isLearning ? Theme.amber : Theme.secondary)
-                .frame(width: 130, alignment: .leading)
+            Text(
+                isLearning
+                    ? (action.isContinuous ? "Muovi un fader…" : "Premi un tasto…")
+                    : (midi.effectiveControl(action)?.label ?? "—")
+            )
+            .font(small).foregroundStyle(isLearning ? Theme.amber : Theme.secondary)
+            .frame(width: 130, alignment: .leading)
             Button(isLearning ? "Annulla" : "Impara") { midi.learn(isLearning ? nil : action) }
                 .controlSize(.small)
             if midi.map.control(for: action) != nil, !isLearning {
-                Button { midi.unbind(action) } label: { Image(systemName: "xmark.circle") }
-                    .buttonStyle(.borderless).accessibilityLabel("Rimuovi assegnazione \(title)")
+                Button {
+                    midi.unbind(action)
+                } label: {
+                    Image(systemName: "xmark.circle")
+                }
+                .buttonStyle(.borderless).accessibilityLabel("Rimuovi assegnazione \(title)")
             }
         }
     }

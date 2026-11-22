@@ -61,20 +61,24 @@ private struct RhythmMatrix: View {
         VStack(alignment: .leading, spacing: 8) {
             header(viewport)
             if tracks.isEmpty {
-                Text("Nessuna traccia: aggiungine una con «Aggiungi traccia». Senza tracce la coreografia originale sotto resta al \(percentText(state.baseLevel)).")
-                    .font(.system(size: 12)).foregroundStyle(Theme.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(.top, 8)
+                Text(
+                    "Nessuna traccia: aggiungine una con «Aggiungi traccia». Senza tracce la coreografia originale sotto resta al \(percentText(state.baseLevel))."
+                )
+                .font(.system(size: 12)).foregroundStyle(Theme.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .padding(.top, 8)
             } else {
                 // Ruler pinned inside the scroll view so it shares the rows' width (also with visible scroll bars).
                 ScrollView(.vertical) {
                     LazyVStack(spacing: 5, pinnedViews: [.sectionHeaders]) {
                         Section {
                             ForEach(Array(tracks.enumerated()), id: \.element.id) { index, track in
-                                TrackRow(session: session, track: track, index: index, count: tracks.count,
-                                         viewport: viewport, tint: trackTint(track, palette),
-                                         selected: track.id == selectedID)
-                                    .equatable()
+                                TrackRow(
+                                    session: session, track: track, index: index, count: tracks.count,
+                                    viewport: viewport, tint: trackTint(track, palette),
+                                    selected: track.id == selectedID
+                                )
+                                .equatable()
                             }
                         } header: {
                             MatrixLane {
@@ -85,9 +89,11 @@ private struct RhythmMatrix: View {
                         }
                     }
                     .overlay {
-                        MatrixLane { PlayheadView(state: live, viewport: viewport, follows: navigation.followsPlayhead, onFollow: session.followPage) }
-                            .padding(.top, 18)
-                            .allowsHitTesting(false)
+                        MatrixLane {
+                            PlayheadView(state: live, viewport: viewport, follows: navigation.followsPlayhead, onFollow: session.followPage)
+                        }
+                        .padding(.top, 18)
+                        .allowsHitTesting(false)
                     }
                 }
                 .scrollIndicators(.automatic)
@@ -107,7 +113,9 @@ private struct RhythmMatrix: View {
             Text("Ritmo").font(.system(size: 17, weight: .semibold))
             Menu {
                 ForEach(viewport.spanChoices, id: \.self) { span in
-                    Button { session.setSpan(span) } label: {
+                    Button {
+                        session.setSpan(span)
+                    } label: {
                         if span == viewport.span { Label(spanTitle(span), systemImage: "checkmark") } else { Text(spanTitle(span)) }
                     }
                 }
@@ -119,7 +127,9 @@ private struct RhythmMatrix: View {
             .help("Solo quanto tempo vedi nella matrice. Non cambia i passi: per quello usa Passo e Ciclo sotto.")
             .accessibilityLabel("Vista: \(spanTitle(viewport.span))")
             if viewport.pageCount > 1 {
-                Button { session.followsPlayhead.toggle() } label: {
+                Button {
+                    session.followsPlayhead.toggle()
+                } label: {
                     Label("Segui", systemImage: "viewfinder")
                         .font(.system(size: 11.5, weight: .medium))
                         .foregroundStyle(navigation.followsPlayhead ? Theme.lavender : Theme.secondary)
@@ -129,14 +139,22 @@ private struct RhythmMatrix: View {
                 .accessibilityValue(navigation.followsPlayhead ? "attivo" : "disattivo")
                 .help("Mantiene visibile la posizione in diretta. Sfogliare le battute o disegnare i passi disattiva Segui.")
                 HStack(spacing: 2) {
-                    Button { session.showPage(viewport.page - 1) } label: { Image(systemName: "chevron.left").frame(width: 20, height: 20) }
-                        .disabled(viewport.page == 0)
-                        .accessibilityLabel("Battute precedenti")
+                    Button {
+                        session.showPage(viewport.page - 1)
+                    } label: {
+                        Image(systemName: "chevron.left").frame(width: 20, height: 20)
+                    }
+                    .disabled(viewport.page == 0)
+                    .accessibilityLabel("Battute precedenti")
                     Text(pageTitle(viewport)).font(.system(size: 11.5).monospacedDigit()).foregroundStyle(Theme.secondary)
                         .frame(minWidth: 92)
-                    Button { session.showPage(viewport.page + 1) } label: { Image(systemName: "chevron.right").frame(width: 20, height: 20) }
-                        .disabled(viewport.page >= viewport.pageCount - 1)
-                        .accessibilityLabel("Battute successive")
+                    Button {
+                        session.showPage(viewport.page + 1)
+                    } label: {
+                        Image(systemName: "chevron.right").frame(width: 20, height: 20)
+                    }
+                    .disabled(viewport.page >= viewport.pageCount - 1)
+                    .accessibilityLabel("Battute successive")
                 }
                 .buttonStyle(.borderless)
                 .help("La linea del tempo è lunga \(viewport.total) battiti (il ciclo più lungo). Sfoglia le battute.")
@@ -161,7 +179,11 @@ private struct RhythmMatrix: View {
         HStack(spacing: 14) {
             Menu {
                 ForEach(TrackSound.allCases) { sound in
-                    Button { session.addTrack(sound) } label: { Label("\(sound.title) · \(sound.hint)", systemImage: sound.symbol) }
+                    Button {
+                        session.addTrack(sound)
+                    } label: {
+                        Label("\(sound.title) · \(sound.hint)", systemImage: sound.symbol)
+                    }
                 }
             } label: {
                 Label("Aggiungi traccia", systemImage: "plus")
@@ -169,15 +191,22 @@ private struct RhythmMatrix: View {
             .menuStyle(.borderedButton)
             .fixedSize()
             .disabled(!program.state.canAddTrack)
-            .help(program.state.canAddTrack ? "Cassa, Clap, Hi-hat, Basso, Accento o Libero: poi la modifichi." : "Massimo \(SceneProgram.maxTracks) tracce per scena.")
+            .help(
+                program.state.canAddTrack
+                    ? "Cassa, Clap, Hi-hat, Basso, Accento o Libero: poi la modifichi."
+                    : "Massimo \(SceneProgram.maxTracks) tracce per scena."
+            )
             .accessibilityLabel("Aggiungi traccia")
-            Text("\(program.state.tracks.count)/\(SceneProgram.maxTracks)").font(.system(size: 11).monospacedDigit()).foregroundStyle(Theme.tertiary)
+            Text("\(program.state.tracks.count)/\(SceneProgram.maxTracks)").font(.system(size: 11).monospacedDigit()).foregroundStyle(
+                Theme.tertiary)
             Spacer(minLength: 6)
             // Chosen from the known width. A ViewThatFits here re-measured its candidates on every matrix
             // update (page flips, selection) and was the largest cost of the matrix in the isolated harness.
             // Needed widths: add menu, count and spacing ≈ 235 pt, legend ≈ 170 pt, hint ≈ 300 pt.
             if footerWidth >= 720 {
-                HStack(spacing: 14) { legend; hint }
+                HStack(spacing: 14) {
+                    legend; hint
+                }
             } else if footerWidth >= 420 {
                 legend
             }
@@ -248,15 +277,20 @@ private struct TrackRow: View, Equatable {
         }
         .padding(.horizontal, MatrixMetrics.rowPadding)
         .frame(height: MatrixMetrics.rowHeight)
-        .background(RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .fill(selected ? Theme.lavender.opacity(0.12) : Color.white.opacity(0.025)))
-        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .strokeBorder(selected ? Theme.lavender.opacity(0.75) : Theme.stroke, lineWidth: selected ? 1.5 : 1))
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(selected ? Theme.lavender.opacity(0.12) : Color.white.opacity(0.025))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(selected ? Theme.lavender.opacity(0.75) : Theme.stroke, lineWidth: selected ? 1.5 : 1))
     }
 
     private var caption: some View {
         HStack(spacing: 6) {
-            Button { session.toggleEnabled(track.id) } label: {
+            Button {
+                session.toggleEnabled(track.id)
+            } label: {
                 Image(systemName: track.enabled ? "speaker.wave.2.fill" : "speaker.slash.fill")
                     .font(.system(size: 12))
                     .foregroundStyle(track.enabled ? Theme.secondary : Theme.bad.opacity(0.85))
@@ -267,7 +301,9 @@ private struct TrackRow: View, Equatable {
             .help(track.enabled ? "Silenzia la traccia (resta salvata)" : "Riattiva la traccia")
             .accessibilityLabel(track.enabled ? "Silenzia \(track.name)" : "Riattiva \(track.name)")
 
-            Button { session.selection = track.id } label: {
+            Button {
+                session.selection = track.id
+            } label: {
                 HStack(spacing: 7) {
                     ZStack {
                         Circle().fill(Color.black.opacity(0.5)).frame(width: 20, height: 20)
@@ -299,11 +335,19 @@ private struct TrackRow: View, Equatable {
 
     private var menu: some View {
         Menu {
-            Button("Rinomina…") { session.selection = track.id; session.renameRequest = track.id }
+            Button("Rinomina…") {
+                session.selection = track.id; session.renameRequest = track.id
+            }
             Menu("Etichetta") {
                 ForEach(TrackSound.allCases) { sound in
-                    Button { session.editTrack(track.id, nil) { $0.sound = sound } } label: {
-                        if sound == track.sound { Label(sound.title, systemImage: "checkmark") } else { Label(sound.title, systemImage: sound.symbol) }
+                    Button {
+                        session.editTrack(track.id, nil) { $0.sound = sound }
+                    } label: {
+                        if sound == track.sound {
+                            Label(sound.title, systemImage: "checkmark")
+                        } else {
+                            Label(sound.title, systemImage: sound.symbol)
+                        }
                     }
                 }
             }

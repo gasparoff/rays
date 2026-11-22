@@ -121,9 +121,11 @@ public struct TrackTarget: Codable, Equatable, Hashable, Sendable {
     /// Centre COBs 0…2. Only used when `center` is on.
     public var cobs: [Bool]
 
-    public init(left: Bool = true, center: Bool = true, right: Bool = true, color: Bool = true, warm: Bool = false,
-                segments: [Bool] = Array(repeating: true, count: RigFrame.centerSegments),
-                cobs: [Bool] = Array(repeating: true, count: RigFrame.centerCOBs)) {
+    public init(
+        left: Bool = true, center: Bool = true, right: Bool = true, color: Bool = true, warm: Bool = false,
+        segments: [Bool] = Array(repeating: true, count: RigFrame.centerSegments),
+        cobs: [Bool] = Array(repeating: true, count: RigFrame.centerCOBs)
+    ) {
         self.left = left; self.center = center; self.right = right
         self.color = color; self.warm = warm
         self.segments = segments; self.cobs = cobs
@@ -243,19 +245,22 @@ public struct ProgramTrack: Codable, Equatable, Identifiable, Sendable {
     /// Rise from 25 % to full over this many beats from the scene start (0 = off, Build-style).
     public var riseBeats: Int
 
-    public init(id: UUID = UUID(), name: String? = nil, sound: TrackSound = .free, enabled: Bool = true,
-                stepsPerBeat: Int = 4, lengthBeats: Int = 4, steps: [Double]? = nil, offset: Double = 0,
-                target: TrackTarget = .all, motion: TrackMotion = .together, direction: TrackDirection = .forward,
-                spread: Double = 0, attack: Double = 0.05, hold: Double = 0.05, release: Double = 0.45,
-                floor: Double = 0, peak: Double = 1, color: TrackColor = .first, blend: TrackBlend = .max,
-                softFollowsEnergy: Bool = true, riseBeats: Int = 0) {
+    public init(
+        id: UUID = UUID(), name: String? = nil, sound: TrackSound = .free, enabled: Bool = true,
+        stepsPerBeat: Int = 4, lengthBeats: Int = 4, steps: [Double]? = nil, offset: Double = 0,
+        target: TrackTarget = .all, motion: TrackMotion = .together, direction: TrackDirection = .forward,
+        spread: Double = 0, attack: Double = 0.05, hold: Double = 0.05, release: Double = 0.45,
+        floor: Double = 0, peak: Double = 1, color: TrackColor = .first, blend: TrackBlend = .max,
+        softFollowsEnergy: Bool = true, riseBeats: Int = 0
+    ) {
         self.id = id
         self.name = name ?? sound.title
         self.sound = sound
         self.enabled = enabled
         let safeResolution = Self.resolutions.contains(stepsPerBeat) ? stepsPerBeat : 4
-        let safeLength = min(Self.lengths.last { $0 <= max(1, lengthBeats) } ?? 1,
-                             Self.maxLength(stepsPerBeat: safeResolution))
+        let safeLength = min(
+            Self.lengths.last { $0 <= max(1, lengthBeats) } ?? 1,
+            Self.maxLength(stepsPerBeat: safeResolution))
         self.stepsPerBeat = safeResolution
         self.lengthBeats = safeLength
         self.steps = steps ?? Array(repeating: 0, count: safeResolution * safeLength)
@@ -408,8 +413,7 @@ public struct SceneProgram: Codable, Equatable, Sendable {
         var list: [ProgramTrack] = []
         if var items = try? c.nestedUnkeyedContainer(forKey: .tracks) {
             while !items.isAtEnd {
-                if let track = try? items.decode(ProgramTrack.self) { list.append(track) }
-                else { _ = try? items.decode(Skip.self) }
+                if let track = try? items.decode(ProgramTrack.self) { list.append(track) } else { _ = try? items.decode(Skip.self) }
             }
         }
         tracks = list
@@ -459,7 +463,7 @@ public enum PatternFill: String, CaseIterable, Identifiable, Sendable {
         }
         let res = t.stepsPerBeat
         t.steps = (0..<t.stepCount).map { i in
-            let beatPos = Double(i) / Double(res)        // position in beats
+            let beatPos = Double(i) / Double(res)  // position in beats
             let onBeat = i % res == 0
             switch self {
             case .kick: return onBeat ? 1 : 0
@@ -481,25 +485,34 @@ extension ProgramTrack {
     public static func template(_ sound: TrackSound) -> ProgramTrack {
         switch sound {
         case .kick:
-            return PatternFill.kick.apply(to: ProgramTrack(sound: .kick, stepsPerBeat: 1, lengthBeats: 4,
-                                                            target: .centerOnly, attack: 0.04, hold: 0.06, release: 0.6,
-                                                            color: .first))
+            return PatternFill.kick.apply(
+                to: ProgramTrack(
+                    sound: .kick, stepsPerBeat: 1, lengthBeats: 4,
+                    target: .centerOnly, attack: 0.04, hold: 0.06, release: 0.6,
+                    color: .first))
         case .clap:
-            return PatternFill.clap.apply(to: ProgramTrack(sound: .clap, stepsPerBeat: 1, lengthBeats: 4,
-                                                            target: TrackTarget(left: false, right: false, color: false, warm: true),
-                                                            attack: 0.03, hold: 0.05, release: 0.35, color: .third))
+            return PatternFill.clap.apply(
+                to: ProgramTrack(
+                    sound: .clap, stepsPerBeat: 1, lengthBeats: 4,
+                    target: TrackTarget(left: false, right: false, color: false, warm: true),
+                    attack: 0.03, hold: 0.05, release: 0.35, color: .third))
         case .hat:
-            return PatternFill.hat.apply(to: ProgramTrack(sound: .hat, stepsPerBeat: 2, lengthBeats: 1,
-                                                           target: .sides, motion: .alternate, attack: 0.03, hold: 0,
-                                                           release: 0.25, color: .third))
+            return PatternFill.hat.apply(
+                to: ProgramTrack(
+                    sound: .hat, stepsPerBeat: 2, lengthBeats: 1,
+                    target: .sides, motion: .alternate, attack: 0.03, hold: 0,
+                    release: 0.25, color: .third))
         case .bass:
-            return PatternFill.bass.apply(to: ProgramTrack(sound: .bass, stepsPerBeat: 2, lengthBeats: 8,
-                                                            target: .all, attack: 0.1, hold: 0.3, release: 1.2,
-                                                            floor: 0.12, color: .second))
+            return PatternFill.bass.apply(
+                to: ProgramTrack(
+                    sound: .bass, stepsPerBeat: 2, lengthBeats: 8,
+                    target: .all, attack: 0.1, hold: 0.3, release: 1.2,
+                    floor: 0.12, color: .second))
         case .accent:
-            var t = ProgramTrack(sound: .accent, stepsPerBeat: 1, lengthBeats: 16,
-                                 target: TrackTarget(color: true, warm: true), attack: 0.03, hold: 0.1, release: 1.5,
-                                 color: .first)
+            var t = ProgramTrack(
+                sound: .accent, stepsPerBeat: 1, lengthBeats: 16,
+                target: TrackTarget(color: true, warm: true), attack: 0.03, hold: 0.1, release: 1.5,
+                color: .first)
             t.steps[0] = 1
             return t
         case .free:
@@ -524,74 +537,95 @@ extension SceneProgram {
         switch scene {
         case .ambra:
             return SceneProgram(tracks: [
-                ProgramTrack(name: "Respiro", sound: .bass, stepsPerBeat: 1, lengthBeats: 8, steps: steps(8, [0]),
-                             target: .all, attack: 4, hold: 0, release: 4, floor: 0.45, color: .cycle),
-                ProgramTrack(name: "Cassa", sound: .kick, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0, 1, 2, 3]),
-                             target: .centerOnly, attack: 0.15, hold: 0, release: 0.6, floor: 0, peak: 0.85, color: .second),
-                ProgramTrack(name: "Onda calda", sound: .free, stepsPerBeat: 1, lengthBeats: 16, steps: steps(16, [0]),
-                             target: warmOnly, direction: .forward, spread: 1, attack: 4, hold: 0, release: 6, color: .first),
+                ProgramTrack(
+                    name: "Respiro", sound: .bass, stepsPerBeat: 1, lengthBeats: 8, steps: steps(8, [0]),
+                    target: .all, attack: 4, hold: 0, release: 4, floor: 0.45, color: .cycle),
+                ProgramTrack(
+                    name: "Cassa", sound: .kick, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0, 1, 2, 3]),
+                    target: .centerOnly, attack: 0.15, hold: 0, release: 0.6, floor: 0, peak: 0.85, color: .second),
+                ProgramTrack(
+                    name: "Onda calda", sound: .free, stepsPerBeat: 1, lengthBeats: 16, steps: steps(16, [0]),
+                    target: warmOnly, direction: .forward, spread: 1, attack: 4, hold: 0, release: 6, color: .first),
             ])
         case .sunset:
             return SceneProgram(tracks: [
-                ProgramTrack(name: "Fondo", sound: .free, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, []),
-                             target: .all, floor: 0.4, color: .first),
-                ProgramTrack(name: "Cassa", sound: .kick, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0, 1, 2, 3]),
-                             target: .centerOnly, attack: 0.12, hold: 0, release: 0.5, color: .second),
-                ProgramTrack(name: "Levare", sound: .hat, stepsPerBeat: 2, lengthBeats: 1, steps: steps(2, [1]),
-                             target: .sides, attack: 0.15, hold: 0, release: 0.45, floor: 0.3, color: .third),
-                ProgramTrack(name: "Clap", sound: .clap, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0, 2]),
-                             target: TrackTarget(left: false, right: false, color: false, warm: true),
-                             motion: .alternate, attack: 0.15, hold: 0, release: 0.8, color: .first),
+                ProgramTrack(
+                    name: "Fondo", sound: .free, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, []),
+                    target: .all, floor: 0.4, color: .first),
+                ProgramTrack(
+                    name: "Cassa", sound: .kick, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0, 1, 2, 3]),
+                    target: .centerOnly, attack: 0.12, hold: 0, release: 0.5, color: .second),
+                ProgramTrack(
+                    name: "Levare", sound: .hat, stepsPerBeat: 2, lengthBeats: 1, steps: steps(2, [1]),
+                    target: .sides, attack: 0.15, hold: 0, release: 0.45, floor: 0.3, color: .third),
+                ProgramTrack(
+                    name: "Clap", sound: .clap, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0, 2]),
+                    target: TrackTarget(left: false, right: false, color: false, warm: true),
+                    motion: .alternate, attack: 0.15, hold: 0, release: 0.8, color: .first),
             ])
         case .pulse:
             return SceneProgram(tracks: [
-                ProgramTrack(name: "Fondo UV", sound: .free, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, []),
-                             target: .centerOnly, floor: 0.16, color: .first),
-                ProgramTrack(name: "Colpi 3+3+2", sound: .bass, stepsPerBeat: 2, lengthBeats: 4, steps: steps(8, [0, 3, 6]),
-                             target: .centerOnly, motion: .chase, direction: .forward, attack: 0.1, hold: 0, release: 0.5,
-                             floor: 0, color: .third),
-                ProgramTrack(name: "Hi-hat", sound: .hat, stepsPerBeat: 2, lengthBeats: 1, steps: steps(2, [1]),
-                             target: .sides, attack: 0.1, hold: 0, release: 0.3, floor: 0.12, color: .second),
-                ProgramTrack(name: "Bianco 1", sound: .accent, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0]),
-                             target: TrackTarget(left: false, right: false, color: false, warm: true),
-                             motion: .chase, attack: 0.1, hold: 0, release: 0.5, color: .first),
+                ProgramTrack(
+                    name: "Fondo UV", sound: .free, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, []),
+                    target: .centerOnly, floor: 0.16, color: .first),
+                ProgramTrack(
+                    name: "Colpi 3+3+2", sound: .bass, stepsPerBeat: 2, lengthBeats: 4, steps: steps(8, [0, 3, 6]),
+                    target: .centerOnly, motion: .chase, direction: .forward, attack: 0.1, hold: 0, release: 0.5,
+                    floor: 0, color: .third),
+                ProgramTrack(
+                    name: "Hi-hat", sound: .hat, stepsPerBeat: 2, lengthBeats: 1, steps: steps(2, [1]),
+                    target: .sides, attack: 0.1, hold: 0, release: 0.3, floor: 0.12, color: .second),
+                ProgramTrack(
+                    name: "Bianco 1", sound: .accent, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0]),
+                    target: TrackTarget(left: false, right: false, color: false, warm: true),
+                    motion: .chase, attack: 0.1, hold: 0, release: 0.5, color: .first),
             ])
         case .chase:
             return SceneProgram(tracks: [
-                ProgramTrack(name: "Corsa", sound: .free, stepsPerBeat: 2, lengthBeats: 4, steps: steps(8, Array(0..<8)),
-                             target: .all, motion: .chase, direction: .bounce, attack: 0.1, hold: 0.1, release: 0.7,
-                             floor: 0.1, color: .first),
-                ProgramTrack(name: "Rullante", sound: .clap, stepsPerBeat: 2, lengthBeats: 1, steps: steps(2, [1]),
-                             target: TrackTarget(left: false, right: false, segments: [false, false, true, true, false, false]),
-                             attack: 0.1, hold: 0, release: 0.5, color: .second),
-                ProgramTrack(name: "Bianco", sound: .accent, stepsPerBeat: 1, lengthBeats: 8, steps: steps(8, [0, 6]),
-                             target: TrackTarget(center: false, color: false, warm: true),
-                             motion: .alternate, attack: 0.12, hold: 0, release: 0.8, color: .first),
+                ProgramTrack(
+                    name: "Corsa", sound: .free, stepsPerBeat: 2, lengthBeats: 4, steps: steps(8, Array(0..<8)),
+                    target: .all, motion: .chase, direction: .bounce, attack: 0.1, hold: 0.1, release: 0.7,
+                    floor: 0.1, color: .first),
+                ProgramTrack(
+                    name: "Rullante", sound: .clap, stepsPerBeat: 2, lengthBeats: 1, steps: steps(2, [1]),
+                    target: TrackTarget(left: false, right: false, segments: [false, false, true, true, false, false]),
+                    attack: 0.1, hold: 0, release: 0.5, color: .second),
+                ProgramTrack(
+                    name: "Bianco", sound: .accent, stepsPerBeat: 1, lengthBeats: 8, steps: steps(8, [0, 6]),
+                    target: TrackTarget(center: false, color: false, warm: true),
+                    motion: .alternate, attack: 0.12, hold: 0, release: 0.8, color: .first),
             ])
         case .aurora:
             return SceneProgram(tracks: [
-                ProgramTrack(name: "Salita", sound: .kick, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0, 1, 2, 3]),
-                             target: .all, attack: 0.08, hold: 0, release: 0.6, floor: 0.28, color: .cycle, riseBeats: 16),
-                ProgramTrack(name: "Rullo", sound: .hat, stepsPerBeat: 4, lengthBeats: 1, steps: steps(4, [0, 2], soft: [1, 3]),
-                             target: .centerOnly, motion: .chase, direction: .forward, attack: 0.05, hold: 0, release: 0.2,
-                             color: .second, riseBeats: 16),
-                ProgramTrack(name: "Bianco", sound: .accent, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0]),
-                             target: TrackTarget(color: false, warm: true), motion: .chase, direction: .center,
-                             attack: 0.1, hold: 0, release: 0.6, color: .first, riseBeats: 16),
+                ProgramTrack(
+                    name: "Salita", sound: .kick, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0, 1, 2, 3]),
+                    target: .all, attack: 0.08, hold: 0, release: 0.6, floor: 0.28, color: .cycle, riseBeats: 16),
+                ProgramTrack(
+                    name: "Rullo", sound: .hat, stepsPerBeat: 4, lengthBeats: 1, steps: steps(4, [0, 2], soft: [1, 3]),
+                    target: .centerOnly, motion: .chase, direction: .forward, attack: 0.05, hold: 0, release: 0.2,
+                    color: .second, riseBeats: 16),
+                ProgramTrack(
+                    name: "Bianco", sound: .accent, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0]),
+                    target: TrackTarget(color: false, warm: true), motion: .chase, direction: .center,
+                    attack: 0.1, hold: 0, release: 0.6, color: .first, riseBeats: 16),
             ])
         case .respiro:
             return SceneProgram(tracks: [
-                ProgramTrack(name: "Impatto", sound: .accent, stepsPerBeat: 1, lengthBeats: 8, steps: steps(8, [0]),
-                             target: TrackTarget(color: true, warm: true), attack: 0.06, hold: 0.1, release: 1.4,
-                             color: .third),
-                ProgramTrack(name: "Cassa", sound: .kick, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0, 1, 2, 3]),
-                             target: .centerOnly, motion: .chase, attack: 0.06, hold: 0, release: 0.35, floor: 0.06,
-                             color: .first),
-                ProgramTrack(name: "Levare", sound: .hat, stepsPerBeat: 2, lengthBeats: 2, steps: steps(4, [1, 3]),
-                             target: .sides, motion: .alternate, attack: 0.06, hold: 0, release: 0.3, color: .second),
-                ProgramTrack(name: "Clap", sound: .clap, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [2]),
-                             target: TrackTarget(left: false, right: false, color: false, warm: true), motion: .chase,
-                             attack: 0.1, hold: 0, release: 0.6, peak: 0.6, color: .first),
+                ProgramTrack(
+                    name: "Impatto", sound: .accent, stepsPerBeat: 1, lengthBeats: 8, steps: steps(8, [0]),
+                    target: TrackTarget(color: true, warm: true), attack: 0.06, hold: 0.1, release: 1.4,
+                    color: .third),
+                ProgramTrack(
+                    name: "Cassa", sound: .kick, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [0, 1, 2, 3]),
+                    target: .centerOnly, motion: .chase, attack: 0.06, hold: 0, release: 0.35, floor: 0.06,
+                    color: .first),
+                ProgramTrack(
+                    name: "Levare", sound: .hat, stepsPerBeat: 2, lengthBeats: 2, steps: steps(4, [1, 3]),
+                    target: .sides, motion: .alternate, attack: 0.06, hold: 0, release: 0.3, color: .second),
+                ProgramTrack(
+                    name: "Clap", sound: .clap, stepsPerBeat: 1, lengthBeats: 4, steps: steps(4, [2]),
+                    target: TrackTarget(left: false, right: false, color: false, warm: true), motion: .chase,
+                    attack: 0.1, hold: 0, release: 0.6, peak: 0.6, color: .first),
             ])
         }
     }

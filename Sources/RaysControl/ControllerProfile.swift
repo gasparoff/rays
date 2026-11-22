@@ -196,12 +196,18 @@ public enum ControllerLibrary {
             do {
                 let data = try Data(contentsOf: file)
                 let decoded: [ControllerProfile]
-                if let list = try? JSONDecoder().decode([ControllerProfile].self, from: data) { decoded = list }
-                else { decoded = [try JSONDecoder().decode(ControllerProfile.self, from: data)] }
+                if let list = try? JSONDecoder().decode([ControllerProfile].self, from: data) {
+                    decoded = list
+                } else {
+                    decoded = [try JSONDecoder().decode(ControllerProfile.self, from: data)]
+                }
                 for profile in decoded {
                     let problems = profile.problems
-                    if problems.isEmpty { result.append(profile) }
-                    else { errors.append("\(file.lastPathComponent) (\(profile.id)): \(problems.joined(separator: "; "))") }
+                    if problems.isEmpty {
+                        result.append(profile)
+                    } else {
+                        errors.append("\(file.lastPathComponent) (\(profile.id)): \(problems.joined(separator: "; "))")
+                    }
                 }
             } catch {
                 errors.append("\(file.lastPathComponent): \(error.localizedDescription)")

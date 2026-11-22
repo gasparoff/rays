@@ -135,12 +135,17 @@ public struct SceneParameters: Equatable, Sendable {
 /// Uniform-color adapter retained for generic fixtures and existing integrations.
 public enum SceneRenderer {
     public static func render(_ scene: SceneID, beat: Double, index: Int, count: Int, params: SceneParameters) -> LightColor {
-        let frame = Choreography.render(scene, SceneContext(beat: beat * params.subdivision.rate,
-                                                          phrase: beat * params.subdivision.rate, energy: params.energy))
+        let frame = Choreography.render(
+            scene,
+            SceneContext(
+                beat: beat * params.subdivision.rate,
+                phrase: beat * params.subdivision.rate, energy: params.energy))
         let role: FixtureRole = count <= 1 ? .left : (index == 0 ? .left : (index == count - 1 ? .right : .center))
         let f = frame[role]
         let n = Double(max(1, f.rgb.count))
-        return LightColor(f.rgb.map(\.r).reduce(0, +) / n, f.rgb.map(\.g).reduce(0, +) / n,
-                          f.rgb.map(\.b).reduce(0, +) / n, f.cob.reduce(0, +) / Double(max(1, f.cob.count))).clamped
+        return LightColor(
+            f.rgb.map(\.r).reduce(0, +) / n, f.rgb.map(\.g).reduce(0, +) / n,
+            f.rgb.map(\.b).reduce(0, +) / n, f.cob.reduce(0, +) / Double(max(1, f.cob.count))
+        ).clamped
     }
 }

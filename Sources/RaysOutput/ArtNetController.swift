@@ -67,8 +67,9 @@ public final class ArtNetController {
         var destinations = interfaces.map(\.broadcast)
         if let manualIP { destinations.append(manualIP) }
         for destination in Set(destinations) {
-            do { try transport.send(packet, to: destination, port: ArtNet.port) }
-            catch { errors.append("\(destination): \(error.localizedDescription)") }
+            do { try transport.send(packet, to: destination, port: ArtNet.port) } catch {
+                errors.append("\(destination): \(error.localizedDescription)")
+            }
         }
         pollCount += 1
         pollError = errors.isEmpty ? nil : errors.joined(separator: "\n")
@@ -81,7 +82,8 @@ public final class ArtNetController {
 
     public func handle(_ bytes: [UInt8], from sender: IPv4Address, now: TimeInterval) {
         guard ArtNet.opCode(of: bytes) == ArtNet.OpCode.pollReply.rawValue,
-              let reply = try? ArtPollReply.parse(bytes) else { return }  // ignores our own ArtPoll/ArtDmx and malformed data
+            let reply = try? ArtPollReply.parse(bytes)
+        else { return }  // ignores our own ArtPoll/ArtDmx and malformed data
         registry.ingest(reply, from: sender, at: now)
         if preferredIdentity == nil, manualIP == nil, let candidate = registry.autoSelectCandidate(now: now) {
             preferredIdentity = candidate.id
@@ -106,14 +108,16 @@ public final class ArtNetController {
     public func target(now: TimeInterval, patchUniverses: [PortAddress]) -> OutputTarget? {
         if let manualIP {
             if let node = registry.node(at: manualIP) {
-                return OutputTarget(ip: manualIP, name: node.displayName, universes: node.outputUniverses,
-                                    verified: true, fresh: now - node.lastSeen <= registry.staleAfter)
+                return OutputTarget(
+                    ip: manualIP, name: node.displayName, universes: node.outputUniverses,
+                    verified: true, fresh: now - node.lastSeen <= registry.staleAfter)
             }
             return OutputTarget(ip: manualIP, name: "IP manuale", universes: patchUniverses, verified: false, fresh: false)
         }
         guard let node = registry.node(id: preferredIdentity) else { return nil }
-        return OutputTarget(ip: node.ip, name: node.displayName, universes: node.outputUniverses,
-                            verified: true, fresh: now - node.lastSeen <= registry.staleAfter)
+        return OutputTarget(
+            ip: node.ip, name: node.displayName, universes: node.outputUniverses,
+            verified: true, fresh: now - node.lastSeen <= registry.staleAfter)
     }
 
     /// Unicast ArtDmx for each universe; returns true when every packet was written.
@@ -138,8 +142,9 @@ public final class ArtNetController {
     // MARK: Diagnosis
 
     public func diagnosis(now: TimeInterval) -> [String] {
-        NetworkDiagnosis.messages(interfaces: interfaces, nodes: nodes(now: now), manualIP: manualIP,
-                                  socketError: socketError, pollCount: pollCount)
+        NetworkDiagnosis.messages(
+            interfaces: interfaces, nodes: nodes(now: now), manualIP: manualIP,
+            socketError: socketError, pollCount: pollCount)
     }
 }
 
@@ -147,8 +152,10 @@ public final class ArtNetController {
 public enum NetworkDiagnosis {
     public static let odeFallbackIP = IPv4Address(192, 168, 0, 10)
 
-    public static func messages(interfaces: [NetworkInterface], nodes: [DiscoveredNode], manualIP: IPv4Address?,
-                                socketError: String?, pollCount: Int) -> [String] {
+    public static func messages(
+        interfaces: [NetworkInterface], nodes: [DiscoveredNode], manualIP: IPv4Address?,
+        socketError: String?, pollCount: Int
+    ) -> [String] {
         var out: [String] = []
         if let socketError { out.append(socketError) }
         if interfaces.isEmpty {
@@ -158,23 +165,30 @@ public enum NetworkDiagnosis {
         let enttec = nodes.filter(\.isEnttec)
         if enttec.isEmpty, pollCount >= 2 {
             if interfaces.contains(where: { $0.address.isLinkLocal }) {
-                out.append("""
-                Una porta del Mac ha un indirizzo auto-assegnato 169.254.x.x: probabilmente è un cavo diretto senza DHCP. \
-                In questo caso l'ODE MK3 usa l'indirizzo di riserva 192.168.0.10/24, che è in un'altra rete: \
-                senza configurare un indirizzo a mano non possono parlarsi. Soluzione consigliata: collegare ODE MK3 \
-                e Mac allo stesso router con DHCP (la connessione Internet resta invariata).
-                """)
+                out.append(
+                    """
+                    Una porta del Mac ha un indirizzo auto-assegnato 169.254.x.x: probabilmente è un cavo diretto senza DHCP. \
+                    In questo caso l'ODE MK3 usa l'indirizzo di riserva 192.168.0.10/24, che è in un'altra rete: \
+                    senza configurare un indirizzo a mano non possono parlarsi. Soluzione consigliata: collegare ODE MK3 \
+                    e Mac allo stesso router con DHCP (la connessione Internet resta invariata).
+                    """)
             }
             if interfaces.contains(where: { $0.contains(odeFallbackIP) }), manualIP == nil {
-                out.append("Il Mac è nella rete 192.168.0.x: se l'ODE MK3 non ha ricevuto un indirizzo DHCP potrebbe essere su 192.168.0.10. Puoi provarlo come IP manuale (resterà «non verificato» finché non risponde).")
+                out.append(
+                    "Il Mac è nella rete 192.168.0.x: se l'ODE MK3 non ha ricevuto un indirizzo DHCP potrebbe essere su 192.168.0.10. Puoi provarlo come IP manuale (resterà «non verificato» finché non risponde)."
+                )
             }
-            out.append("Nessun ENTTEC ha risposto all'ArtPoll. Verifica alimentazione/PoE, cavo, e che ODE MK3 e Mac siano sulla stessa rete (stesso router con DHCP).")
+            out.append(
+                "Nessun ENTTEC ha risposto all'ArtPoll. Verifica alimentazione/PoE, cavo, e che ODE MK3 e Mac siano sulla stessa rete (stesso router con DHCP)."
+            )
         }
         if enttec.count > 1 {
             out.append("Trovati \(enttec.count) dispositivi ENTTEC: scegli quello da usare nella configurazione.")
         }
         if let manualIP, !interfaces.contains(where: { $0.contains(manualIP) }) {
-            out.append("L'IP manuale \(manualIP) non è in nessuna rete locale del Mac: i pacchetti passerebbero dal router predefinito e probabilmente non arriverebbero.")
+            out.append(
+                "L'IP manuale \(manualIP) non è in nessuna rete locale del Mac: i pacchetti passerebbero dal router predefinito e probabilmente non arriverebbero."
+            )
         }
         return out
     }

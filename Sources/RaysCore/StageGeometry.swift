@@ -57,8 +57,9 @@ public struct StageLayout: Equatable, Sendable {
             let width = maxWidth * (large ? 1 : 0.65)
             let height = width * 0.866
             let x = size.width * CGFloat(index * 2 + 1) / CGFloat(count * 2)
-            return StageLayout.fixture(center: CGPoint(x: x, y: floor - height * 0.4), width: width, height: height,
-                                       large: large, labelCenter: CGPoint(x: x, y: floor + 23))
+            return StageLayout.fixture(
+                center: CGPoint(x: x, y: floor - height * 0.4), width: width, height: height,
+                large: large, labelCenter: CGPoint(x: x, y: floor + 23))
         }
     }
 
@@ -75,26 +76,33 @@ public struct StageLayout: Equatable, Sendable {
             let p = CGPoint(x: (a.x + b.x + c.x) / 3, y: (a.y + b.y + c.y) / 3)
             var angle = atan2(p.x - center.x, -(p.y - center.y))
             if angle < 0 { angle += 2 * .pi }
-            return Facet(a: a, b: b, c: c, segment: Int(angle / (2 * .pi) * 6) % 6,
-                         reflection: Double((seed * 37 + 17) % 11) / 10)
+            return Facet(
+                a: a, b: b, c: c, segment: Int(angle / (2 * .pi) * 6) % 6,
+                reflection: Double((seed * 37 + 17) % 11) / 10)
         }
         var facets: [Facet] = []
         facets.reserveCapacity(rows * rows)
-        for i in 0..<rows { for j in 0..<(rows - i) {
-            facets.append(facet(point(i, j), point(i + 1, j), point(i, j + 1), seed: i * 31 + j))
-            if i + j < rows - 1 { facets.append(facet(point(i + 1, j), point(i, j + 1), point(i + 1, j + 1), seed: i * 17 + j + 100)) }
-        } }
-        let spokes: [(CGPoint, CGPoint)] = large ? [
-            (CGPoint(x: 0, y: -0.10), CGPoint(x: 0, y: -0.43)),
-            (CGPoint(x: 0.075, y: 0.02), CGPoint(x: 0.32, y: 0.27)),
-            (CGPoint(x: -0.075, y: 0.02), CGPoint(x: -0.32, y: 0.27))
-        ] : [(CGPoint(x: 0, y: -0.27), CGPoint(x: 0, y: 0.23))]
-        let strips = spokes.map {
-            Strip(from: CGPoint(x: center.x + $0.0.x * w, y: center.y + $0.0.y * h),
-                  to: CGPoint(x: center.x + $0.1.x * w, y: center.y + $0.1.y * h))
+        for i in 0..<rows {
+            for j in 0..<(rows - i) {
+                facets.append(facet(point(i, j), point(i + 1, j), point(i, j + 1), seed: i * 31 + j))
+                if i + j < rows - 1 { facets.append(facet(point(i + 1, j), point(i, j + 1), point(i + 1, j + 1), seed: i * 17 + j + 100)) }
+            }
         }
-        return Fixture(large: large, center: center, width: w, height: h, top: top, left: left, right: right,
-                       facets: facets, strips: strips, labelCenter: labelCenter)
+        let spokes: [(CGPoint, CGPoint)] =
+            large
+            ? [
+                (CGPoint(x: 0, y: -0.10), CGPoint(x: 0, y: -0.43)),
+                (CGPoint(x: 0.075, y: 0.02), CGPoint(x: 0.32, y: 0.27)),
+                (CGPoint(x: -0.075, y: 0.02), CGPoint(x: -0.32, y: 0.27)),
+            ] : [(CGPoint(x: 0, y: -0.27), CGPoint(x: 0, y: 0.23))]
+        let strips = spokes.map {
+            Strip(
+                from: CGPoint(x: center.x + $0.0.x * w, y: center.y + $0.0.y * h),
+                to: CGPoint(x: center.x + $0.1.x * w, y: center.y + $0.1.y * h))
+        }
+        return Fixture(
+            large: large, center: center, width: w, height: h, top: top, left: left, right: right,
+            facets: facets, strips: strips, labelCenter: labelCenter)
     }
 
     /// Mirror facet colour: the zone's RGB lifted by a small dark floor and scaled by the facet's reflectivity.

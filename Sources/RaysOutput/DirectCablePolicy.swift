@@ -30,16 +30,20 @@ public struct DirectCablePolicy {
         var result: UInt32 = 0
         for part in parts {
             guard !part.isEmpty, part.allSatisfy({ $0.isASCII && $0.isNumber }),
-                  let value = UInt8(part) else { return nil }
+                let value = UInt8(part)
+            else { return nil }
             result = (result << 8) | UInt32(value)
         }
         return result
     }
 
-    public static func evaluate(interface: String, isWired: Bool, isActive: Bool,
-                                addresses: [Address]) -> Decision {
+    public static func evaluate(
+        interface: String, isWired: Bool, isActive: Bool,
+        addresses: [Address]
+    ) -> Decision {
         guard interface.range(of: "^en[0-9]{1,3}$", options: .regularExpression) != nil,
-              isWired, isActive else {
+            isWired, isActive
+        else {
             return .unavailable("Collega il cavo Ethernet dal Mac all’ENTTEC e accendi l’ODE.")
         }
         let target = ipv4(nodeAddress)!
@@ -53,7 +57,9 @@ public struct DirectCablePolicy {
             // Adding a connected /24 route must never divert an existing LAN,
             // Wi-Fi, VPN, or the Internet router to the lighting cable.
             if item.interface != interface && (ip & subnetMask) == (target & subnetMask) {
-                return .unavailable("La rete 192.168.0.x è già usata da \(item.interface). Non modifico la rete: collega l’ODE alla stessa LAN oppure usa un indirizzo diverso per l’ODE.")
+                return .unavailable(
+                    "La rete 192.168.0.x è già usata da \(item.interface). Non modifico la rete: collega l’ODE alla stessa LAN oppure usa un indirizzo diverso per l’ODE."
+                )
             }
             if item.interface != interface && ip == alias {
                 return .unavailable("L’indirizzo dedicato alle luci è già usato da un’altra interfaccia.")
@@ -64,7 +70,9 @@ public struct DirectCablePolicy {
         if addresses.contains(where: { item in
             guard item.interface == interface, let ip = ipv4(item.ip), let mask = ipv4(item.mask) else { return false }
             return (ip & mask) == (target & mask)
-        }) { return .ready }
+        }) {
+            return .ready
+        }
         return .addAlias(command: "/sbin/ifconfig \(interface) alias \(localAddress) netmask \(netmask)")
     }
 

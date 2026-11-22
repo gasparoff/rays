@@ -38,7 +38,11 @@ struct NetworkSetup: View {
                         }
                         .frame(width: 330)
                         .onChange(of: cable.selectedInterface) { _, _ in cable.evaluateSelection() }
-                        Button { cable.refresh(); model.rediscover() } label: { Label("Aggiorna", systemImage: "arrow.clockwise") }
+                        Button {
+                            cable.refresh(); model.rediscover()
+                        } label: {
+                            Label("Aggiorna", systemImage: "arrow.clockwise")
+                        }
                         Spacer()
                         if case .addAlias = cable.decision {
                             Button(cable.busy ? "Preparazione…" : "Prepara rete luci") { model.prepareLightNetwork() }
@@ -59,7 +63,11 @@ struct NetworkSetup: View {
             HStack {
                 SectionLabel("ENTTEC trovati")
                 Spacer()
-                Button { model.rediscover() } label: { Label("Cerca di nuovo", systemImage: "arrow.clockwise") }
+                Button {
+                    model.rediscover()
+                } label: {
+                    Label("Cerca di nuovo", systemImage: "arrow.clockwise")
+                }
             }
             if net.nodes.isEmpty {
                 Text("Nessun ENTTEC trovato finora.").foregroundStyle(Theme.secondary).font(.system(size: 13))
@@ -76,15 +84,19 @@ struct NetworkSetup: View {
                             .onSubmit(applyManual)
                         Button("Usa IP manuale", action: applyManual)
                         if net.manualIP != nil {
-                            Button("Rimuovi") { model.clearManualIP(); manualText = "" }
+                            Button("Rimuovi") {
+                                model.clearManualIP(); manualText = ""
+                            }
                         }
                     }
                     if let manualError { Text(manualError).foregroundStyle(Theme.bad).font(small) }
                     if let ip = net.manualIP {
                         let verified = net.target?.verified == true
-                        Label(verified ? "\(ip.description) risponde." : "\(ip.description) non risponde all’ArtPoll.",
-                              systemImage: verified ? "checkmark.seal" : "questionmark.circle")
-                            .foregroundStyle(verified ? Theme.good : Theme.warn).font(small)
+                        Label(
+                            verified ? "\(ip.description) risponde." : "\(ip.description) non risponde all’ArtPoll.",
+                            systemImage: verified ? "checkmark.seal" : "questionmark.circle"
+                        )
+                        .foregroundStyle(verified ? Theme.good : Theme.warn).font(small)
                     }
                 }
                 .padding(.top, 6)
@@ -92,8 +104,10 @@ struct NetworkSetup: View {
 
             DisclosureGroup("Dettagli tecnici") {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Cavo diretto: l’ENTTEC usa 192.168.0.10; il Mac aggiunge solo 192.168.0.20 sull’adattatore Ethernet. Wi-Fi, DHCP, DNS e Internet non cambiano. In alternativa, collega Mac ed ENTTEC allo stesso router o switch con DHCP.")
-                        .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+                    Text(
+                        "Cavo diretto: l’ENTTEC usa 192.168.0.10; il Mac aggiunge solo 192.168.0.20 sull’adattatore Ethernet. Wi-Fi, DHCP, DNS e Internet non cambiano. In alternativa, collega Mac ed ENTTEC allo stesso router o switch con DHCP."
+                    )
+                    .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
                     ForEach(net.interfaces) { i in
                         Text("\(i.name)  \(i.address.description) / \(i.netmask.description)" + (i.address.isLinkLocal ? "  (auto)" : ""))
                             .font(.system(size: 11.5, design: .monospaced)).foregroundStyle(Theme.secondary)
@@ -107,7 +121,9 @@ struct NetworkSetup: View {
                 .padding(.top, 6)
             }
         }
-        .onAppear { manualText = model.prefs.manualIP ?? ""; cable.refresh() }
+        .onAppear {
+            manualText = model.prefs.manualIP ?? ""; cable.refresh()
+        }
     }
 
     private func applyManual() {
@@ -130,9 +146,13 @@ struct NodeRow: View {
                     if node.isEnttec { Tag("ENTTEC", Theme.amber) }
                     if node.isStale { Tag("non risponde", Theme.bad) }
                 }
-                Text("\(node.ip.description) · " + (node.outputUniverses.isEmpty ? "nessuna uscita"
-                     : node.outputUniverses.map { "Universo Art-Net \($0)" }.joined(separator: ", ")))
-                    .font(.system(size: 11.5)).foregroundStyle(Theme.secondary)
+                Text(
+                    "\(node.ip.description) · "
+                        + (node.outputUniverses.isEmpty
+                            ? "nessuna uscita"
+                            : node.outputUniverses.map { "Universo Art-Net \($0)" }.joined(separator: ", "))
+                )
+                .font(.system(size: 11.5)).foregroundStyle(Theme.secondary)
             }
             Spacer()
             Button("Pagina web") { model.openWebConfig(node.ip) }

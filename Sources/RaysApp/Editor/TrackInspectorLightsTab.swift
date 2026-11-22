@@ -37,8 +37,10 @@ struct LightsTab: View {
                 HStack(spacing: 6) {
                     ChipButton(title: "Colore RGB", symbol: "paintpalette", selected: t.color) { edit { $0.target.color.toggle() } }
                         .help("Gruppi RGB")
-                    ChipButton(title: "Bianco caldo COB", symbol: "sun.max", selected: t.warm, tint: Theme.amber) { edit { $0.target.warm.toggle() } }
-                        .help("Strisce COB calde. Si possono usare insieme ai colori.")
+                    ChipButton(title: "Bianco caldo COB", symbol: "sun.max", selected: t.warm, tint: Theme.amber) {
+                        edit { $0.target.warm.toggle() }
+                    }
+                    .help("Strisce COB calde. Si possono usare insieme ai colori.")
                 }
                 if t.isEmpty {
                     Label("Nessuna luce scelta: la traccia resta spenta.", systemImage: "exclamationmark.triangle")
@@ -48,22 +50,33 @@ struct LightsTab: View {
             centerSection
             VStack(alignment: .leading, spacing: 8) {
                 InspectorHeading("Movimento")
-                SegmentedChoice(options: TrackMotion.allCases,
-                                selection: Binding(get: { track.motion }, set: { m in edit { $0.motion = m } }), label: \.title)
-                    .help("Insieme: tutte su ogni colpo. Alterna: metà e metà, un colpo ciascuna. Corsa: una posizione alla volta.")
+                SegmentedChoice(
+                    options: TrackMotion.allCases,
+                    selection: Binding(get: { track.motion }, set: { m in edit { $0.motion = m } }), label: \.title
+                )
+                .help("Insieme: tutte su ogni colpo. Alterna: metà e metà, un colpo ciascuna. Corsa: una posizione alla volta.")
                 Text("Direzione").font(.system(size: 12)).foregroundStyle(Theme.secondary)
-                SegmentedChoice(options: TrackDirection.allCases,
-                                selection: Binding(get: { track.direction }, set: { d in edit { $0.direction = d } }),
-                                label: { $0 == .bounce ? "Rimbalzo" : $0.title })
-                    .help("Ordine di corsa, alternanza e sfalsamento. Dal centro: le posizioni simmetriche insieme.")
-                NumberStepper(title: "Sfalsa", value: track.spread, range: 0...ProgramTrack.maxSpread, step: 0.05,
-                              unit: "b", help: "Ritardo tra una posizione e la successiva nell’ordine della direzione, in battiti (0–1): crea un’onda.") { v in
+                SegmentedChoice(
+                    options: TrackDirection.allCases,
+                    selection: Binding(get: { track.direction }, set: { d in edit { $0.direction = d } }),
+                    label: { $0 == .bounce ? "Rimbalzo" : $0.title }
+                )
+                .help("Ordine di corsa, alternanza e sfalsamento. Dal centro: le posizioni simmetriche insieme.")
+                NumberStepper(
+                    title: "Sfalsa", value: track.spread, range: 0...ProgramTrack.maxSpread, step: 0.05,
+                    unit: "b",
+                    help: "Ritardo tra una posizione e la successiva nell’ordine della direzione, in battiti (0–1): crea un’onda."
+                ) { v in
                     session.editTrack(track.id, "spread") { $0.spread = v }
                 }
-                Slider(value: Binding(get: { track.spread }, set: { v in session.editTrack(track.id, "spread") { $0.spread = (v * 100).rounded() / 100 } }),
-                       in: 0...ProgramTrack.maxSpread)
-                    .tint(Theme.lavender)
-                    .accessibilityLabel("Sfalsa, battiti")
+                Slider(
+                    value: Binding(
+                        get: { track.spread }, set: { v in session.editTrack(track.id, "spread") { $0.spread = (v * 100).rounded() / 100 } }
+                    ),
+                    in: 0...ProgramTrack.maxSpread
+                )
+                .tint(Theme.lavender)
+                .accessibilityLabel("Sfalsa, battiti")
             }
             VStack(alignment: .leading, spacing: 8) {
                 InspectorHeading("Colore", detail: t.color ? "dai tre colori della scena" : "solo per le luci RGB")
@@ -89,12 +102,20 @@ struct LightsTab: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("RGB").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.secondary)
                     HStack(spacing: 4) {
-                        Button("Tutti") { edit { $0.target.segments = Array(repeating: true, count: RigFrame.centerSegments); $0.target.color = true } }
+                        Button("Tutti") {
+                            edit {
+                                $0.target.segments = Array(repeating: true, count: RigFrame.centerSegments); $0.target.color = true
+                            }
+                        }
                         Button("Nessuno") { edit { $0.target.segments = Array(repeating: false, count: RigFrame.centerSegments) } }
                     }
                     Text("COB").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.secondary).padding(.top, 2)
                     HStack(spacing: 4) {
-                        Button("Tutti") { edit { $0.target.cobs = Array(repeating: true, count: RigFrame.centerCOBs); $0.target.warm = true } }
+                        Button("Tutti") {
+                            edit {
+                                $0.target.cobs = Array(repeating: true, count: RigFrame.centerCOBs); $0.target.warm = true
+                            }
+                        }
                         Button("Nessuno") { edit { $0.target.cobs = Array(repeating: false, count: RigFrame.centerCOBs) } }
                     }
                 }
@@ -102,10 +123,13 @@ struct LightsTab: View {
             }
             .disabled(!t.center)
             .opacity(t.center ? 1 : 0.4)
-            Text(t.center ? "Clic su un lato o un raggio per includerlo. Orientamento approssimato: da verificare sulla TRI 380."
-                 : "Attiva Centro per scegliere lati e raggi.")
-                .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
-                .fixedSize(horizontal: false, vertical: true)
+            Text(
+                t.center
+                    ? "Clic su un lato o un raggio per includerlo. Orientamento approssimato: da verificare sulla TRI 380."
+                    : "Attiva Centro per scegliere lati e raggi."
+            )
+            .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -128,7 +152,9 @@ private struct CenterMaskPicker: View {
                 ForEach(0..<RigFrame.centerSegments, id: \.self) { k in
                     let on = target.segments[k]
                     let line = LineShape(from: g.segment(k).0, to: g.segment(k).1, width: 13)
-                    Button { toggleSegment(k) } label: {
+                    Button {
+                        toggleSegment(k)
+                    } label: {
                         line.fill(on ? (target.color ? Theme.lavender : Theme.lavender.opacity(0.35)) : Color.white.opacity(0.12))
                             .contentShape(line)
                     }
@@ -142,7 +168,9 @@ private struct CenterMaskPicker: View {
                 ForEach(0..<RigFrame.centerCOBs, id: \.self) { k in
                     let on = target.cobs[k]
                     let line = LineShape(from: g.spoke(k).0, to: g.spoke(k).1, width: 10)
-                    Button { toggleCOB(k) } label: {
+                    Button {
+                        toggleCOB(k)
+                    } label: {
                         line.fill(on ? (target.warm ? warmTint : warmTint.opacity(0.35)) : Color.white.opacity(0.12))
                             .contentShape(line)
                     }

@@ -24,26 +24,37 @@ struct HitTab: View {
                 .frame(height: 150)
             // Stacked: side by side needs 432 pt and the inspector offers at most 418 (450 − padding), so the
             // former ViewThatFits always chose this, after building ten number fields instead of five.
-            VStack(alignment: .leading, spacing: 10) { times; levels }
-            Text("L’attacco finisce esattamente sul colpo (può iniziare prima), poi tenuta e rilascio. I tempi sono in battiti e seguono il BPM; il colore si sceglie in Luci.")
-                .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
-                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 10) {
+                times; levels
+            }
+            Text(
+                "L’attacco finisce esattamente sul colpo (può iniziare prima), poi tenuta e rilascio. I tempi sono in battiti e seguono il BPM; il colore si sceglie in Luci."
+            )
+            .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 
     private var times: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Tempi · battiti").font(.system(size: 13, weight: .semibold))
-            NumberStepper(title: "Attacco", value: track.attack, range: 0...ProgramTrack.maxAttack, step: 0.05,
-                          help: "Quanto prima del colpo inizia a salire: il massimo cade sul passo. Minimo effettivo 0,06 battiti contro lo sfarfallio.") { v in
+            NumberStepper(
+                title: "Attacco", value: track.attack, range: 0...ProgramTrack.maxAttack, step: 0.05,
+                help:
+                    "Quanto prima del colpo inizia a salire: il massimo cade sul passo. Minimo effettivo 0,06 battiti contro lo sfarfallio."
+            ) { v in
                 session.editTrack(track.id, "attack") { $0.attack = v }
             }
-            NumberStepper(title: "Tenuta", value: track.hold, range: 0...ProgramTrack.maxHold, step: 0.05,
-                          help: "Quanto resta al picco dopo il colpo.") { v in
+            NumberStepper(
+                title: "Tenuta", value: track.hold, range: 0...ProgramTrack.maxHold, step: 0.05,
+                help: "Quanto resta al picco dopo il colpo."
+            ) { v in
                 session.editTrack(track.id, "hold") { $0.hold = v }
             }
-            NumberStepper(title: "Rilascio", value: track.release, range: 0...ProgramTrack.maxRelease, step: 0.05,
-                          help: "Quanto impiega a tornare al fondo dopo la tenuta.") { v in
+            NumberStepper(
+                title: "Rilascio", value: track.release, range: 0...ProgramTrack.maxRelease, step: 0.05,
+                help: "Quanto impiega a tornare al fondo dopo la tenuta."
+            ) { v in
                 session.editTrack(track.id, "release") { $0.release = v }
             }
         }
@@ -54,12 +65,16 @@ struct HitTab: View {
     private var levels: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Livelli").font(.system(size: 13, weight: .semibold))
-            NumberStepper(title: "Fondo", value: track.floor, range: 0...1, step: 0.05, scale: 100, digits: 0, unit: "%",
-                          help: "Luce tra un colpo e l’altro. Non supera mai il picco.") { v in
+            NumberStepper(
+                title: "Fondo", value: track.floor, range: 0...1, step: 0.05, scale: 100, digits: 0, unit: "%",
+                help: "Luce tra un colpo e l’altro. Non supera mai il picco."
+            ) { v in
                 session.editTrack(track.id, "floor") { $0 = $0.withFloor(v) }
             }
-            NumberStepper(title: "Picco", value: track.peak, range: 0...1, step: 0.05, scale: 100, digits: 0, unit: "%",
-                          help: "Luce sul colpo forte. 100% = pieno (255) con Luminosità generale al massimo.") { v in
+            NumberStepper(
+                title: "Picco", value: track.peak, range: 0...1, step: 0.05, scale: 100, digits: 0, unit: "%",
+                help: "Luce sul colpo forte. 100% = pieno (255) con Luminosità generale al massimo."
+            ) { v in
                 session.editTrack(track.id, "peak") { $0 = $0.withPeak(v) }
             }
         }
@@ -84,12 +99,17 @@ private struct PresetCard: View {
             .padding(.horizontal, 8).padding(.vertical, 8)
             .frame(maxWidth: .infinity)
             .background(RoundedRectangle(cornerRadius: 10).fill(selected ? Theme.lavender.opacity(0.2) : Color.white.opacity(0.04)))
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(selected ? Theme.lavender.opacity(0.9) : Theme.stroke, lineWidth: selected ? 1.5 : 1))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10).strokeBorder(
+                    selected ? Theme.lavender.opacity(0.9) : Theme.stroke, lineWidth: selected ? 1.5 : 1)
+            )
             .foregroundStyle(selected ? Theme.text : Theme.secondary)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .help("\(preset.title): attacco \(decimalText(preset.times.attack)), tenuta \(decimalText(preset.times.hold)), rilascio \(decimalText(preset.times.release)) battiti. Fondo e picco restano.")
+        .help(
+            "\(preset.title): attacco \(decimalText(preset.times.attack)), tenuta \(decimalText(preset.times.hold)), rilascio \(decimalText(preset.times.release)) battiti. Fondo e picco restano."
+        )
         .accessibilityLabel("Forma \(preset.title)")
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
     }
@@ -105,8 +125,9 @@ private struct MiniEnvelope: Shape {
         p.addLine(to: CGPoint(x: x(-max(0.02, times.attack)), y: rect.maxY))
         p.addQuadCurve(to: CGPoint(x: x(0), y: rect.minY), control: CGPoint(x: x(-times.attack / 2), y: rect.minY))
         p.addLine(to: CGPoint(x: x(times.hold), y: rect.minY))
-        p.addQuadCurve(to: CGPoint(x: x(times.hold + times.release), y: rect.maxY),
-                       control: CGPoint(x: x(times.hold + times.release / 2), y: rect.maxY))
+        p.addQuadCurve(
+            to: CGPoint(x: x(times.hold + times.release), y: rect.maxY),
+            control: CGPoint(x: x(times.hold + times.release / 2), y: rect.maxY))
         p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
         return p
     }
@@ -123,8 +144,8 @@ private struct EnvelopeEditor: View {
     @State private var hover: EnvelopeHandle?
 
     struct Scale: Equatable {
-        var before: Double   // beats shown before the hit
-        var after: Double    // beats shown after the hit
+        var before: Double  // beats shown before the hit
+        var after: Double  // beats shown after the hit
 
         init(_ t: ProgramTrack) {
             before = max(0.5, min(ProgramTrack.maxAttack, (t.attack * 1.4 * 4).rounded(.up) / 4))
@@ -137,8 +158,9 @@ private struct EnvelopeEditor: View {
     var body: some View {
         let scale = drag?.scale ?? Scale(track)
         GeometryReader { geo in
-            let plot = CGRect(x: inset.leading, y: inset.top, width: max(10, geo.size.width - inset.leading - inset.trailing),
-                              height: max(10, geo.size.height - inset.top - inset.bottom))
+            let plot = CGRect(
+                x: inset.leading, y: inset.top, width: max(10, geo.size.width - inset.leading - inset.trailing),
+                height: max(10, geo.size.height - inset.top - inset.bottom))
             let map = Mapping(plot: plot, scale: scale)
             ZStack(alignment: .topLeading) {
                 Canvas { ctx, size in
@@ -148,8 +170,11 @@ private struct EnvelopeEditor: View {
                     fill.addLine(to: CGPoint(x: plot.maxX, y: plot.maxY))
                     fill.addLine(to: CGPoint(x: plot.minX, y: plot.maxY))
                     fill.closeSubpath()
-                    ctx.fill(fill, with: .linearGradient(Gradient(colors: [tint.opacity(0.28), tint.opacity(0.02)]),
-                                                         startPoint: CGPoint(x: 0, y: plot.minY), endPoint: CGPoint(x: 0, y: plot.maxY)))
+                    ctx.fill(
+                        fill,
+                        with: .linearGradient(
+                            Gradient(colors: [tint.opacity(0.28), tint.opacity(0.02)]),
+                            startPoint: CGPoint(x: 0, y: plot.minY), endPoint: CGPoint(x: 0, y: plot.maxY)))
                     ctx.stroke(curve, with: .color(tint), style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
                     for handle in EnvelopeHandle.allCases {
                         let p = map.point(handle.position(of: track))
@@ -160,18 +185,20 @@ private struct EnvelopeEditor: View {
                     }
                 }
                 .contentShape(Rectangle())
-                .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
-                    .onChanged { value in
-                        if drag == nil {
-                            guard let h = nearestHandle(value.startLocation, map: map) else { return }
-                            drag = (h, session.gestureKey("envelope"), scale)
+                .gesture(
+                    DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                        .onChanged { value in
+                            if drag == nil {
+                                guard let h = nearestHandle(value.startLocation, map: map) else { return }
+                                drag = (h, session.gestureKey("envelope"), scale)
+                            }
+                            guard let d = drag else { return }
+                            let m = Mapping(plot: plot, scale: d.scale)
+                            let (time, level) = m.value(value.location)
+                            session.editTrack(track.id, d.key) { $0 = d.handle.drag($0, time: time, level: level) }
                         }
-                        guard let d = drag else { return }
-                        let m = Mapping(plot: plot, scale: d.scale)
-                        let (time, level) = m.value(value.location)
-                        session.editTrack(track.id, d.key) { $0 = d.handle.drag($0, time: time, level: level) }
-                    }
-                    .onEnded { _ in drag = nil })
+                        .onEnded { _ in drag = nil }
+                )
                 .onContinuousHover { phase in
                     switch phase {
                     case .active(let p): hover = nearestHandle(p, map: map)
@@ -182,11 +209,17 @@ private struct EnvelopeEditor: View {
         }
         .background(RoundedRectangle(cornerRadius: 12).fill(Color.black.opacity(0.35)))
         .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.stroke))
-        .help("Trascina i punti: inizio attacco (attacco e fondo), colpo (picco), fine tenuta (tenuta e picco), fine rilascio (rilascio e fondo).")
-        .onChange(of: track.id) { _, _ in drag = nil; hover = nil } // per-track gesture state
+        .help(
+            "Trascina i punti: inizio attacco (attacco e fondo), colpo (picco), fine tenuta (tenuta e picco), fine rilascio (rilascio e fondo)."
+        )
+        .onChange(of: track.id) { _, _ in
+            drag = nil; hover = nil
+        }  // per-track gesture state
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Forma del colpo")
-        .accessibilityValue("Attacco \(decimalText(track.attack)), tenuta \(decimalText(track.hold)), rilascio \(decimalText(track.release)) battiti; fondo \(percentText(track.floor)), picco \(percentText(track.peak))")
+        .accessibilityValue(
+            "Attacco \(decimalText(track.attack)), tenuta \(decimalText(track.hold)), rilascio \(decimalText(track.release)) battiti; fondo \(percentText(track.floor)), picco \(percentText(track.peak))"
+        )
     }
 
     struct Mapping {
@@ -242,10 +275,13 @@ private struct EnvelopeEditor: View {
         while t <= map.scale.after + 1e-9 {
             let x = map.x(t)
             let whole = abs(t.rounded() - t) < 1e-9
-            ctx.fill(Path(CGRect(x: x, y: plot.minY, width: whole ? 1 : 0.5, height: plot.height)), with: .color(whole ? Color.white.opacity(0.1) : lineColor))
+            ctx.fill(
+                Path(CGRect(x: x, y: plot.minY, width: whole ? 1 : 0.5, height: plot.height)),
+                with: .color(whole ? Color.white.opacity(0.1) : lineColor))
             if whole && t != 0 {
-                ctx.draw(Text(t > 0 ? "+\(Int(t))" : "\(Int(t))").font(.system(size: 9.5).monospacedDigit()).foregroundColor(Theme.tertiary),
-                         at: CGPoint(x: x, y: plot.maxY + 10))
+                ctx.draw(
+                    Text(t > 0 ? "+\(Int(t))" : "\(Int(t))").font(.system(size: 9.5).monospacedDigit()).foregroundColor(Theme.tertiary),
+                    at: CGPoint(x: x, y: plot.maxY + 10))
             }
             t += step
         }
@@ -254,11 +290,16 @@ private struct EnvelopeEditor: View {
         }
         // The hit.
         let hx = map.x(0)
-        ctx.stroke(Path { p in p.move(to: CGPoint(x: hx, y: plot.minY - 4)); p.addLine(to: CGPoint(x: hx, y: plot.maxY)) },
-                   with: .color(Theme.amber.opacity(0.7)), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
-        ctx.draw(Text("colpo").font(.system(size: 9.5, weight: .semibold)).foregroundColor(Theme.amber.opacity(0.9)),
-                 at: CGPoint(x: hx, y: plot.maxY + 10))
-        ctx.draw(Text("battiti").font(.system(size: 9.5)).foregroundColor(Theme.tertiary),
-                 at: CGPoint(x: plot.maxX - 2, y: plot.maxY + 10), anchor: .trailing)
+        ctx.stroke(
+            Path { p in
+                p.move(to: CGPoint(x: hx, y: plot.minY - 4)); p.addLine(to: CGPoint(x: hx, y: plot.maxY))
+            },
+            with: .color(Theme.amber.opacity(0.7)), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+        ctx.draw(
+            Text("colpo").font(.system(size: 9.5, weight: .semibold)).foregroundColor(Theme.amber.opacity(0.9)),
+            at: CGPoint(x: hx, y: plot.maxY + 10))
+        ctx.draw(
+            Text("battiti").font(.system(size: 9.5)).foregroundColor(Theme.tertiary),
+            at: CGPoint(x: plot.maxX - 2, y: plot.maxY + 10), anchor: .trailing)
     }
 }

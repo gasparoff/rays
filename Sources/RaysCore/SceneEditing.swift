@@ -114,8 +114,9 @@ public struct RhythmViewport: Equatable, Sendable {
         let first = start * res
         return (0..<(span * res)).map { k in
             let g = first + k
-            return Cell(source: g % count, repetition: g / count, beat: Double(g) / Double(res),
-                        width: 1 / Double(res), onBeat: g % res == 0)
+            return Cell(
+                source: g % count, repetition: g / count, beat: Double(g) / Double(res),
+                width: 1 / Double(res), onBeat: g % res == 0)
         }
     }
 

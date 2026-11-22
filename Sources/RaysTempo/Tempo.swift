@@ -22,8 +22,10 @@ public struct TempoSnapshot: Equatable, Sendable {
     /// A fresh, playing external console clock is feeding the Link timeline.
     public var externalClock: Bool
 
-    public init(bpm: Double, beat: Double, phase: Double, isPlaying: Bool = false, peers: Int = 0,
-                kind: TempoSourceKind = .local, linkEnabled: Bool = false, startStopSync: Bool = false, externalClock: Bool = false) {
+    public init(
+        bpm: Double, beat: Double, phase: Double, isPlaying: Bool = false, peers: Int = 0,
+        kind: TempoSourceKind = .local, linkEnabled: Bool = false, startStopSync: Bool = false, externalClock: Bool = false
+    ) {
         self.bpm = bpm; self.beat = beat; self.phase = phase; self.isPlaying = isPlaying; self.peers = peers
         self.kind = kind; self.linkEnabled = linkEnabled; self.startStopSync = startStopSync; self.externalClock = externalClock
     }

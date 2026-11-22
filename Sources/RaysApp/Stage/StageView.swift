@@ -20,7 +20,8 @@ struct LiveStageView: NSViewRepresentable {
 
     func makeNSView(context: Context) -> StageRendererView {
         let view = StageRendererView()
-        view.toolTip = "Colori e bianchi caldi derivano dagli stessi valori DMX. La disposizione dei sei segmenti centrali va verificata sulla TRI 380."
+        view.toolTip =
+            "Colori e bianchi caldi derivano dagli stessi valori DMX. La disposizione dei sei segmenti centrali va verificata sulla TRI 380."
         view.follow(state)
         return view
     }
@@ -47,9 +48,11 @@ final class StageRendererView: NSView {
     var fixtures: [FixtureVisual] = [] {
         didSet {
             guard fixtures != oldValue else { return }
-            if fixtures.count != oldValue.count || !zip(fixtures, oldValue).allSatisfy({
-                $0.label == $1.label && ($0.status == .previewOnly) == ($1.status == .previewOnly)
-            }) {
+            if fixtures.count != oldValue.count
+                || !zip(fixtures, oldValue).allSatisfy({
+                    $0.label == $1.label && ($0.status == .previewOnly) == ($1.status == .previewOnly)
+                })
+            {
                 let current = Set(fixtures.map { $0.status == .previewOnly ? "\($0.label) · anteprima" : $0.label })
                 labels = labels.filter { current.contains($0.key) }
             }
@@ -112,8 +115,9 @@ final class StageRendererView: NSView {
         ctx.strokePath()
         for (index, fixture) in fixtures.enumerated() where index < cache.layout.fixtures.count {
             drawFixture(ctx, fixture, index: index, cache: cache)
-            drawLabel(fixture.status == .previewOnly ? "\(fixture.label) · anteprima" : fixture.label,
-                      at: cache.layout.fixtures[index].labelCenter)
+            drawLabel(
+                fixture.status == .previewOnly ? "\(fixture.label) · anteprima" : fixture.label,
+                at: cache.layout.fixtures[index].labelCenter)
         }
     }
 
@@ -178,11 +182,15 @@ final class StageRendererView: NSView {
 
     private func drawLabel(_ label: String, at center: CGPoint) {
         let entry: (text: NSAttributedString, size: CGSize)
-        if let cached = labels[label] { entry = cached } else {
-            let text = NSAttributedString(string: label, attributes: [
-                .font: NSFont.systemFont(ofSize: 10.5, weight: .medium),
-                .foregroundColor: NSColor(srgbRed: 0.97, green: 0.94, blue: 0.88, alpha: 0.58),
-            ])
+        if let cached = labels[label] {
+            entry = cached
+        } else {
+            let text = NSAttributedString(
+                string: label,
+                attributes: [
+                    .font: NSFont.systemFont(ofSize: 10.5, weight: .medium),
+                    .foregroundColor: NSColor(srgbRed: 0.97, green: 0.94, blue: 0.88, alpha: 0.58),
+                ])
             entry = (text, text.size())
             labels[label] = entry
         }
@@ -226,7 +234,9 @@ private struct GlowMask {
     let rect: CGRect
 
     init?(filling path: CGPath, radius: CGFloat, scale: CGFloat) {
-        self.init(extent: path.boundingBox, radius: radius, scale: scale) { $0.addPath(path); $0.fillPath() }
+        self.init(extent: path.boundingBox, radius: radius, scale: scale) {
+            $0.addPath(path); $0.fillPath()
+        }
     }
 
     init?(stroking path: CGPath, width: CGFloat, radius: CGFloat, scale: CGFloat) {
@@ -241,9 +251,11 @@ private struct GlowMask {
         let rect = extent.insetBy(dx: -ceil(radius * 3), dy: -ceil(radius * 3)).integral
         let width = Int(ceil(rect.width * scale)), height = Int(ceil(rect.height * scale))
         guard width > 0, height > 0, width * height <= 16_000_000,
-              let ctx = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
-                                  space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGImageAlphaInfo.none.rawValue),
-              let data = ctx.data else { return nil }
+            let ctx = CGContext(
+                data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+                space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGImageAlphaInfo.none.rawValue),
+            let data = ctx.data
+        else { return nil }
         ctx.setFillColor(gray: 0, alpha: 1)
         ctx.fill(CGRect(x: 0, y: 0, width: width, height: height))
         // No flip: the mask is drawn y-up here and placed into the flipped view, so the two flips cancel.
@@ -263,7 +275,9 @@ private struct GlowMask {
         var src = vImage_Buffer(data: data, height: vImagePixelCount(height), width: vImagePixelCount(width), rowBytes: rowBytes)
         var dst = vImage_Buffer(data: scratch, height: vImagePixelCount(height), width: vImagePixelCount(width), rowBytes: rowBytes)
         for _ in 0..<3 {
-            guard vImageBoxConvolve_Planar8(&src, &dst, nil, 0, 0, UInt32(box), UInt32(box), 0, vImage_Flags(kvImageEdgeExtend)) == kvImageNoError
+            guard
+                vImageBoxConvolve_Planar8(&src, &dst, nil, 0, 0, UInt32(box), UInt32(box), 0, vImage_Flags(kvImageEdgeExtend))
+                    == kvImageNoError
             else { return nil }
             swap(&src, &dst)
         }

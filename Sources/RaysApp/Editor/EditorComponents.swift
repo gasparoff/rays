@@ -127,7 +127,9 @@ struct ChipButton: View {
             }
             .padding(.horizontal, 10).padding(.vertical, 6)
             .frame(maxWidth: .infinity)
-            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(selected ? tint.opacity(0.22) : Color.white.opacity(0.05)))
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous).fill(selected ? tint.opacity(0.22) : Color.white.opacity(0.05))
+            )
             .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(selected ? tint.opacity(0.85) : Theme.stroke))
             .foregroundStyle(selected ? Theme.text : Theme.secondary)
             .contentShape(Rectangle())
@@ -164,7 +166,10 @@ struct ColorChoiceChip: View {
             .padding(.horizontal, 8).padding(.vertical, 6)
             .frame(maxWidth: .infinity)
             .background(RoundedRectangle(cornerRadius: 8).fill(selected ? Color.white.opacity(0.12) : Color.white.opacity(0.04)))
-            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(selected ? Theme.text.opacity(0.8) : Theme.stroke, lineWidth: selected ? 1.5 : 1))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8).strokeBorder(
+                    selected ? Theme.text.opacity(0.8) : Theme.stroke, lineWidth: selected ? 1.5 : 1)
+            )
             .foregroundStyle(selected ? Theme.text : Theme.secondary)
             .contentShape(Rectangle())
         }
@@ -213,10 +218,14 @@ struct NumberStepper: View {
             Text(title).font(.system(size: 12)).foregroundStyle(Theme.secondary)
                 .frame(minWidth: 58, alignment: .leading)
             Spacer(minLength: 2)
-            Button { nudge(-step) } label: { Image(systemName: "minus").frame(width: 22, height: 22).contentShape(Rectangle()) }
-                .buttonStyle(.plain)
-                .disabled(value <= range.lowerBound + 1e-9)
-                .accessibilityLabel("Diminuisci \(title)")
+            Button {
+                nudge(-step)
+            } label: {
+                Image(systemName: "minus").frame(width: 22, height: 22).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(value <= range.lowerBound + 1e-9)
+            .accessibilityLabel("Diminuisci \(title)")
             TextField(title, text: $text)
                 .textFieldStyle(.plain)
                 .multilineTextAlignment(.center)
@@ -230,10 +239,14 @@ struct NumberStepper: View {
                 .onChange(of: focused) { _, isFocused in if isFocused { editingScope = scope } else { commit() } }
                 .accessibilityLabel(title)
                 .accessibilityValue(display(value) + unit)
-            Button { nudge(step) } label: { Image(systemName: "plus").frame(width: 22, height: 22).contentShape(Rectangle()) }
-                .buttonStyle(.plain)
-                .disabled(value >= range.upperBound - 1e-9)
-                .accessibilityLabel("Aumenta \(title)")
+            Button {
+                nudge(step)
+            } label: {
+                Image(systemName: "plus").frame(width: 22, height: 22).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(value >= range.upperBound - 1e-9)
+            .accessibilityLabel("Aumenta \(title)")
             if !unit.isEmpty {
                 Text(unit).font(.system(size: 11)).foregroundStyle(Theme.tertiary).frame(width: 14, alignment: .leading)
             }

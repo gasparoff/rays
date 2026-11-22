@@ -42,8 +42,10 @@ public protocol OutputDriver: AnyObject {
 /// Builds output drivers by identifier. Start from `.builtIn` and `register` new drivers.
 public struct OutputDriverRegistry {
     /// Builds a driver for the engine's transport and interface list.
-    public typealias Factory = (_ transport: DatagramTransport,
-                                _ interfaces: @escaping () -> [NetworkInterface]) -> OutputDriver
+    public typealias Factory = (
+        _ transport: DatagramTransport,
+        _ interfaces: @escaping () -> [NetworkInterface]
+    ) -> OutputDriver
 
     /// A driver the registry can build.
     public struct Descriptor {
@@ -63,9 +65,10 @@ public struct OutputDriverRegistry {
     /// Art-Net only.
     public static var builtIn: OutputDriverRegistry {
         var registry = OutputDriverRegistry()
-        registry.register(Descriptor(id: ArtNetController.driverID, name: "Art-Net") { transport, interfaces in
-            ArtNetController(transport: transport, interfaces: interfaces)
-        })
+        registry.register(
+            Descriptor(id: ArtNetController.driverID, name: "Art-Net") { transport, interfaces in
+                ArtNetController(transport: transport, interfaces: interfaces)
+            })
         return registry
     }
 
@@ -78,8 +81,10 @@ public struct OutputDriverRegistry {
     public func descriptor(id: String) -> Descriptor? { descriptors.first { $0.id == id } }
 
     /// The requested driver, or Art-Net when that id is unknown.
-    public func make(id: String = defaultDriverID, transport: DatagramTransport,
-                     interfaces: @escaping () -> [NetworkInterface]) -> OutputDriver {
+    public func make(
+        id: String = defaultDriverID, transport: DatagramTransport,
+        interfaces: @escaping () -> [NetworkInterface]
+    ) -> OutputDriver {
         let d = descriptor(id: id) ?? descriptor(id: Self.defaultDriverID)
         return d?.make(transport, interfaces) ?? ArtNetController(transport: transport, interfaces: interfaces)
     }

@@ -22,7 +22,8 @@ public struct SocketError: Error, LocalizedError, Equatable {
         case ("bind", EADDRINUSE):
             return "Porta UDP \(port.map(String.init) ?? "locale") occupata da un’altra app: chiudila e riprova (\(reason))."
         case ("send", EHOSTUNREACH), ("send", ENETUNREACH):
-            return "Rete non raggiungibile (\(reason)). Controlla il permesso «Rete locale» in Impostazioni di Sistema > Privacy e il collegamento."
+            return
+                "Rete non raggiungibile (\(reason)). Controlla il permesso «Rete locale» in Impostazioni di Sistema > Privacy e il collegamento."
         case ("send", EACCES), ("send", EPERM):
             return "Invio negato dal sistema (\(reason)). Consenti l'accesso alla rete locale a RAYS."
         default:
@@ -137,13 +138,15 @@ public struct NetworkInterface: Equatable, Sendable, Identifiable {
             defer { cursor = ifa.pointee.ifa_next }
             let flags = Int32(ifa.pointee.ifa_flags)
             guard flags & IFF_UP != 0, flags & IFF_RUNNING != 0, flags & IFF_LOOPBACK == 0, flags & IFF_BROADCAST != 0,
-                  let addr = ifa.pointee.ifa_addr, addr.pointee.sa_family == sa_family_t(AF_INET),
-                  let mask = ifa.pointee.ifa_netmask, let brd = ifa.pointee.ifa_dstaddr else { continue }
+                let addr = ifa.pointee.ifa_addr, addr.pointee.sa_family == sa_family_t(AF_INET),
+                let mask = ifa.pointee.ifa_netmask, let brd = ifa.pointee.ifa_dstaddr
+            else { continue }
             func ipv4(_ p: UnsafeMutablePointer<sockaddr>) -> IPv4Address {
                 p.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { IPv4Address(UInt32(bigEndian: $0.pointee.sin_addr.s_addr)) }
             }
-            let iface = NetworkInterface(name: String(cString: ifa.pointee.ifa_name), address: ipv4(addr),
-                                         netmask: ipv4(mask), broadcast: ipv4(brd))
+            let iface = NetworkInterface(
+                name: String(cString: ifa.pointee.ifa_name), address: ipv4(addr),
+                netmask: ipv4(mask), broadcast: ipv4(brd))
             if !iface.address.isUnspecified, !iface.broadcast.isUnspecified { result.append(iface) }
         }
         return result

@@ -49,10 +49,12 @@ public struct NodeRegistry: Sendable {
     @discardableResult
     public mutating func ingest(_ reply: ArtPollReply, from sender: IPv4Address, at now: TimeInterval) -> DiscoveredNode {
         let identity = reply.macString.map { "mac:" + $0 } ?? "ip:" + sender.description
-        var node = nodes[identity] ?? DiscoveredNode(
-            id: identity, ip: sender, reportedIP: reply.ip, shortName: "", longName: "", nodeReport: "",
-            mac: reply.macString, estaManufacturer: 0, oem: 0, firmwareVersion: 0,
-            portsByBind: [:], lastSeen: now, isEnttec: false)
+        var node =
+            nodes[identity]
+            ?? DiscoveredNode(
+                id: identity, ip: sender, reportedIP: reply.ip, shortName: "", longName: "", nodeReport: "",
+                mac: reply.macString, estaManufacturer: 0, oem: 0, firmwareVersion: 0,
+                portsByBind: [:], lastSeen: now, isEnttec: false)
         node.ip = sender
         node.reportedIP = reply.ip
         node.shortName = reply.shortName

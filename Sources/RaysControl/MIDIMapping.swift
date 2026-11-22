@@ -38,14 +38,14 @@ public enum MIDIDecoder {
         var data: [UInt8] = []
         var inSysEx = false
         for byte in bytes {
-            if byte >= 0xF8 { continue }                 // realtime may interleave anywhere
+            if byte >= 0xF8 { continue }  // realtime may interleave anywhere
             if byte == 0xF0 { inSysEx = true; continue }
             if inSysEx {
                 if byte & 0x80 == 0 { continue }
-                inSysEx = false                          // F7 or any status byte ends SysEx
+                inSysEx = false  // F7 or any status byte ends SysEx
             }
             if byte & 0x80 != 0 {
-                status = byte >= 0xF0 ? 0 : byte         // system common cancels running status
+                status = byte >= 0xF0 ? 0 : byte  // system common cancels running status
                 data.removeAll()
                 continue
             }
@@ -188,7 +188,6 @@ public enum XoneK2 {
         return ledNotes.contains(base) ? [base, base + 36, base + 72] : []
     }
 
-
     /// The default performance page: faders = L / C / R / master, column-4 pots = accent level
     /// and energy, pads = scenes (A–C, E–G), Stop (D), rates (I–L), accent hold (M), blackout (P).
     /// H, N, O, the other pots, the encoders and the bottom buttons stay free for Learn.
@@ -203,7 +202,9 @@ public enum XoneK2 {
             .init(.rateQuarter, .note, 28), .init(.rateHalf, .note, 29), .init(.rateNormal, .note, 30), .init(.rateDouble, .note, 31),
             .init(.accent, .note, 24), .init(.blackout, .note, 27),
         ],
-        notes: "Factory layout, Latching Layers OFF. Faders = left / centre / right / master; column-4 pots = Flash level and energy; pads A–C, E–G = scenes, D = Stop, H = Build → Drop, I–L = rates, M = Flash (hold), P = Blackout.")
+        notes:
+            "Factory layout, Latching Layers OFF. Faders = left / centre / right / master; column-4 pots = Flash level and energy; pads A–C, E–G = scenes, D = Stop, H = Build → Drop, I–L = rates, M = Flash (hold), P = Blackout."
+    )
 
     /// Mirrored by `Controllers/xone-k2-live-v2.json` (verified by tests).
     public static let liveV2Profile = k2Profile(
@@ -217,16 +218,21 @@ public enum XoneK2 {
             .init(.accent, .note, 24), .init(.sceneFirstBeat, .note, 25), .init(.cancelPending, .note, 26), .init(.stop, .note, 27),
             .init(.buildDrop, .note, 12), .init(.blackout, .note, 15),
         ],
-        notes: "Factory layout, Latching Layers OFF. The two bottom encoders = energy and Flash level (relative, 127 detents per sweep); pads D/H = House/Club bank, N = first beat, O = cancel queue, P = Stop; bottom Layer = Build → Drop, Exit = Blackout.")
+        notes:
+            "Factory layout, Latching Layers OFF. The two bottom encoders = energy and Flash level (relative, 127 detents per sweep); pads D/H = House/Club bank, N = first beat, O = cancel queue, P = Stop; bottom Layer = Build → Drop, Exit = Blackout."
+    )
 
-    private static func k2Profile(id: String, name: String, encoderResolution: Int?,
-                                  bindings: [ControllerProfile.Binding], notes: String) -> ControllerProfile {
+    private static func k2Profile(
+        id: String, name: String, encoderResolution: Int?,
+        bindings: [ControllerProfile.Binding], notes: String
+    ) -> ControllerProfile {
         ControllerProfile(
             id: id, name: name, manufacturer: "Allen & Heath", portNamePattern: "(^|[^a-z0-9])k2($|[^a-z0-9])",
             midiChannel: Int(factoryChannel) + 1, bindings: bindings, relativeEncoders: [0, 1, 2, 3, 20, 21],
             encoderResolution: encoderResolution,
-            leds: .init(notes: .init(from: 24, to: 55), colors: .init(red: 0, amber: 36, green: 72),
-                        special: [.init(base: 12, addresses: [12, 16, 20]), .init(base: 15, addresses: [15, 19, 23])]),
+            leds: .init(
+                notes: .init(from: 24, to: 55), colors: .init(red: 0, amber: 36, green: 72),
+                special: [.init(base: 12, addresses: [12, 16, 20]), .init(base: 15, addresses: [15, 19, 23])]),
             notes: notes)
     }
 
@@ -318,7 +324,8 @@ public struct MIDIMap: Codable, Equatable, Sendable {
     public func k2Control(for action: ControlAction, channel: UInt8) -> MIDIControl? {
         if let learned = control(for: action) { return learned }
         guard k2Preset, let preset = XoneK2.presetControl(for: action, channel: channel, layout: k2Layout),
-              binding(for: preset) == nil else { return nil }
+            binding(for: preset) == nil
+        else { return nil }
         return preset
     }
 
@@ -384,8 +391,10 @@ public struct MIDIRouter: Sendable {
     ///   - profile: the controller layout of a non-K2 port (ignored when `fromK2`); nil = learned
     ///     bindings only.
     ///   - current: the software value of a continuous action, for soft takeover and encoders.
-    public mutating func handle(_ event: MIDIEvent, fromK2: Bool = false, profile: ControllerProfile? = nil,
-                                current: (ControlAction) -> Double = { _ in 0 }) -> Result {
+    public mutating func handle(
+        _ event: MIDIEvent, fromK2: Bool = false, profile: ControllerProfile? = nil,
+        current: (ControlAction) -> Double = { _ in 0 }
+    ) -> Result {
         let profile = fromK2 ? nil : profile
         let control = event.control
         let pressed = control.kind == .note ? event.isNoteOn : event.value >= 64
@@ -482,7 +491,8 @@ public struct MIDIRouter: Sendable {
             return (action, encoder)
         }
         guard fromK2, map.k2Preset,
-              let action = XoneK2.presetAction(kind: control.kind, number: control.number, layout: map.k2Layout) else { return nil }
+            let action = XoneK2.presetAction(kind: control.kind, number: control.number, layout: map.k2Layout)
+        else { return nil }
         if let fixed = map.k2Channel {
             guard control.channel == fixed else { return nil }
         } else {
@@ -530,7 +540,8 @@ public enum K2Feedback {
         var out: [UInt8: XoneK2.LED] = [:]
         for action in ControlAction.allCases {
             guard let c = map.k2Control(for: action, channel: channel), c.channel == channel, c.kind == .note,
-                  !XoneK2.ledAddresses(base: c.number).isEmpty else { continue }
+                !XoneK2.ledAddresses(base: c.number).isEmpty
+            else { continue }
             out[c.number] = color(action, s)
         }
         return out

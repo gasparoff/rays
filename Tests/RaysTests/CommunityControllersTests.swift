@@ -6,9 +6,9 @@ import XCTest
 final class CommunityControllersTests: XCTestCase {
     private var controllersDirectory: URL {
         URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()   // RaysTests
-            .deletingLastPathComponent()   // Tests
-            .deletingLastPathComponent()   // repository root
+            .deletingLastPathComponent()  // RaysTests
+            .deletingLastPathComponent()  // Tests
+            .deletingLastPathComponent()  // repository root
             .appendingPathComponent("Controllers", isDirectory: true)
     }
 
@@ -79,17 +79,19 @@ final class CommunityControllersTests: XCTestCase {
             }
             for (action, kind, number) in expected {
                 XCTAssertEqual(XoneK2.presetAction(kind: kind, number: number, layout: layout), action, id)
-                XCTAssertEqual(XoneK2.presetControl(for: action, channel: 14, layout: layout),
-                               MIDIControl(kind, channel: 14, number: number), id)
+                XCTAssertEqual(
+                    XoneK2.presetControl(for: action, channel: 14, layout: layout),
+                    MIDIControl(kind, channel: 14, number: number), id)
             }
         }
         XCTAssertEqual(MIDIRouter.livePresetEncoderStep, 1.0 / 127, accuracy: 1e-12)
     }
 
     func testValidationCatchesCommonMistakes() {
-        var p = ControllerProfile(id: "x", name: "X", manufacturer: "Y", portNamePattern: "x", midiChannel: 17,
-                                  bindings: [.init(.master, .note, 1), .init(.scene1, .cc, 2), .init(.scene2, .cc, 2)],
-                                  relativeEncoders: [2], encoderResolution: nil, leds: nil, notes: nil)
+        var p = ControllerProfile(
+            id: "x", name: "X", manufacturer: "Y", portNamePattern: "x", midiChannel: 17,
+            bindings: [.init(.master, .note, 1), .init(.scene1, .cc, 2), .init(.scene2, .cc, 2)],
+            relativeEncoders: [2], encoderResolution: nil, leds: nil, notes: nil)
         let problems = p.problems
         XCTAssertTrue(problems.contains { $0.contains("midiChannel") })
         XCTAssertTrue(problems.contains { $0.contains("master is continuous") })
@@ -104,9 +106,10 @@ final class CommunityControllersTests: XCTestCase {
     }
 
     func testUserFilesOverrideBundledOnesByID() {
-        let a = ControllerProfile(id: "a", name: "A", manufacturer: "M", portNamePattern: "a", midiChannel: 1,
-                                  bindings: [.init(.master, .cc, 1)], relativeEncoders: nil, encoderResolution: nil,
-                                  leds: nil, notes: nil)
+        let a = ControllerProfile(
+            id: "a", name: "A", manufacturer: "M", portNamePattern: "a", midiChannel: 1,
+            bindings: [.init(.master, .cc, 1)], relativeEncoders: nil, encoderResolution: nil,
+            leds: nil, notes: nil)
         var a2 = a; a2.name = "A user"
         var b = a; b.id = "b"
         XCTAssertEqual(ControllerLibrary.merge([a, b], [a2]).map(\.name), ["A user", "A"])

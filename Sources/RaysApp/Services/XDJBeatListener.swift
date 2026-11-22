@@ -40,12 +40,15 @@ final class XDJBeatListener: ObservableObject {
         let project = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
             .deletingLastPathComponent().deletingLastPathComponent()
         let helper = [resources, project.appendingPathComponent("Vendor/BeatLinkHelper")]
-            .compactMap { $0 }.first { FileManager.default.isExecutableFile(atPath: $0.appendingPathComponent("Contents/MacOS/Beat Link Trigger").path) }
+            .compactMap { $0 }.first {
+                FileManager.default.isExecutableFile(atPath: $0.appendingPathComponent("Contents/MacOS/Beat Link Trigger").path)
+            }
         guard let helper else {
             error = "Componente Beat Link mancante: ricrea l’app con build-app.sh."
             return
         }
-        guard FileManager.default.fileExists(atPath: helper.appendingPathComponent("Contents/app/classes/LightSystemBeatLink.class").path) else {
+        guard FileManager.default.fileExists(atPath: helper.appendingPathComponent("Contents/app/classes/LightSystemBeatLink.class").path)
+        else {
             error = "Componente Beat Link da compilare: esegui build-app.sh."
             return
         }
@@ -80,7 +83,7 @@ final class XDJBeatListener: ObservableObject {
             timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
                 MainActor.assumeIsolated {
                     guard let self else { return }
-                    self.objectWillChange.send() // expires visible beat status even without events
+                    self.objectWillChange.send()  // expires visible beat status even without events
                     if let last = self.lastMessage, Date().timeIntervalSince(last) > 30 {
                         self.error = "Beat Link non risponde: riavvio della connessione."
                         self.process?.terminate()
@@ -106,8 +109,9 @@ final class XDJBeatListener: ObservableObject {
             if state == "network" { error = "Console rilevata: verifica che Mac e console siano sulla stessa rete Ethernet." }
         case "device":
             guard let number = event.deck else { return }
-            if event.present == true { seenDecks[number] = event.name ?? "Pro DJ Link" }
-            else {
+            if event.present == true {
+                seenDecks[number] = event.name ?? "Pro DJ Link"
+            } else {
                 seenDecks.removeValue(forKey: number)
                 if lastBeat?.deck == number { lastBeat = nil; lastBeatTime = nil }
             }

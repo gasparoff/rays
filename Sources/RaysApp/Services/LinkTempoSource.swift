@@ -25,10 +25,11 @@ final class LinkTempoSource: TempoSource, @unchecked Sendable {
         lock.lock(); defer { lock.unlock() }
         guard let link else { return fallback.capture() }
         let s = ls_link_capture(link, Self.quantum)
-        return TempoSnapshot(bpm: s.tempo, beat: s.beat, phase: s.phase, isPlaying: s.isPlaying,
-                             peers: Int(s.numPeers), kind: .link, linkEnabled: s.isEnabled,
-                             startStopSync: s.isStartStopSyncEnabled,
-                             externalClock: ProcessInfo.processInfo.systemUptime - lastExternalBeat < 2)
+        return TempoSnapshot(
+            bpm: s.tempo, beat: s.beat, phase: s.phase, isPlaying: s.isPlaying,
+            peers: Int(s.numPeers), kind: .link, linkEnabled: s.isEnabled,
+            startStopSync: s.isStartStopSyncEnabled,
+            externalClock: ProcessInfo.processInfo.systemUptime - lastExternalBeat < 2)
     }
 
     func setTempo(_ bpm: Double) {

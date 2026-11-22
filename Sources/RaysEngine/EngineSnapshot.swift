@@ -50,8 +50,10 @@ public struct FixtureVisual: Equatable, Identifiable, Sendable {
     public var cob: [Double]
     public var status: Status
 
-    public init(id: String, label: String, profileID: String?, role: FixtureRole, universe: Int, address: Int,
-                rgb: [LightColor], cob: [Double], status: Status) {
+    public init(
+        id: String, label: String, profileID: String?, role: FixtureRole, universe: Int, address: Int,
+        rgb: [LightColor], cob: [Double], status: Status
+    ) {
         self.id = id; self.label = label; self.profileID = profileID; self.role = role
         self.universe = universe; self.address = address; self.rgb = rgb; self.cob = cob; self.status = status
     }

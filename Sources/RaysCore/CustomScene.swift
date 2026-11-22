@@ -63,19 +63,21 @@ public struct CustomScene: Codable, Equatable, Identifiable, Sendable {
     /// Optional animation structure (tracks on the beat grid). nil = the base choreography as it always was.
     public var program: SceneProgram?
 
-    public init(id: UUID = UUID(),
-                name: String = CustomScene.defaultName,
-                presetSlot: SceneID? = nil,
-                presetBank: SceneBank = .house,
-                base: SceneID = .ambra,
-                colors: [SceneRGB]? = nil,
-                energy: Double = 0.5,
-                subdivision: Subdivision = .one,
-                warmth: Double = 1,
-                leftLevel: Double = 1,
-                centerLevel: Double = 1,
-                rightLevel: Double = 1,
-                program: SceneProgram? = nil) {
+    public init(
+        id: UUID = UUID(),
+        name: String = CustomScene.defaultName,
+        presetSlot: SceneID? = nil,
+        presetBank: SceneBank = .house,
+        base: SceneID = .ambra,
+        colors: [SceneRGB]? = nil,
+        energy: Double = 0.5,
+        subdivision: Subdivision = .one,
+        warmth: Double = 1,
+        leftLevel: Double = 1,
+        centerLevel: Double = 1,
+        rightLevel: Double = 1,
+        program: SceneProgram? = nil
+    ) {
         self.id = id
         self.presetSlot = presetSlot
         self.presetBank = presetBank

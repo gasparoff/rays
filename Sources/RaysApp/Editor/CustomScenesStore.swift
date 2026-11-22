@@ -105,7 +105,8 @@ final class CustomScenesStore: ObservableObject {
 
     private func save() {
         guard !fileIsUnreadable else {
-            error = "Il file delle scene personalizzate non è leggibile: le modifiche restano solo in questa sessione finché non scegli di sostituirlo (verrà conservata una copia)."
+            error =
+                "Il file delle scene personalizzate non è leggibile: le modifiche restano solo in questa sessione finché non scegli di sostituirlo (verrà conservata una copia)."
             return
         }
         do {

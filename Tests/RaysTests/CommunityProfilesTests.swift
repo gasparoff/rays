@@ -6,9 +6,9 @@ import RaysCore
 final class CommunityProfilesTests: XCTestCase {
     private var profilesDirectory: URL {
         URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()   // RaysTests
-            .deletingLastPathComponent()   // Tests
-            .deletingLastPathComponent()   // repository root
+            .deletingLastPathComponent()  // RaysTests
+            .deletingLastPathComponent()  // Tests
+            .deletingLastPathComponent()  // repository root
             .appendingPathComponent("Profiles", isDirectory: true)
     }
 
@@ -46,9 +46,11 @@ final class CommunityProfilesTests: XCTestCase {
     /// Footprints documented in the Varytec manuals (unverified on hardware).
     func testVarytecManualFootprints() {
         let byID = Dictionary(uniqueKeysWithValues: ProfileLibrary.loadProfiles(in: profilesDirectory).profiles.map { ($0.id, $0) })
-        let expected = ["varytec.event-par-ip65-4ch": 4, "varytec.event-par-ip65-7ch": 7, "varytec.event-par-ip65-9ch": 9,
-                        "varytec.pad7-rgbwa-5ch": 5, "varytec.pad7-rgbwa-6ch": 6, "varytec.pad7-rgbwa-9ch": 9,
-                        "varytec.pad7-rgbwauv-6ch": 6, "varytec.pad7-rgbwauv-7ch": 7, "varytec.pad7-rgbwauv-10ch": 10]
+        let expected = [
+            "varytec.event-par-ip65-4ch": 4, "varytec.event-par-ip65-7ch": 7, "varytec.event-par-ip65-9ch": 9,
+            "varytec.pad7-rgbwa-5ch": 5, "varytec.pad7-rgbwa-6ch": 6, "varytec.pad7-rgbwa-9ch": 9,
+            "varytec.pad7-rgbwauv-6ch": 6, "varytec.pad7-rgbwauv-7ch": 7, "varytec.pad7-rgbwauv-10ch": 10,
+        ]
         for (id, footprint) in expected {
             XCTAssertEqual(byID[id]?.footprint, footprint, id)
             XCTAssertEqual(byID[id]?.isVerified, false, id)

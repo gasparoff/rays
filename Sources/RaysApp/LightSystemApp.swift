@@ -38,7 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 return otherDate < date || (otherDate == date && app.processIdentifier < current.processIdentifier)
             }.sorted { ($0.launchDate ?? .distantPast) < ($1.launchDate ?? .distantPast) }.first
         if let existing {
-            existing.activate()   // macOS 14+: activation no longer takes the "ignoring other apps" option
+            existing.activate()  // macOS 14+: activation no longer takes the "ignoring other apps" option
             NSApp.terminate(nil)
             return
         }

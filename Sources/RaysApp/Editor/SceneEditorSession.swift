@@ -46,11 +46,13 @@ final class SceneEditorSession: ObservableObject {
     private let onCancel: () -> Void
     private let onDirtyChange: (Bool) -> Void
 
-    init(initial: CustomScene?,
-         onPreview: @escaping (CustomScene) -> Void,
-         onSave: @escaping (CustomScene) -> Void,
-         onCancel: @escaping () -> Void,
-         onDirtyChange: @escaping (Bool) -> Void = { _ in }) {
+    init(
+        initial: CustomScene?,
+        onPreview: @escaping (CustomScene) -> Void,
+        onSave: @escaping (CustomScene) -> Void,
+        onCancel: @escaping () -> Void,
+        onDirtyChange: @escaping (Bool) -> Void = { _ in }
+    ) {
         let start = (initial ?? CustomScene()).sanitized
         self.initial = start
         isNew = initial == nil
@@ -154,8 +156,9 @@ final class SceneEditorSession: ObservableObject {
 
     /// Binding into the draft for continuous controls.
     func binding<T: Equatable>(_ path: WritableKeyPath<CustomScene, T>, key: String) -> Binding<T> {
-        Binding(get: { self.draft[keyPath: path] },
-                set: { value in self.edit(key) { $0[keyPath: path] = value } })
+        Binding(
+            get: { self.draft[keyPath: path] },
+            set: { value in self.edit(key) { $0[keyPath: path] = value } })
     }
 
     func undo() {
@@ -184,13 +187,16 @@ final class SceneEditorSession: ObservableObject {
     }
 
     private func refreshChrome() {
-        chrome.update(SceneEditorChrome.State(name: draft.name, canUndo: canUndo, canRedo: canRedo, isDirty: isDirty,
-                                              hasProgram: draft.program != nil))
+        chrome.update(
+            SceneEditorChrome.State(
+                name: draft.name, canUndo: canUndo, canRedo: canRedo, isDirty: isDirty,
+                hasProgram: draft.program != nil))
         let track = selectedTrack
         stageFocus.update(SceneEditorStageFocus.State(target: track?.target, trackName: track?.name))
-        program.update(SceneEditorProgram.State(
-            hasProgram: draft.program != nil, tracks: tracks, colors: draft.colors, selectedID: track?.id,
-            canAddTrack: canAddTrack, baseLevel: draft.program?.baseLevel ?? 0, base: draft.base))
+        program.update(
+            SceneEditorProgram.State(
+                hasProgram: draft.program != nil, tracks: tracks, colors: draft.colors, selectedID: track?.id,
+                canAddTrack: canAddTrack, baseLevel: draft.program?.baseLevel ?? 0, base: draft.base))
     }
 
     private func schedulePreview() {
@@ -337,7 +343,7 @@ final class SceneEditorSession: ObservableObject {
     /// First cell of a click or drag: cycles that step and remembers the value for the rest of the stroke.
     func beginPaint(_ id: UUID, step: Int) -> PaintStroke? {
         guard let track = tracks.first(where: { $0.id == id }), track.steps.indices.contains(step) else { return nil }
-        followsPlayhead = false // The visible page must stay still under the pointer while editing.
+        followsPlayhead = false  // The visible page must stay still under the pointer while editing.
         selection = id
         var stroke = PaintStroke(track: id, key: gestureKey("paint"), stroke: StepPaint.Stroke(first: step, current: track.steps[step]))
         paint(&stroke, step: step)

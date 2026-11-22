@@ -37,7 +37,8 @@ public struct SceneMiniatureLayout: Equatable, Sendable {
             var rows: [Lane] = []
             for track in program.tracks {
                 let cycle = Double(track.lengthBeats)
-                var marks: [Mark] = track.floor > 0
+                var marks: [Mark] =
+                    track.floor > 0
                     ? [Mark(beat: 0, duration: span, level: track.floor)] : []
                 // Patterns are powers of two, so every visible repeat fits the longest cycle.
                 for repeatIndex in -1...Int(span / cycle) {
@@ -54,13 +55,17 @@ public struct SceneMiniatureLayout: Equatable, Sendable {
                     let i = track.color == .second ? 1 : (track.color == .third ? 2 : 0)
                     color = palette[i]
                 }
-                rows.append(Lane(name: track.name, color: color, enabled: track.enabled && !track.target.isEmpty,
-                                 marks: marks.sorted { $0.beat < $1.beat }, waveform: []))
+                rows.append(
+                    Lane(
+                        name: track.name, color: color, enabled: track.enabled && !track.target.isEmpty,
+                        marks: marks.sorted { $0.beat < $1.beat }, waveform: []))
             }
             if program.baseLevel > 0 {
                 let wave = Self.sample(scene: scene, start: 0, span: span, anchor: anchor, energy: strength).map { $0 * program.baseLevel }
-                rows.insert(Lane(name: "Base \(scene.title)", color: SceneRGB(r: 0.65, g: 0.57, b: 0.9),
-                                 enabled: true, marks: [], waveform: wave), at: 0)
+                rows.insert(
+                    Lane(
+                        name: "Base \(scene.title)", color: SceneRGB(r: 0.65, g: 0.57, b: 0.9),
+                        enabled: true, marks: [], waveform: wave), at: 0)
             }
             lanes = rows
         } else {
@@ -86,7 +91,8 @@ public struct SceneMiniatureLayout: Equatable, Sendable {
     }
 
     private static func context(scene: SceneID, time: Double, anchor: Double, energy: Double) -> SceneContext {
-        scene == .respiro ? SceneContext(beat: time + anchor, phrase: time, energy: energy)
+        scene == .respiro
+            ? SceneContext(beat: time + anchor, phrase: time, energy: energy)
             : SceneContext(beat: time, phrase: time - anchor, energy: energy)
     }
 

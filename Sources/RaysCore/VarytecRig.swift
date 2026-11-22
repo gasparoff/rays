@@ -7,24 +7,31 @@ public enum VarytecRig {
     public static let tri380Manual = "https://images.thomann.de/pics/atg/atgdata/document/manual/585819_c_585819_en_online.pdf"
 
     public static let profiles: [FixtureProfile] = [
-        .init(id: "varytec.tri180.5", name: "Retro Blinder TRI 180", manufacturer: "Varytec", mode: "05 CH",
-              isGeneric: false, isVerified: true,
-              notes: "Manuale ufficiale ID 585812, p.26. R/G/B, COB bianco, strobo aperto a 0. \(tri180Manual)",
-              channels: [.init(.red), .init(.green), .init(.blue), .init(.white), .init(.ignore)]),
-        .init(id: "varytec.tri180.8", name: "Retro Blinder TRI 180", manufacturer: "Varytec", mode: "08 CH",
-              isGeneric: false, isVerified: true,
-              notes: "Manuale ufficiale ID 585812, pp.27–28. Riserva tutti gli 8 canali: non usare indirizzi 8 e 15 insieme. \(tri180Manual)",
-              channels: [.init(.dimmer), .init(.ignore), .init(.red), .init(.green), .init(.blue), .init(.blinder), .init(.ignore), .init(.ignore)]),
-        .init(id: "varytec.tri380.5", name: "Retro Blinder TRI 380", manufacturer: "Varytec", mode: "05 CH",
-              isGeneric: false, isVerified: true,
-              notes: "Manuale ufficiale ID 585819, p.28. R/G/B, COB bianco, strobo aperto a 0. \(tri380Manual)",
-              channels: [.init(.red), .init(.green), .init(.blue), .init(.white), .init(.ignore)]),
-        .init(id: "varytec.tri380.25", name: "Retro Blinder TRI 380", manufacturer: "Varytec", mode: "25 CH",
-              isGeneric: false, isVerified: true,
-              notes: "Manuale ufficiale ID 585819, pp.34–36. Dimmer RGB; tre COB indipendenti; sei segmenti RGB. Strobo e programmi a 0. \(tri380Manual)",
-              channels: [.init(.dimmer), .init(.blinder), .init(.blinder), .init(.blinder), .init(.ignore)]
-                  + (0..<6).flatMap { _ in [ChannelDefinition(.red), .init(.green), .init(.blue)] }
-                  + [.init(.ignore), .init(.ignore)])
+        .init(
+            id: "varytec.tri180.5", name: "Retro Blinder TRI 180", manufacturer: "Varytec", mode: "05 CH",
+            isGeneric: false, isVerified: true,
+            notes: "Manuale ufficiale ID 585812, p.26. R/G/B, COB bianco, strobo aperto a 0. \(tri180Manual)",
+            channels: [.init(.red), .init(.green), .init(.blue), .init(.white), .init(.ignore)]),
+        .init(
+            id: "varytec.tri180.8", name: "Retro Blinder TRI 180", manufacturer: "Varytec", mode: "08 CH",
+            isGeneric: false, isVerified: true,
+            notes: "Manuale ufficiale ID 585812, pp.27–28. Riserva tutti gli 8 canali: non usare indirizzi 8 e 15 insieme. \(tri180Manual)",
+            channels: [
+                .init(.dimmer), .init(.ignore), .init(.red), .init(.green), .init(.blue), .init(.blinder), .init(.ignore), .init(.ignore),
+            ]),
+        .init(
+            id: "varytec.tri380.5", name: "Retro Blinder TRI 380", manufacturer: "Varytec", mode: "05 CH",
+            isGeneric: false, isVerified: true,
+            notes: "Manuale ufficiale ID 585819, p.28. R/G/B, COB bianco, strobo aperto a 0. \(tri380Manual)",
+            channels: [.init(.red), .init(.green), .init(.blue), .init(.white), .init(.ignore)]),
+        .init(
+            id: "varytec.tri380.25", name: "Retro Blinder TRI 380", manufacturer: "Varytec", mode: "25 CH",
+            isGeneric: false, isVerified: true,
+            notes:
+                "Manuale ufficiale ID 585819, pp.34–36. Dimmer RGB; tre COB indipendenti; sei segmenti RGB. Strobo e programmi a 0. \(tri380Manual)",
+            channels: [.init(.dimmer), .init(.blinder), .init(.blinder), .init(.blinder), .init(.ignore)]
+                + (0..<6).flatMap { _ in [ChannelDefinition(.red), .init(.green), .init(.blue)] }
+                + [.init(.ignore), .init(.ignore)]),
     ]
 
     /// Single TRI 180 bench test confirmed on the real light: 08CH, A008, Art-Net universe 1.
@@ -41,7 +48,7 @@ public enum VarytecRig {
     public static let fullRigInstructions = [
         "TRI 180 sinistra: Mode → DMX, CH Mode → 08CH, Address → 008",
         "TRI 180 destra: Mode → DMX, CH Mode → 08CH, Address → 016",
-        "TRI 380 centro: Mode → DMX, CH Mode → 25CH, Address → 024"
+        "TRI 380 centro: Mode → DMX, CH Mode → 25CH, Address → 024",
     ]
 
     /// Production rig preserves the physically tested TRI180 at 08CH / A008.
@@ -51,7 +58,7 @@ public enum VarytecRig {
         Patch(fixtures: [
             .init(label: "TRI 180 · sinistra", profileID: "varytec.tri180.8", universe: universe, address: 8, role: .left),
             .init(label: "TRI 380 · centro", profileID: "varytec.tri380.25", universe: universe, address: 24, role: .center),
-            .init(label: "TRI 180 · destra", profileID: "varytec.tri180.8", universe: universe, address: 16, role: .right)
+            .init(label: "TRI 180 · destra", profileID: "varytec.tri180.8", universe: universe, address: 16, role: .right),
         ])
     }
 

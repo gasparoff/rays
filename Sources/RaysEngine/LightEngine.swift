@@ -69,13 +69,15 @@ public final class LightEngine: @unchecked Sendable {
     private let runsTimer: Bool
 
     /// `runsTimer: false` lets tests drive frames manually with `stepForTesting()`.
-    public init(tempo: TempoSource, transport: DatagramTransport,
-                interfaces: @escaping () -> [NetworkInterface] = NetworkInterface.current,
-                library: ProfileLibrary = ProfileLibrary(),
-                clock: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
-                runsTimer: Bool = true,
-                outputDrivers: OutputDriverRegistry = .builtIn,
-                outputDriverID: String = OutputDriverRegistry.defaultDriverID) {
+    public init(
+        tempo: TempoSource, transport: DatagramTransport,
+        interfaces: @escaping () -> [NetworkInterface] = NetworkInterface.current,
+        library: ProfileLibrary = ProfileLibrary(),
+        clock: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
+        runsTimer: Bool = true,
+        outputDrivers: OutputDriverRegistry = .builtIn,
+        outputDriverID: String = OutputDriverRegistry.defaultDriverID
+    ) {
         self.runsTimer = runsTimer
         self.tempo = tempo
         self.transport = transport
@@ -121,8 +123,10 @@ public final class LightEngine: @unchecked Sendable {
             guard self.running else { return }
             self.stopLocked()
             self.suspended = true
-            self.publish(self.snapshotLocked(visuals: [], now: self.clock(), beat: self.musicalBeat(self.tempo.capture()),
-                                             sending: false))
+            self.publish(
+                self.snapshotLocked(
+                    visuals: [], now: self.clock(), beat: self.musicalBeat(self.tempo.capture()),
+                    sending: false))
         }
     }
 
@@ -206,8 +210,9 @@ public final class LightEngine: @unchecked Sendable {
         let compiled = look.map(SceneLook.init)
         queue.async {
             let t = self.tempo.capture()
-            self.sequencer.request(held ? .aurora : .respiro, look: compiled, beat: self.musicalBeat(t), now: self.clock(),
-                                   gridTrusted: self.gridTrusted(t), rateOverride: 1, forceRestart: true)
+            self.sequencer.request(
+                held ? .aurora : .respiro, look: compiled, beat: self.musicalBeat(t), now: self.clock(),
+                gridTrusted: self.gridTrusted(t), rateOverride: 1, forceRestart: true)
         }
     }
 
@@ -222,9 +227,10 @@ public final class LightEngine: @unchecked Sendable {
     public func beginScenePreview() {
         queue.async {
             guard self.previewState == nil else { return }
-            self.previewState = PreviewState(sequencer: self.sequencer, params: self.params,
-                                              energy: self.smoothedEnergy, levels: self.levels,
-                                              scene: self.lastScene)
+            self.previewState = PreviewState(
+                sequencer: self.sequencer, params: self.params,
+                energy: self.smoothedEnergy, levels: self.levels,
+                scene: self.lastScene)
             self.restoreFrom = nil
         }
     }
@@ -310,15 +316,17 @@ public final class LightEngine: @unchecked Sendable {
     /// timeline. With it, or with Link peers, scene changes are quantised.
     public func setExternalBeatGrid(_ on: Bool) { queue.async { self.externalGrid = on } }
 
-    public func setBlackout(_ on: Bool) { queue.async {
-        self.blackout = on
-        if on {
-            if self.diagnosticColor != nil { self.endDiagnosticLocked() }
-            self.accentOn = false
-            self.accentReleaseFrom = nil
-            self.tick()
+    public func setBlackout(_ on: Bool) {
+        queue.async {
+            self.blackout = on
+            if on {
+                if self.diagnosticColor != nil { self.endDiagnosticLocked() }
+                self.accentOn = false
+                self.accentReleaseFrom = nil
+                self.tick()
+            }
         }
-    } }
+    }
 
     /// Brief static check using the same validated patch and socket as the show. If output was
     /// off it is armed for the test and black frames + disarm follow; if it was on, the show resumes.
@@ -442,14 +450,17 @@ public final class LightEngine: @unchecked Sendable {
 
     public func setPreferredIdentity(_ identity: String?) { queue.async { self.artnet.preferredIdentity = identity } }
 
-    public func rediscover() { queue.async {
-        self.reopenSocketIfNeeded(now: self.clock(), force: true)
-        self.artnet.forcePoll(now: self.clock())
-    } }
+    public func rediscover() {
+        queue.async {
+            self.reopenSocketIfNeeded(now: self.clock(), force: true)
+            self.artnet.forcePoll(now: self.clock())
+        }
+    }
 
     private func reopenSocketIfNeeded(now: TimeInterval, force: Bool = false) {
         guard running, !suspended, !artnet.isOpen,
-              force || now - lastSocketAttempt >= artnet.reopenInterval else { return }
+            force || now - lastSocketAttempt >= artnet.reopenInterval
+        else { return }
         lastSocketAttempt = now
         artnet.open(queue: queue, now: clock)
         if artnet.isOpen { artnet.forcePoll(now: now) }
@@ -499,7 +510,9 @@ public final class LightEngine: @unchecked Sendable {
         let rgb = LightColor(c.r, c.g, c.b)
         switch target {
         case .all:
-            func role(_ n: Int, _ k: Int) -> RoleFrame { RoleFrame(rgb: Array(repeating: rgb, count: n), cob: Array(repeating: c.w, count: k)) }
+            func role(_ n: Int, _ k: Int) -> RoleFrame {
+                RoleFrame(rgb: Array(repeating: rgb, count: n), cob: Array(repeating: c.w, count: k))
+            }
             return RigFrame(left: role(1, 1), center: role(RigFrame.centerSegments, RigFrame.centerCOBs), right: role(1, 1))
         case .segment(let i):
             var f = RigFrame.black
@@ -588,17 +601,21 @@ public final class LightEngine: @unchecked Sendable {
         publish(snap)
     }
 
-    private func visualsLocked(_ p: Patch, roles: [FixtureRole], frames: [PortAddress: [UInt8]],
-                               status: FixtureVisual.Status) -> [FixtureVisual] {
+    private func visualsLocked(
+        _ p: Patch, roles: [FixtureRole], frames: [PortAddress: [UInt8]],
+        status: FixtureVisual.Status
+    ) -> [FixtureVisual] {
         let lib = p.library(base: baseLibrary)
         return p.fixtures.enumerated().map { i, f in
             let profile = lib.profile(id: f.profileID)
-            let levels = profile.flatMap { pr in
-                PortAddress(f.universe).flatMap { frames[$0] }.map { DMXComposer.decode(profile: pr, universe: $0, address: f.address) }
-            } ?? .off
-            return FixtureVisual(id: status == .previewOnly ? "preview-\(roles[i].rawValue)" : f.id.uuidString,
-                                 label: f.label, profileID: f.profileID, role: roles[i], universe: f.universe,
-                                 address: f.address, rgb: levels.rgb, cob: levels.cob, status: status)
+            let levels =
+                profile.flatMap { pr in
+                    PortAddress(f.universe).flatMap { frames[$0] }.map { DMXComposer.decode(profile: pr, universe: $0, address: f.address) }
+                } ?? .off
+            return FixtureVisual(
+                id: status == .previewOnly ? "preview-\(roles[i].rawValue)" : f.id.uuidString,
+                label: f.label, profileID: f.profileID, role: roles[i], universe: f.universe,
+                address: f.address, rgb: levels.rgb, cob: levels.cob, status: status)
         }
     }
 

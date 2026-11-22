@@ -11,13 +11,18 @@ struct TimingTab: View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 8) {
                 InspectorHeading("Spostamento della traccia", detail: "−0,5…+0,5 battiti")
-                NumberStepper(title: "Sposta", value: track.offset, range: -ProgramTrack.maxOffset...ProgramTrack.maxOffset, step: 0.01,
-                              unit: "b", help: "Negativo anticipa, positivo ritarda tutta la traccia. 0,25 battiti = un sedicesimo.") { v in
+                NumberStepper(
+                    title: "Sposta", value: track.offset, range: -ProgramTrack.maxOffset...ProgramTrack.maxOffset, step: 0.01,
+                    unit: "b", help: "Negativo anticipa, positivo ritarda tutta la traccia. 0,25 battiti = un sedicesimo."
+                ) { v in
                     session.editTrack(track.id, "offset") { $0.offset = v }
                 }
-                Slider(value: Binding(get: { track.offset },
-                                      set: { v in session.editTrack(track.id, "offset") { $0.offset = (v * 100).rounded() / 100 } }),
-                       in: -ProgramTrack.maxOffset...ProgramTrack.maxOffset) {
+                Slider(
+                    value: Binding(
+                        get: { track.offset },
+                        set: { v in session.editTrack(track.id, "offset") { $0.offset = (v * 100).rounded() / 100 } }),
+                    in: -ProgramTrack.maxOffset...ProgramTrack.maxOffset
+                ) {
                     EmptyView()
                 } minimumValueLabel: {
                     Text("anticipa").font(.system(size: 10.5)).foregroundStyle(Theme.tertiary)
@@ -39,20 +44,26 @@ struct TimingTab: View {
             }
             VStack(alignment: .leading, spacing: 8) {
                 InspectorHeading("Salita (stile Build)")
-                SegmentedChoice(options: ProgramTrack.rises,
-                                selection: Binding(get: { track.riseBeats }, set: { r in session.editTrack(track.id, nil) { $0.riseBeats = r } }),
-                                label: { $0 == 0 ? "No" : "\($0)" })
-                    .accessibilityLabel("Salita in battiti")
-                Text(track.riseBeats == 0
-                     ? "Nessuna salita: la traccia suona piena da subito."
-                     : "All’avvio della scena la traccia parte al 25% e arriva al pieno in \(track.riseBeats) battiti. Cambia solo il livello: i colpi restano quelli disegnati.")
-                    .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
-                    .fixedSize(horizontal: false, vertical: true)
+                SegmentedChoice(
+                    options: ProgramTrack.rises,
+                    selection: Binding(get: { track.riseBeats }, set: { r in session.editTrack(track.id, nil) { $0.riseBeats = r } }),
+                    label: { $0 == 0 ? "No" : "\($0)" }
+                )
+                .accessibilityLabel("Salita in battiti")
+                Text(
+                    track.riseBeats == 0
+                        ? "Nessuna salita: la traccia suona piena da subito."
+                        : "All’avvio della scena la traccia parte al 25% e arriva al pieno in \(track.riseBeats) battiti. Cambia solo il livello: i colpi restano quelli disegnati."
+                )
+                .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
+                .fixedSize(horizontal: false, vertical: true)
             }
             VStack(alignment: .leading, spacing: 4) {
                 InspectorHeading("Griglia", detail: "si cambia sotto la matrice")
-                Text("Passo \(resolutionTitle(track.stepsPerBeat)) · ciclo \(beatsTitle(track.lengthBeats)) · \(track.activeStepCount) colpi su \(track.stepCount) passi")
-                    .font(.system(size: 12).monospacedDigit()).foregroundStyle(Theme.secondary)
+                Text(
+                    "Passo \(resolutionTitle(track.stepsPerBeat)) · ciclo \(beatsTitle(track.lengthBeats)) · \(track.activeStepCount) colpi su \(track.stepCount) passi"
+                )
+                .font(.system(size: 12).monospacedDigit()).foregroundStyle(Theme.secondary)
             }
         }
     }
@@ -60,7 +71,9 @@ struct TimingTab: View {
     private var offsetText: String {
         if abs(track.offset) < 0.005 { return "Le luci cadono esattamente sui passi." }
         let beats = decimalText(abs(track.offset))
-        return track.offset < 0 ? "Ogni colpo arriva \(beats) battiti prima del passo." : "Ogni colpo arriva \(beats) battiti dopo il passo (swing, colpi in ritardo)."
+        return track.offset < 0
+            ? "Ogni colpo arriva \(beats) battiti prima del passo."
+            : "Ogni colpo arriva \(beats) battiti dopo il passo (swing, colpi in ritardo)."
     }
 }
 
@@ -81,16 +94,21 @@ struct MixTab: View {
             }
             VStack(alignment: .leading, spacing: 8) {
                 InspectorHeading("Colpi deboli")
-                Toggle(isOn: Binding(get: { track.softFollowsEnergy },
-                                     set: { v in session.editTrack(track.id, nil) { $0.softFollowsEnergy = v } })) {
+                Toggle(
+                    isOn: Binding(
+                        get: { track.softFollowsEnergy },
+                        set: { v in session.editTrack(track.id, nil) { $0.softFollowsEnergy = v } })
+                ) {
                     Text("Seguono Energia").font(.system(size: 12.5))
                 }
                 .toggleStyle(.switch)
-                Text(track.softFollowsEnergy
-                     ? "Con Energia bassa i passi deboli si attenuano. I passi forti arrivano sempre al picco."
-                     : "I passi deboli restano al loro livello qualunque sia l’Energia. I passi forti arrivano sempre al picco.")
-                    .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text(
+                    track.softFollowsEnergy
+                        ? "Con Energia bassa i passi deboli si attenuano. I passi forti arrivano sempre al picco."
+                        : "I passi deboli restano al loro livello qualunque sia l’Energia. I passi forti arrivano sempre al picco."
+                )
+                .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
+                .fixedSize(horizontal: false, vertical: true)
             }
             VStack(alignment: .leading, spacing: 8) {
                 InspectorHeading("Traccia")
@@ -107,7 +125,9 @@ struct MixTab: View {
 
     private func blendCard(_ blend: TrackBlend, _ detail: String) -> some View {
         let selected = track.blend == blend
-        return Button { session.editTrack(track.id, nil) { $0.blend = blend } } label: {
+        return Button {
+            session.editTrack(track.id, nil) { $0.blend = blend }
+        } label: {
             VStack(alignment: .leading, spacing: 4) {
                 Text(blend.title).font(.system(size: 13, weight: .semibold))
                 Text(detail).font(.system(size: 11)).foregroundStyle(Theme.secondary)
@@ -117,7 +137,10 @@ struct MixTab: View {
             .padding(10)
             .frame(maxWidth: .infinity, minHeight: 92, alignment: .topLeading)
             .background(RoundedRectangle(cornerRadius: 10).fill(selected ? Theme.lavender.opacity(0.2) : Color.white.opacity(0.04)))
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(selected ? Theme.lavender.opacity(0.9) : Theme.stroke, lineWidth: selected ? 1.5 : 1))
+            .overlay(
+                RoundedRectangle(cornerRadius: 10).strokeBorder(
+                    selected ? Theme.lavender.opacity(0.9) : Theme.stroke, lineWidth: selected ? 1.5 : 1)
+            )
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

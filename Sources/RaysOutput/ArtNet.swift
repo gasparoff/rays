@@ -184,9 +184,11 @@ public struct ArtPollReply: Equatable, Sendable {
         for i in 0..<4 {
             let type = b[174 + i]
             guard type & 0x80 != 0 || type & 0x40 != 0 else { continue }
-            ports.append(Port(index: i, typeByte: type,
-                              portAddress: PortAddress(net: net, subNet: sub, universe: b[190 + i]),
-                              goodOutput: b[182 + i]))
+            ports.append(
+                Port(
+                    index: i, typeByte: type,
+                    portAddress: PortAddress(net: net, subNet: sub, universe: b[190 + i]),
+                    goodOutput: b[182 + i]))
         }
         let mac: [UInt8]? = b.count >= 207 ? Array(b[201..<207]) : nil
         let bindIP: IPv4Address? = b.count >= 211 ? IPv4Address(b[207], b[208], b[209], b[210]) : nil

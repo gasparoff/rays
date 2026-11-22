@@ -30,7 +30,9 @@ struct PatchEditor: View {
         let rest = all.filter { !$0.isVerified }
         let first = rest.filter { builtIn.contains($0.id) || $0.isGeneric }
         let others = rest.filter { !builtIn.contains($0.id) && !$0.isGeneric }.sorted {
-            ($0.manufacturer.lowercased(), $0.name.lowercased(), $0.footprint) < ($1.manufacturer.lowercased(), $1.name.lowercased(), $1.footprint)
+            ($0.manufacturer.lowercased(), $0.name.lowercased(), $0.footprint) < (
+                $1.manufacturer.lowercased(), $1.name.lowercased(), $1.footprint
+            )
         }
         return all.filter(\.isVerified) + first + others
     }
@@ -71,8 +73,10 @@ struct PatchEditor: View {
                     }
                     .buttonStyle(.bordered)
                     .disabled(live.snapshot.readiness != .ready)
-                    Text("Usa il rig salvato e la luminosità generale. Al termine riprende la scena, oppure spegne le luci se prima erano spente.")
-                        .font(note).foregroundStyle(Theme.tertiary)
+                    Text(
+                        "Usa il rig salvato e la luminosità generale. Al termine riprende la scena, oppure spegne le luci se prima erano spente."
+                    )
+                    .font(note).foregroundStyle(Theme.tertiary)
                 }
             }
 
@@ -91,9 +95,11 @@ struct PatchEditor: View {
                         TextField("1–512", value: $startAddress, format: .number)
                             .textFieldStyle(.roundedBorder).frame(width: 60)
                     }
-                    UniversePicker(selection: Binding(get: { universe ?? nodeUniverse }, set: { universe = $0 }),
-                                   nodeUniverses: nodeUniverses)
-                        .frame(width: 210)
+                    UniversePicker(
+                        selection: Binding(get: { universe ?? nodeUniverse }, set: { universe = $0 }),
+                        nodeUniverses: nodeUniverses
+                    )
+                    .frame(width: 210)
                 }
                 HStack {
                     if let p = library.profile(id: profileID) {
@@ -147,8 +153,11 @@ struct PatchEditor: View {
 
             Panel {
                 VStack(alignment: .leading, spacing: 10) {
-                    Toggle(isOn: Binding(get: { draft.isConfirmed(library: model.library) },
-                                         set: { draft.setConfirmed($0, library: model.library) })) {
+                    Toggle(
+                        isOn: Binding(
+                            get: { draft.isConfirmed(library: model.library) },
+                            set: { draft.setConfirmed($0, library: model.library) })
+                    ) {
                         Text("Le luci sono impostate così (Mode DMX, CH Mode, Address)").font(.system(size: 13.5, weight: .semibold))
                     }
                     .toggleStyle(.checkbox)
@@ -156,13 +165,17 @@ struct PatchEditor: View {
                     Text("Ogni modifica annulla la conferma. All’avvio l’uscita resta spenta: si accende con «Attiva luci».")
                         .font(note).foregroundStyle(Theme.tertiary)
                     HStack {
-                        if let saveMessage { Text(saveMessage).font(small).foregroundStyle(Theme.secondary) }
-                        else if dirty || model.usingDefaultPatch { Text("Non salvato").font(small).foregroundStyle(Theme.warn) }
+                        if let saveMessage {
+                            Text(saveMessage).font(small).foregroundStyle(Theme.secondary)
+                        } else if dirty || model.usingDefaultPatch {
+                            Text("Non salvato").font(small).foregroundStyle(Theme.warn)
+                        }
                         Spacer()
-                        Button("Annulla modifiche") { draft = model.patch; saveMessage = nil }.disabled(!dirty)
+                        Button("Annulla modifiche") {
+                            draft = model.patch; saveMessage = nil
+                        }.disabled(!dirty)
                         Button("Salva") {
-                            do { try model.savePatch(draft); saveMessage = "Salvato." }
-                            catch { saveMessage = error.localizedDescription }
+                            do { try model.savePatch(draft); saveMessage = "Salvato." } catch { saveMessage = error.localizedDescription }
                         }
                         .buttonStyle(.borderedProminent).tint(Theme.good.opacity(0.7))
                         .disabled(!issues.isEmpty || !(dirty || model.usingDefaultPatch))
@@ -240,8 +253,10 @@ struct CustomProfileEditor: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Mappa canale per canale secondo il manuale della luce. «Valore fisso» serve per es. otturatore aperto; i canali non usati restano a 0.")
-                .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+            Text(
+                "Mappa canale per canale secondo il manuale della luce. «Valore fisso» serve per es. otturatore aperto; i canali non usati restano a 0."
+            )
+            .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
             TextField("Nome profilo", text: $name).textFieldStyle(.roundedBorder).frame(width: 260)
             ForEach(channels.indices, id: \.self) { i in
                 HStack {
@@ -251,21 +266,28 @@ struct CustomProfileEditor: View {
                     }
                     .labelsHidden().frame(width: 220)
                     if channels[i].kind == .constant {
-                        Stepper("Valore \(channels[i].value)", value: Binding(
-                            get: { Int(channels[i].value) }, set: { channels[i].value = UInt8(clamping: $0) }), in: 0...255)
+                        Stepper(
+                            "Valore \(channels[i].value)",
+                            value: Binding(
+                                get: { Int(channels[i].value) }, set: { channels[i].value = UInt8(clamping: $0) }), in: 0...255)
                     }
                     Spacer()
-                    Button { channels.remove(at: i) } label: { Image(systemName: "minus.circle") }
-                        .buttonStyle(.borderless).disabled(channels.count <= 1)
+                    Button {
+                        channels.remove(at: i)
+                    } label: {
+                        Image(systemName: "minus.circle")
+                    }
+                    .buttonStyle(.borderless).disabled(channels.count <= 1)
                 }
             }
             HStack {
                 Button("Aggiungi canale") { channels.append(.init(.ignore)) }.disabled(channels.count >= 64)
                 Spacer()
                 Button("Crea profilo") {
-                    let p = FixtureProfile(id: "custom." + UUID().uuidString.prefix(8).lowercased(), name: name,
-                                           manufacturer: "Personalizzato", mode: "\(channels.count) canali",
-                                           isGeneric: false, isVerified: false, channels: channels)
+                    let p = FixtureProfile(
+                        id: "custom." + UUID().uuidString.prefix(8).lowercased(), name: name,
+                        manufacturer: "Personalizzato", mode: "\(channels.count) canali",
+                        isGeneric: false, isVerified: false, channels: channels)
                     if p.problems.isEmpty { onAdd(p) }
                 }
                 .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)

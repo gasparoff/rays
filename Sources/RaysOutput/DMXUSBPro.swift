@@ -57,7 +57,7 @@ public final class POSIXSerialPort: SerialPort, @unchecked Sendable {
         t.c_cflag &= ~tcflag_t(CSTOPB | CRTSCTS | PARENB)
         cfsetspeed(&t, speed_t(B57600))
         guard tcsetattr(f, TCSANOW, &t) == 0 else { let e = errno; Darwin.close(f); throw SocketError(operation: "tcsetattr", code: e) }
-        _ = fcntl(f, F_SETFL, fcntl(f, F_GETFL) & ~O_NONBLOCK)   // blocking writes from here on
+        _ = fcntl(f, F_SETFL, fcntl(f, F_GETFL) & ~O_NONBLOCK)  // blocking writes from here on
         fd = f
     }
 
@@ -117,8 +117,10 @@ public final class DMXUSBProDriver: OutputDriver {
     public private(set) var availableDevices: [String] = []
     private var lastScan: TimeInterval = -.infinity
 
-    public init(port: SerialPort = POSIXSerialPort(), devices: @escaping () -> [String] = { DMXUSBPro.candidateDevices() },
-                configuration: Configuration = Configuration()) {
+    public init(
+        port: SerialPort = POSIXSerialPort(), devices: @escaping () -> [String] = { DMXUSBPro.candidateDevices() },
+        configuration: Configuration = Configuration()
+    ) {
         self.port = port
         self.devices = devices
         self.configuration = configuration
@@ -175,8 +177,9 @@ public final class DMXUSBProDriver: OutputDriver {
         guard let path = openPath else { return nil }
         let chosen = configuration.universe.flatMap(PortAddress.init) ?? patchUniverses.min()
         guard let chosen else { return nil }
-        return OutputTarget(ip: IPv4Address(0, 0, 0, 0), name: "DMX USB Pro", universes: [chosen],
-                            verified: false, fresh: false, endpoint: path)
+        return OutputTarget(
+            ip: IPv4Address(0, 0, 0, 0), name: "DMX USB Pro", universes: [chosen],
+            verified: false, fresh: false, endpoint: path)
     }
 
     @discardableResult
@@ -188,7 +191,7 @@ public final class DMXUSBProDriver: OutputDriver {
             return true
         } catch {
             sendError = error.localizedDescription
-            close()            // unplugged: the engine reopens it on its retry interval
+            close()  // unplugged: the engine reopens it on its retry interval
             return false
         }
     }
@@ -197,7 +200,9 @@ public final class DMXUSBProDriver: OutputDriver {
         var out: [String] = []
         if let socketError { out.append(socketError) }
         if availableDevices.isEmpty {
-            out.append("Nessun dispositivo /dev/cu.usbserial-* trovato. Le interfacce FTDI (ENTTEC DMX USB Pro, DMXking ultraDMX) usano il driver seriale di macOS.")
+            out.append(
+                "Nessun dispositivo /dev/cu.usbserial-* trovato. Le interfacce FTDI (ENTTEC DMX USB Pro, DMXking ultraDMX) usano il driver seriale di macOS."
+            )
         }
         out.append("DMX USB Pro: un solo universo. L'interfaccia non conferma la ricezione, quindi RAYS non può verificarla.")
         return out

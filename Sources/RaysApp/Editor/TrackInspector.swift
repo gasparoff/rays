@@ -50,12 +50,16 @@ enum InspectorTab: String, CaseIterable, Identifiable {
             return parts.joined(separator: " · ")
         case .hit:
             let shape = HitShapePreset.matching(t)?.title ?? "Personale"
-            return "\(shape) · \(decimalText(t.attack))/\(decimalText(t.hold))/\(decimalText(t.release)) · \(percentText(t.floor))–\(percentText(t.peak))"
+            return
+                "\(shape) · \(decimalText(t.attack))/\(decimalText(t.hold))/\(decimalText(t.release)) · \(percentText(t.floor))–\(percentText(t.peak))"
         case .timing:
-            let shift = abs(t.offset) < 0.005 ? "A tempo" : (t.offset < 0 ? "Anticipo \(signedBeatsText(t.offset))" : "Ritardo \(signedBeatsText(t.offset))")
+            let shift =
+                abs(t.offset) < 0.005
+                ? "A tempo" : (t.offset < 0 ? "Anticipo \(signedBeatsText(t.offset))" : "Ritardo \(signedBeatsText(t.offset))")
             return shift + " · " + (t.riseBeats == 0 ? "nessuna salita" : "Salita \(beatsTitle(t.riseBeats))")
         case .mix:
-            return "\(t.blend.title) · " + (t.softFollowsEnergy ? "Deboli seguono Energia" : "Deboli fissi") + (t.enabled ? "" : " · silenziata")
+            return "\(t.blend.title) · " + (t.softFollowsEnergy ? "Deboli seguono Energia" : "Deboli fissi")
+                + (t.enabled ? "" : " · silenziata")
         }
     }
 }
@@ -82,8 +86,10 @@ struct TrackInspector: View {
                             content(track, palette: state.colors)
                             VStack(spacing: 6) {
                                 ForEach(InspectorTab.allCases.filter { $0 != tab }) { other in
-                                    SummaryRow(symbol: other.symbol, title: other.title, detail: other.summary(track),
-                                               modified: other.isModified(track)) { tab = other }
+                                    SummaryRow(
+                                        symbol: other.symbol, title: other.title, detail: other.summary(track),
+                                        modified: other.isModified(track)
+                                    ) { tab = other }
                                 }
                             }
                         }
@@ -105,7 +111,9 @@ struct TrackInspector: View {
         HStack(spacing: 6) {
             ForEach(InspectorTab.allCases) { item in
                 let selected = item == tab
-                Button { tab = item } label: {
+                Button {
+                    tab = item
+                } label: {
                     HStack(spacing: 5) {
                         Text(item.title).font(.system(size: 13, weight: selected ? .semibold : .medium))
                         if item.isModified(track) {
@@ -113,8 +121,14 @@ struct TrackInspector: View {
                         }
                     }
                     .frame(maxWidth: .infinity, minHeight: 30)
-                    .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(selected ? Theme.lavender.opacity(0.2) : Color.white.opacity(0.04)))
-                    .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(selected ? Theme.lavender.opacity(0.85) : Theme.stroke, lineWidth: selected ? 1.5 : 1))
+                    .background(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous).fill(
+                            selected ? Theme.lavender.opacity(0.2) : Color.white.opacity(0.04))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(
+                            selected ? Theme.lavender.opacity(0.85) : Theme.stroke, lineWidth: selected ? 1.5 : 1)
+                    )
                     .foregroundStyle(selected ? Theme.text : Theme.secondary)
                     .contentShape(Rectangle())
                 }
@@ -140,11 +154,13 @@ struct TrackInspector: View {
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Parametri della traccia").font(.system(size: 17, weight: .semibold))
-            Text(!program.state.hasProgram
-                 ? "La scena usa ancora la coreografia originale: non ci sono tracce da regolare. Scegli a sinistra come iniziare, oppure cambia colori, energia e zone in Impostazioni scena."
-                 : "Nessuna traccia. Aggiungine una sotto la matrice del ritmo.")
-                .font(.system(size: 12)).foregroundStyle(Theme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            Text(
+                !program.state.hasProgram
+                    ? "La scena usa ancora la coreografia originale: non ci sono tracce da regolare. Scegli a sinistra come iniziare, oppure cambia colori, energia e zone in Impostazioni scena."
+                    : "Nessuna traccia. Aggiungine una sotto la matrice del ritmo."
+            )
+            .font(.system(size: 12)).foregroundStyle(Theme.secondary)
+            .fixedSize(horizontal: false, vertical: true)
             Spacer()
         }
         .padding(16)
@@ -214,13 +230,16 @@ private struct RenamePopover: View {
         let track = session.tracks.first { $0.id == trackID }
         VStack(alignment: .leading, spacing: 10) {
             Text("Nome della traccia").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.secondary)
-            TextField("Nome", text: Binding(
-                get: { track?.name ?? "" },
-                set: { name in session.editTrack(trackID, "name") { $0.name = String(name.prefix(ProgramTrack.maxNameLength)) } }))
-                .textFieldStyle(.roundedBorder)
-                .focused($focused)
-                .frame(width: 240)
-                .accessibilityLabel("Nome della traccia")
+            TextField(
+                "Nome",
+                text: Binding(
+                    get: { track?.name ?? "" },
+                    set: { name in session.editTrack(trackID, "name") { $0.name = String(name.prefix(ProgramTrack.maxNameLength)) } })
+            )
+            .textFieldStyle(.roundedBorder)
+            .focused($focused)
+            .frame(width: 240)
+            .accessibilityLabel("Nome della traccia")
             Text("Etichetta musicale (solo nome e icona)").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.secondary)
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 3), spacing: 6) {
                 ForEach(TrackSound.allCases) { sound in

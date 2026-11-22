@@ -4,7 +4,9 @@ import Foundation
 public enum SACNError: Error, Equatable, LocalizedError {
     case invalidUniverse(Int)
     public var errorDescription: String? {
-        switch self { case .invalidUniverse(let u): return "Universo sACN \(u) fuori da 1…63999" }
+        switch self {
+        case .invalidUniverse(let u): return "Universo sACN \(u) fuori da 1…63999"
+        }
     }
 }
 
@@ -39,8 +41,10 @@ public enum SACN {
 
     /// One DMX data packet. `data` holds up to 512 slots (shorter frames are sent as is,
     /// longer ones are truncated); `sourceName` is UTF-8, truncated to 63 bytes + NUL.
-    public static func dataPacket(cid: UUID, sourceName: String, priority: UInt8, sequence: UInt8,
-                                  options: Options = [], universe: UInt16, data: [UInt8]) throws -> [UInt8] {
+    public static func dataPacket(
+        cid: UUID, sourceName: String, priority: UInt8, sequence: UInt8,
+        options: Options = [], universe: UInt16, data: [UInt8]
+    ) throws -> [UInt8] {
         guard universes.contains(universe) else { throw SACNError.invalidUniverse(Int(universe)) }
         let slots = Array(data.prefix(512))
         let total = 126 + slots.count
@@ -59,18 +63,18 @@ public enum SACN {
         name += [UInt8](repeating: 0, count: 64 - name.count)
         p += name
         p.append(min(priority, maxPriority))
-        p += [0x00, 0x00]                 // synchronization address: none
+        p += [0x00, 0x00]  // synchronization address: none
         p.append(sequence)
         p.append(options.rawValue)
         p += be16(universe)
         // DMP layer
         p += flagsAndLength(total - 115)
         p.append(vectorDMPSetProperty)
-        p.append(0xA1)                    // address type & data type
-        p += [0x00, 0x00]                 // first property address
-        p += [0x00, 0x01]                 // address increment
+        p.append(0xA1)  // address type & data type
+        p += [0x00, 0x00]  // first property address
+        p += [0x00, 0x01]  // address increment
         p += be16(UInt16(slots.count + 1))
-        p.append(0x00)                    // DMX512 start code
+        p.append(0x00)  // DMX512 start code
         p += slots
         return p
     }
@@ -136,8 +140,10 @@ public final class SACNDriver: OutputDriver {
     public var onPreferredIdentityChanged: ((String?) -> Void)?
     private var lastInterfaceScan: TimeInterval = -.infinity
 
-    public init(transport: DatagramTransport, interfaces: @escaping () -> [NetworkInterface] = NetworkInterface.current,
-                configuration: Configuration = Configuration()) {
+    public init(
+        transport: DatagramTransport, interfaces: @escaping () -> [NetworkInterface] = NetworkInterface.current,
+        configuration: Configuration = Configuration()
+    ) {
         self.transport = transport
         self.interfaceProvider = interfaces
         self.configuration = configuration
@@ -148,7 +154,7 @@ public final class SACNDriver: OutputDriver {
 
     public func open(queue: DispatchQueue, now: @escaping () -> TimeInterval) {
         do {
-            try transport.open(port: 0, queue: queue) { _, _ in }   // send-only, ephemeral port
+            try transport.open(port: 0, queue: queue) { _, _ in }  // send-only, ephemeral port
             socketError = nil
         } catch {
             socketError = error.localizedDescription
@@ -184,8 +190,9 @@ public final class SACNDriver: OutputDriver {
         switch configuration.mode {
         case .multicast:
             let first = universes.first.flatMap(sacnUniverse) ?? 1
-            return OutputTarget(ip: SACN.multicastAddress(universe: first), name: "sACN multicast",
-                                universes: universes, verified: false, fresh: false, endpoint: "multicast 239.255.x.x")
+            return OutputTarget(
+                ip: SACN.multicastAddress(universe: first), name: "sACN multicast",
+                universes: universes, verified: false, fresh: false, endpoint: "multicast 239.255.x.x")
         case .unicast:
             guard let ip = configuration.unicastIP else { return nil }
             return OutputTarget(ip: ip, name: "sACN unicast", universes: universes, verified: false, fresh: false)
@@ -201,9 +208,10 @@ public final class SACNDriver: OutputDriver {
             sequences[universe] = seq
             let destination = configuration.mode == .multicast ? SACN.multicastAddress(universe: universe) : target.ip
             do {
-                let packet = try SACN.dataPacket(cid: cid, sourceName: configuration.sourceName,
-                                                 priority: configuration.priority, sequence: seq,
-                                                 universe: universe, data: data)
+                let packet = try SACN.dataPacket(
+                    cid: cid, sourceName: configuration.sourceName,
+                    priority: configuration.priority, sequence: seq,
+                    universe: universe, data: data)
                 try transport.send(packet, to: destination, port: SACN.port)
             } catch {
                 ok = false

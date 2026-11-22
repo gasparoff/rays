@@ -1,0 +1,31 @@
+{
+  "id": "varytec.pad7-rgbwa-5ch",
+  "name": "LED Pad 7 7x10W 5in1 RGBWA",
+  "manufacturer": "Varytec",
+  "mode": "5 CH",
+  "isGeneric": false,
+  "isVerified": false,
+  "notes": "Manuale ufficiale ID 369851 (01.07.2020), p.42 (7.5). R, G, B, W, ambra. Modo 1 CH (selezione colore, p.42) non supportato: RAYS non lo può comandare. Non verificato su hardware.",
+  "channels": [
+    {
+      "kind": "red",
+      "value": 0
+    },
+    {
+      "kind": "green",
+      "value": 0
+    },
+    {
+      "kind": "blue",
+      "value": 0
+    },
+    {
+      "kind": "white",
+      "value": 0
+    },
+    {
+      "kind": "amber",
+      "value": 0
+    }
+  ]
+}

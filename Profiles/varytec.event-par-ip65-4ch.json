@@ -1,0 +1,27 @@
+{
+  "id": "varytec.event-par-ip65-4ch",
+  "name": "Event Par IP65 4in1 14x8W",
+  "manufacturer": "Varytec",
+  "mode": "4 CH",
+  "isGeneric": false,
+  "isVerified": false,
+  "notes": "Manuale ufficiale ID 452127 (06.09.2023), p.33 (7.4). R, G, B, W. Non verificato su hardware.",
+  "channels": [
+    {
+      "kind": "red",
+      "value": 0
+    },
+    {
+      "kind": "green",
+      "value": 0
+    },
+    {
+      "kind": "blue",
+      "value": 0
+    },
+    {
+      "kind": "white",
+      "value": 0
+    }
+  ]
+}

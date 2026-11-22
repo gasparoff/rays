@@ -1,0 +1,27 @@
+{
+  "id": "community.generic.par-rgba-4ch",
+  "name": "Generic LED PAR RGBA",
+  "manufacturer": "Generico",
+  "mode": "4 CH",
+  "isGeneric": true,
+  "isVerified": false,
+  "notes": "Generico: R, G, B, ambra. Copia e adatta questo file per la tua luce.",
+  "channels": [
+    {
+      "kind": "red",
+      "value": 0
+    },
+    {
+      "kind": "green",
+      "value": 0
+    },
+    {
+      "kind": "blue",
+      "value": 0
+    },
+    {
+      "kind": "amber",
+      "value": 0
+    }
+  ]
+}

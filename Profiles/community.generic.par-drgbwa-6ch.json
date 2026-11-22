@@ -1,0 +1,35 @@
+{
+  "id": "community.generic.par-drgbwa-6ch",
+  "name": "Generic LED PAR Dimmer+RGBWA",
+  "manufacturer": "Generico",
+  "mode": "6 CH",
+  "isGeneric": true,
+  "isVerified": false,
+  "notes": "Generico: dimmer, R, G, B, W, ambra. Copia e adatta questo file per la tua luce.",
+  "channels": [
+    {
+      "kind": "dimmer",
+      "value": 0
+    },
+    {
+      "kind": "red",
+      "value": 0
+    },
+    {
+      "kind": "green",
+      "value": 0
+    },
+    {
+      "kind": "blue",
+      "value": 0
+    },
+    {
+      "kind": "white",
+      "value": 0
+    },
+    {
+      "kind": "amber",
+      "value": 0
+    }
+  ]
+}

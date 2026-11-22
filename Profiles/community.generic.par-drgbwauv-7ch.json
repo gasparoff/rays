@@ -1,0 +1,39 @@
+{
+  "id": "community.generic.par-drgbwauv-7ch",
+  "name": "Generic LED PAR Dimmer+RGBWA+UV",
+  "manufacturer": "Generico",
+  "mode": "7 CH",
+  "isGeneric": true,
+  "isVerified": false,
+  "notes": "Generico: dimmer, R, G, B, W, ambra; UV (7) tenuto a 0, RAYS non comanda UV. Copia e adatta questo file per la tua luce.",
+  "channels": [
+    {
+      "kind": "dimmer",
+      "value": 0
+    },
+    {
+      "kind": "red",
+      "value": 0
+    },
+    {
+      "kind": "green",
+      "value": 0
+    },
+    {
+      "kind": "blue",
+      "value": 0
+    },
+    {
+      "kind": "white",
+      "value": 0
+    },
+    {
+      "kind": "amber",
+      "value": 0
+    },
+    {
+      "kind": "ignore",
+      "value": 0
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "community.generic.par-rgbwa-5ch",
+  "name": "Generic LED PAR RGBWA",
+  "manufacturer": "Generico",
+  "mode": "5 CH",
+  "isGeneric": true,
+  "isVerified": false,
+  "notes": "Generico: R, G, B, W, ambra. Copia e adatta questo file per la tua luce.",
+  "channels": [
+    {
+      "kind": "red",
+      "value": 0
+    },
+    {
+      "kind": "green",
+      "value": 0
+    },
+    {
+      "kind": "blue",
+      "value": 0
+    },
+    {
+      "kind": "white",
+      "value": 0
+    },
+    {
+      "kind": "amber",
+      "value": 0
+    }
+  ]
+}

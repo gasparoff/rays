@@ -1,0 +1,39 @@
+{
+  "id": "varytec.event-par-ip65-7ch",
+  "name": "Event Par IP65 4in1 14x8W",
+  "manufacturer": "Varytec",
+  "mode": "7 CH",
+  "isGeneric": false,
+  "isVerified": false,
+  "notes": "Manuale ufficiale ID 452127 (06.09.2023), pp.33–34 (7.5). R, G, B, W, dimmer; strobo (6) e programmi/suono (7) tenuti a 0. Non verificato su hardware.",
+  "channels": [
+    {
+      "kind": "red",
+      "value": 0
+    },
+    {
+      "kind": "green",
+      "value": 0
+    },
+    {
+      "kind": "blue",
+      "value": 0
+    },
+    {
+      "kind": "white",
+      "value": 0
+    },
+    {
+      "kind": "dimmer",
+      "value": 0
+    },
+    {
+      "kind": "ignore",
+      "value": 0
+    },
+    {
+      "kind": "ignore",
+      "value": 0
+    }
+  ]
+}

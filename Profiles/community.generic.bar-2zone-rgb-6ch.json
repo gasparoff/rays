@@ -1,0 +1,35 @@
+{
+  "id": "community.generic.bar-2zone-rgb-6ch",
+  "name": "Generic LED bar, 2 RGB zones",
+  "manufacturer": "Generico",
+  "mode": "6 CH",
+  "isGeneric": true,
+  "isVerified": false,
+  "notes": "Generico: zona 1 R, G, B; zona 2 R, G, B (due segmenti RGB indipendenti). Copia e adatta questo file per la tua luce.",
+  "channels": [
+    {
+      "kind": "red",
+      "value": 0
+    },
+    {
+      "kind": "green",
+      "value": 0
+    },
+    {
+      "kind": "blue",
+      "value": 0
+    },
+    {
+      "kind": "red",
+      "value": 0
+    },
+    {
+      "kind": "green",
+      "value": 0
+    },
+    {
+      "kind": "blue",
+      "value": 0
+    }
+  ]
+}

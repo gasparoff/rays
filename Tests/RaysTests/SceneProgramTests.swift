@@ -6,8 +6,9 @@ final class SceneProgramTests: XCTestCase {
     let red = SceneRGB(r: 1, g: 0, b: 0), green = SceneRGB(r: 0, g: 1, b: 0), blue = SceneRGB(r: 0, g: 0, b: 1)
 
     func scene(_ tracks: [ProgramTrack], base: SceneID = .ambra, baseLevel: Double = 0, slot: SceneID? = nil) -> CustomScene {
-        CustomScene(name: "Test", presetSlot: slot, base: base, colors: [red, green, blue],
-                    program: SceneProgram(baseLevel: baseLevel, tracks: tracks))
+        CustomScene(
+            name: "Test", presetSlot: slot, base: base, colors: [red, green, blue],
+            program: SceneProgram(baseLevel: baseLevel, tracks: tracks))
     }
 
     func render(_ s: CustomScene, beat: Double, phrase: Double? = nil, energy: Double = 1, scene: SceneID? = nil) -> RigFrame {
@@ -15,12 +16,15 @@ final class SceneProgramTests: XCTestCase {
     }
 
     /// Quarter-note kick: steps on every beat, short envelope.
-    func kick(_ target: TrackTarget = .all, motion: TrackMotion = .together, direction: TrackDirection = .forward,
-              steps: [Double] = [1, 1, 1, 1], attack: Double = 0, hold: Double = 0, release: Double = 0.25,
-              spread: Double = 0, offset: Double = 0, color: TrackColor = .first) -> ProgramTrack {
-        ProgramTrack(sound: .kick, stepsPerBeat: 1, lengthBeats: steps.count, steps: steps, offset: offset, target: target,
-                     motion: motion, direction: direction, spread: spread, attack: attack, hold: hold, release: release,
-                     color: color)
+    func kick(
+        _ target: TrackTarget = .all, motion: TrackMotion = .together, direction: TrackDirection = .forward,
+        steps: [Double] = [1, 1, 1, 1], attack: Double = 0, hold: Double = 0, release: Double = 0.25,
+        spread: Double = 0, offset: Double = 0, color: TrackColor = .first
+    ) -> ProgramTrack {
+        ProgramTrack(
+            sound: .kick, stepsPerBeat: 1, lengthBeats: steps.count, steps: steps, offset: offset, target: target,
+            motion: motion, direction: direction, spread: spread, attack: attack, hold: hold, release: release,
+            color: color)
     }
 
     func peak(_ f: RoleFrame) -> Double { f.rgb.map(\.peak).max() ?? 0 }
@@ -28,12 +32,13 @@ final class SceneProgramTests: XCTestCase {
     // MARK: Persistence
 
     func testOldScenesWithoutProgramDecodeAndRenderExactlyAsBefore() throws {
-        let old = Data("""
-        {"version":1,"scenes":[{"id":"6F1C2C0E-4C55-4E4B-9E43-2B7C1B8E2A11","name":"Green","base":"pulse",
-          "colors":[{"r":0,"g":1,"b":0},{"r":0,"g":1,"b":0},{"r":0,"g":1,"b":0}],"energy":0.4,"subdivision":2,
-          "warmth":0.6,"leftLevel":1,"centerLevel":0.8,"rightLevel":1},
-          {"id":"0B4AF1E8-55B5-4C59-9A0B-7E0E0C2F7B10","name":"Ambra mia","presetSlot":"ambra","base":"ambra"}]}
-        """.utf8)
+        let old = Data(
+            """
+            {"version":1,"scenes":[{"id":"6F1C2C0E-4C55-4E4B-9E43-2B7C1B8E2A11","name":"Green","base":"pulse",
+              "colors":[{"r":0,"g":1,"b":0},{"r":0,"g":1,"b":0},{"r":0,"g":1,"b":0}],"energy":0.4,"subdivision":2,
+              "warmth":0.6,"leftLevel":1,"centerLevel":0.8,"rightLevel":1},
+              {"id":"0B4AF1E8-55B5-4C59-9A0B-7E0E0C2F7B10","name":"Ambra mia","presetSlot":"ambra","base":"ambra"}]}
+            """.utf8)
         let scenes = try CustomSceneDocument.decode(old)
         XCTAssertEqual(scenes.count, 2)
         XCTAssertTrue(scenes.allSatisfy { $0.program == nil })
@@ -75,17 +80,18 @@ final class SceneProgramTests: XCTestCase {
     }
 
     func testInvalidValuesAreBoundedAndBrokenTracksDoNotDropTheScene() throws {
-        let json = Data("""
-        [{"name":"Rotta","base":"chase","program":{"version":7,"baseLevel":"x","tracks":[
-          {"name":"\\u0007Cassa lunghissima con un nome che non finisce mai","sound":"kick","stepsPerBeat":3,"lengthBeats":64,
-           "steps":[1,2,-1,0.5],"offset":9,"attack":-1,"hold":1e9,"release":99,"floor":0.9,"peak":0.4,
-           "motion":"spin","direction":"up","color":"neon","blend":"xor","spread":5,"riseBeats":7,
-           "target":{"left":false,"segments":[false],"cobs":[true,true,true,true,true]}},
-          {"sound":"hat","stepsPerBeat":4,"lengthBeats":16},
-          "not a track",
-          {"sound":"bass"},{"sound":"bass"},{"sound":"bass"},{"sound":"bass"},{"sound":"bass"},{"sound":"bass"},{"sound":"bass"}
-        ]}}]
-        """.utf8)
+        let json = Data(
+            """
+            [{"name":"Rotta","base":"chase","program":{"version":7,"baseLevel":"x","tracks":[
+              {"name":"\\u0007Cassa lunghissima con un nome che non finisce mai","sound":"kick","stepsPerBeat":3,"lengthBeats":64,
+               "steps":[1,2,-1,0.5],"offset":9,"attack":-1,"hold":1e9,"release":99,"floor":0.9,"peak":0.4,
+               "motion":"spin","direction":"up","color":"neon","blend":"xor","spread":5,"riseBeats":7,
+               "target":{"left":false,"segments":[false],"cobs":[true,true,true,true,true]}},
+              {"sound":"hat","stepsPerBeat":4,"lengthBeats":16},
+              "not a track",
+              {"sound":"bass"},{"sound":"bass"},{"sound":"bass"},{"sound":"bass"},{"sound":"bass"},{"sound":"bass"},{"sound":"bass"}
+            ]}}]
+            """.utf8)
         let s = try XCTUnwrap(CustomSceneDocument.decode(json).first)
         let p = try XCTUnwrap(s.program)
         XCTAssertEqual(p.version, SceneProgram.currentVersion)
@@ -227,7 +233,7 @@ final class SceneProgramTests: XCTestCase {
         // 8 RGB positions: L, centre 5,4,3,2,1,0, R.
         let forward = scene([kick(motion: .chase, steps: Array(repeating: 1, count: 8), release: 0.2)])
         func lit(_ f: RigFrame) -> [Int] {
-            let all = f.left.rgb + f.center.rgb + f.right.rgb   // L, c0…c5, R
+            let all = f.left.rgb + f.center.rgb + f.right.rgb  // L, c0…c5, R
             return all.indices.filter { all[$0].peak > 0.5 }
         }
         XCTAssertEqual(lit(render(forward, beat: 0)), [0], "hit 1: left")
@@ -237,8 +243,11 @@ final class SceneProgramTests: XCTestCase {
         let backward = scene([kick(motion: .chase, direction: .backward, steps: Array(repeating: 1, count: 8), release: 0.2)])
         XCTAssertEqual(lit(render(backward, beat: 0)), [7])
         XCTAssertEqual(lit(render(backward, beat: 7)), [0])
-        let bounce = scene([ProgramTrack(stepsPerBeat: 1, lengthBeats: 16, steps: Array(repeating: 1, count: 16), target: .sides,
-                                         motion: .chase, direction: .bounce, attack: 0, hold: 0, release: 0.2)])
+        let bounce = scene([
+            ProgramTrack(
+                stepsPerBeat: 1, lengthBeats: 16, steps: Array(repeating: 1, count: 16), target: .sides,
+                motion: .chase, direction: .bounce, attack: 0, hold: 0, release: 0.2)
+        ])
         XCTAssertEqual(lit(render(bounce, beat: 0)), [0]); XCTAssertEqual(lit(render(bounce, beat: 1)), [7])
         XCTAssertEqual(lit(render(bounce, beat: 2)), [0])
         let fromCenter = scene([kick(motion: .chase, direction: .center, steps: Array(repeating: 1, count: 4), release: 0.2)])
@@ -298,8 +307,12 @@ final class SceneProgramTests: XCTestCase {
     }
 
     func testDropKeepsItsDarkDipAndTracksCountFromTheAnchoredDownbeat() {
-        let d = scene([ProgramTrack(stepsPerBeat: 1, lengthBeats: 8, steps: [1, 0, 0, 0, 0, 0, 0, 0], target: .all,
-                                    attack: 0, hold: 0, release: 0.5)], base: .respiro, slot: .respiro)
+        let d = scene(
+            [
+                ProgramTrack(
+                    stepsPerBeat: 1, lengthBeats: 8, steps: [1, 0, 0, 0, 0, 0, 0, 0], target: .all,
+                    attack: 0, hold: 0, release: 0.5)
+            ], base: .respiro, slot: .respiro)
         // Beat 103 is not a multiple of 8: the hit follows the drop (phrase), not the global grid.
         XCTAssertEqual(peak(render(d, beat: 102.8, phrase: -0.2).center), 0, "dip before the drop")
         XCTAssertEqual(peak(render(d, beat: 103, phrase: 0).center), 1, accuracy: 1e-9, "impact on the drop")
@@ -358,10 +371,11 @@ final class SceneProgramTests: XCTestCase {
 
     func testEightFullTracksRenderWellWithinTheFrameBudget() {
         let heavy = (0..<SceneProgram.maxTracks).map { i in
-            ProgramTrack(stepsPerBeat: 4, lengthBeats: 8, steps: Array(repeating: i % 2 == 0 ? 1 : 0.5, count: 32),
-                         target: TrackTarget(color: true, warm: true), motion: TrackMotion.allCases[i % 3],
-                         direction: TrackDirection.allCases[i % 4], spread: 0.3, attack: 4, hold: 4, release: 8,
-                         color: .cycle, blend: i % 2 == 0 ? .max : .add)
+            ProgramTrack(
+                stepsPerBeat: 4, lengthBeats: 8, steps: Array(repeating: i % 2 == 0 ? 1 : 0.5, count: 32),
+                target: TrackTarget(color: true, warm: true), motion: TrackMotion.allCases[i % 3],
+                direction: TrackDirection.allCases[i % 4], spread: 0.3, attack: 4, hold: 4, release: 8,
+                color: .cycle, blend: i % 2 == 0 ? .max : .add)
         }
         let look = SceneLook(scene(heavy, baseLevel: 1))
         var sink = 0.0

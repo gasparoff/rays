@@ -3,6 +3,7 @@ import Darwin
 import Foundation
 import SystemConfiguration
 import RaysOutput
+import RaysEngine
 
 struct WiredAdapter: Identifiable, Equatable {
     let id: String
@@ -23,7 +24,7 @@ final class DirectCableNetwork: ObservableObject {
     @Published private(set) var canRemoveAlias = false
     private var allAddresses: [DirectCablePolicy.Address] = []
     private var automaticAttempts: Set<String> = []
-    private let ownershipKey = "LightSystem.directCableOwnedInterface"
+    private let ownershipKey = DefaultsKey.directCableOwnedInterface
 
     init() { refresh() }
 

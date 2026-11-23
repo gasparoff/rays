@@ -179,6 +179,7 @@
 "Could not prepare Ethernet: %@" = "Impossibile preparare Ethernet: %@";
 "Could not read patch.json: %@. The real patch stays empty." = "Impossibile leggere patch.json: %@. Il patch reale resta vuoto.";
 "Could not save preferences: %@" = "Impossibile salvare le preferenze: %@";
+"Could not save the MIDI map: %@" = "Impossibile salvare la mappa MIDI: %@";
 "Could not set the unreadable file aside: %@" = "Impossibile mettere da parte il file illeggibile: %@";
 "Could not start Beat Link: %@" = "Avvio Beat Link non riuscito: %@";
 "Create profile" = "Crea profilo";

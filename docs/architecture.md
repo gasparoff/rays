@@ -40,7 +40,7 @@ RaysApp  ◄── LinkBridge       SwiftUI app, executable "LightSystem"
 | `RaysTempo` | Foundation | `TempoSource`, `TempoSnapshot`, internal clock, downbeat alignment, tap tempo, Pro DJ Link beat types, MIDI Clock, `TempoSourceRegistry` |
 | `RaysCore` | RaysOutput | Fixtures, patch, profiles, Varytec rig, scenes, choreography, scene programs and editing, custom scenes, sequencer, DMX composer, stage geometry |
 | `RaysControl` | RaysCore | MIDI decoder, `ControlAction`, `MIDIRouter` (Learn, soft takeover, relative encoders), `XoneK2`, LED feedback, `ControllerProfile` |
-| `RaysEngine` | all of the above | `LightEngine` (30 Hz), `ConfigStore`, `Preferences`, `ShowSettings` |
+| `RaysEngine` | all of the above | `LightEngine` (30 Hz), `ShowSession` (show decisions behind the controls, tested with fakes), `ConfigStore`, `Preferences`, `ShowSettings`, `DefaultsKey` |
 | `LinkBridge` | Ableton Link SDK | C API over Link's C++ session state |
 | `RaysApp` | everything, SwiftUI/AppKit/CoreMIDI | The macOS app: `Stage/`, `Editor/`, `Setup/`, `Live/`, `Services/`, `Theme/` |
 | `BeatLinkHelper` | Beat Link (Java) | Child process that prints Pro DJ Link beats as JSON lines |

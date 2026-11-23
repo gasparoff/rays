@@ -46,15 +46,15 @@ final class OutputGateTests: XCTestCase {
 
     /// Every transition, with both readiness answers where it takes one.
     private static let transitions: [(name: String, apply: (inout OutputGate) -> OutputGate.Effects)] = [
-        ("start", { g in _ = g.start(); return [] }),
+        ("start", { $0.startIgnoring() }),
         ("stop", { $0.stop() }),
         ("suspend", { $0.suspend() ?? [] }),
-        ("resume", { g in _ = g.resume(); return [] }),
+        ("resume", { $0.resumeIgnoring() }),
         ("shutdown", { $0.shutdown() }),
         ("output on, ready", { $0.setOutput(true, ready: true) }),
         ("output on, not ready", { $0.setOutput(true, ready: false) }),
         ("output off", { $0.setOutput(false, ready: true) }),
-        ("restore request", { g in g.restoreRequest(); return [] }),
+        ("restore request", { $0.restoreRequestIgnoring() }),
         ("blackout on", { $0.setBlackout(true) }),
         ("blackout off", { $0.setBlackout(false) }),
         ("test, ready", { $0.startDiagnostic(OutputGateTests.red, target: .all, duration: 5, now: 1, ready: true) }),
@@ -99,9 +99,12 @@ final class OutputGateTests: XCTestCase {
             }
 
             var probed = false
+            func ready() -> Bool {
+                probed = true
+                return true
+            }
             let before = gate
-            XCTAssertEqual(
-                gate.startDiagnostic(Self.red, target: .all, duration: 5, now: 0, ready: { probed = true; return true }()), [])
+            XCTAssertEqual(gate.startDiagnostic(Self.red, target: .all, duration: 5, now: 0, ready: ready()), [])
             XCTAssertEqual(gate, before, "\(state): no diagnostic during blackout")
             XCTAssertFalse(probed, "readiness is not even checked during blackout")
 
@@ -259,5 +262,23 @@ final class OutputGateTests: XCTestCase {
         XCTAssertFalse(gate.running)
         XCTAssertFalse(gate.wantsOutput)
         XCTAssertEqual(gate.shutdown(), [])
+    }
+}
+
+extension OutputGate {
+    /// Transitions without effects, shaped like the others for the transition table.
+    fileprivate mutating func startIgnoring() -> Effects {
+        _ = start()
+        return []
+    }
+
+    fileprivate mutating func resumeIgnoring() -> Effects {
+        _ = resume()
+        return []
+    }
+
+    fileprivate mutating func restoreRequestIgnoring() -> Effects {
+        restoreRequest()
+        return []
     }
 }

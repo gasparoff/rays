@@ -1,5 +1,5 @@
 # Common development tasks. Run `make help` to list them.
-.PHONY: help bootstrap test build lint format clean
+.PHONY: help bootstrap test coverage build lint format clean
 
 help: ## List available tasks
 	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-10s %s\n", $$1, $$2}'
@@ -9,6 +9,10 @@ bootstrap: ## Fetch Ableton Link (submodule) and the Beat Link helper
 
 test: ## Run the full test suite
 	swift test --parallel
+
+coverage: ## Run the tests with code coverage and print line coverage per module
+	swift test --parallel --enable-code-coverage
+	Scripts/coverage-summary.sh
 
 build: ## Build dist/RAYS.app
 	Scripts/build-app.sh

@@ -34,38 +34,62 @@ mapping a group's frame onto each fixture's profile with the existing resampling
 ### Data model (RaysCore)
 ```swift
 public struct RigGroupID: Hashable, Codable, Sendable { public var rawValue: String }  // "left", "g-3F2A…"
+public enum FixtureShape: String, Codable, Sendable { case triangle, bar, par, movingHead, generic }
+public struct StagePoint: Codable, Equatable, Sendable { public var x: Double; public var y: Double }
 public struct RigGroup: Codable, Equatable, Sendable {
     public var id: RigGroupID
-    public var name: String          // user-facing, editable
-    public var x: Double             // stage position 0 (left) … 1 (right), drives motion order
-    public var rgbSegments: Int      // 1…64, defaults to the widest member profile
-    public var cobs: Int             // 0…64
+    public var name: String          // user-given, editable
+    public var labelColor: SceneRGB  // colour of the group's label and selection in the UI
+    public var shape: FixtureShape   // every fixture in a group has the same shape kind
+    public var position: StagePoint  // free 2D position on the stage canvas, x and y normalised 0…1
+                                     // (x: left → right, y: back → front); set by dragging
+    public var rotation: Double      // optional drawing hints, degrees / factor; never affect DMX
+    public var scale: Double
+    public var roles: Set<String>    // optional tags scenes can target ("center", "side", "accent")
+    public var master: Double        // per-group intensity master 0…1, replaces the role faders
 }
 public struct RigLayout: Codable, Equatable, Sendable {
-    public var groups: [RigGroup]   // ordered, 1…16
-    public static let classic: RigLayout   // left (x 0, 1/1), center (x 0.5, 6/3), right (x 1, 1/1)
+    public var groups: [RigGroup]           // any number of groups
+    public static let classic: RigLayout    // preset: left (0, 0.5), center (0.5, 0.5), right (1, 0.5)
 }
-public struct RigFrame { public var groups: [RoleFrame] }   // indexed like RigLayout.groups
+public struct RigFrame { public var groups: [GroupFrame] }  // indexed like RigLayout.groups
+public struct GroupFrame { public var fixtures: [RoleFrame] } // one RoleFrame per fixture, sized by profile
 ```
-- `PatchedFixture` gains `group: RigGroupID?`; `Patch` gains `layout: RigLayout?` (nil = `.classic`).
-- `FixtureRole` stays as a thin compatibility type: `RigGroupID.left/.center/.right` are the classic ids,
-  and `RigFrame` keeps `left/center/right` as computed properties over the classic layout while callers move.
-- `RigFrame` storage becomes `[RoleFrame]` sized once per layout change, so the 30 Hz path still writes into
-  preallocated arrays and allocates nothing per frame.
+- A group holds 1 to a few dozen fixtures (`PatchedFixture.group: RigGroupID?`). Segment and COB counts
+  come from each fixture's profile, not from the group, so a 12-zone bar gets 12 zones and a PAR gets 1.
+  An optional `PatchedFixture.offset: StagePoint` spreads fixtures inside their group on the canvas.
+- `Patch` gains `layout: RigLayout?`; nil decodes as `.classic`. Today's three positions are just that
+  layout preset (groups `left`, `center`, `right` with roles `side`/`center`/`side` and today's shapes),
+  kept for saved patches and offered as a starting point. Positions are layout data only: moving a group
+  never changes a DMX byte, only which emitter a spatial ordering reaches first.
+- `FixtureRole` stays as a thin compatibility type mapping to the classic group ids; `RigFrame` keeps
+  `left/center/right` computed accessors while callers migrate.
+- `RigFrame` storage is sized once per layout change, so the 30 Hz path still writes into preallocated
+  arrays and allocates nothing per frame.
 
 ### How scenes address groups
-- The six built-in choreographies are written in **stage coordinates**, not roles: they already think in
-  "edge", "centre", "left to right". Each emitter gets a normalised `(x, ring)` from its group's `x` and
-  segment index (the `SceneLook.rgbX/cobX` tables become a function of the layout). A choreography that
-  today special-cases the centre keeps doing so through "the group nearest x = 0.5" plus "the others".
-- `TrackTarget` becomes a **selector**, not a set of booleans: `all`, `center` (group nearest 0.5),
-  `sides` (all others), `left half`, `right half`, or an explicit list of group ids with optional
-  per-group segment/COB masks. The existing presets (`.centerOnly`, `.sides`, `Preset.left/right`) map
-  1:1 onto selectors, so the editor UI keeps its five buttons for the classic layout.
-- Motion (`TrackMotion.chase`, `TrackDirection.forward/backward/center`) already ranks units by `x`; it
-  works unchanged once units come from the layout instead of the static table.
-- Per-group levels: `CustomScene` and `ShowSettings` store `levels: [RigGroupID: Double]`. MIDI
-  `.level` actions take a group id; the classic three keep their existing faders.
+Scenes never name a physical position. A target is one of:
+- **a role** (`center`, `side`, `all`, or any user tag): resolved against the groups carrying it;
+- **a spatial ordering** computed from group positions: "left to right" (rank by x), "right to left",
+  "back to front" (y), "from the centre out" (distance from the canvas centre), "bounce";
+- **explicit groups** (ids picked on the canvas), with optional per-fixture segment/COB masks.
+
+Each emitter gets a normalised stage point from its group position, fixture offset and segment index; the
+`SceneLook.rgbX/cobX` tables become a function of the layout instead of static data. `TrackMotion.chase` and
+`TrackDirection.forward/backward/center` already rank units by x, so they become spatial orderings
+unchanged. The six built-in choreographies keep their intent ("centre spokes", "edges", "across the stage")
+through roles plus orderings, which is why **existing scenes stay valid with any layout**: on the classic
+preset they render byte-identically, on another layout they follow the same roles and directions.
+`TrackTarget`'s presets (`.centerOnly`, `.sides`, `Preset.left/right`) map 1:1 onto role and ordering
+targets (left/right become "left half"/"right half" of the x ordering).
+
+### Group masters and direct commands
+- Each group has its own intensity master. `ShowSettings` and `CustomScene` store
+  `masters: [RigGroupID: Double]`; the three role faders become N faders generated from the groups, and MIDI
+  `.level` actions take a group id. The global master and blackout stay above everything.
+- Groups can be selected in the preview for direct commands: colour, intensity, flash, solo and mute.
+  These are engine-side overrides keyed by group id, applied after the scene and before the masters, so
+  blackout still wins and nothing is ever written to strobe, macro or program channels.
 
 ### Saved-file compatibility
 Every decoder keeps reading today's keys, as `TrackTarget` and `ShowSettings` already do with `decodeIfPresent`:
@@ -74,9 +98,9 @@ Every decoder keeps reading today's keys, as `TrackTarget` and `ShowSettings` al
 |---|---|---|
 | patch | `role: "left"` / missing | `group = "left"`; missing role keeps `Patch.roles` guessing, now returning classic ids |
 | patch | no `layout` | `RigLayout.classic` |
-| scenes | `leftLevel/centerLevel/rightLevel` | `levels["left"/"center"/"right"]` |
-| scenes | `TrackTarget{left,center,right,segments,cobs}` | selector `groups([...])` with the centre mask on `"center"` |
-| show.json | `levelLeft/Center/Right` | `levels[...]` |
+| scenes | `leftLevel/centerLevel/rightLevel` | `masters["left"/"center"/"right"]` |
+| scenes | `TrackTarget{left,center,right,segments,cobs}` | role/ordering target; centre mask on `"center"` |
+| show.json | `levelLeft/Center/Right` | `masters[...]` |
 | MIDI map | `.level(left)` | `.level(group "left")` |
 
 Writers emit the new keys **and** the old ones while the layout is `.classic`, for one release, so a
@@ -86,30 +110,53 @@ saved, and the existing "file comes from a newer version" path protects older bu
 
 ### Preview
 - The shadow rig is derived from the layout, not from `VarytecRig.referenceRig()`: every group with no
-  patched fixture gets one preview-only placeholder built from a generic profile with the group's segment
-  and COB counts. A classic layout still shows the familiar three lights.
-- `StageLayout` positions fixtures by group `x` and draws a mirror with `rgbSegments` zones (the facet
-  angle already divides by a zone count; it becomes a parameter instead of 6). `isLarge(profileID:)`
-  becomes "segment count above 1" so it no longer depends on a product name.
+  patched fixture gets one preview-only placeholder of the group's shape kind. The classic preset still
+  shows the familiar three lights.
+- `StageLayout` places fixtures by group position, rotation, scale and fixture offset (2D, not a single
+  row) and draws each fixture by its group's `shape`, with as many zones as its profile has segments (the
+  facet angle already divides by a zone count; it becomes a parameter instead of 6). `isLarge(profileID:)`
+  and its `tri380` substring check go away.
 - ADR 0004 is unaffected: the preview still decodes the composed DMX bytes.
+
+## Implications for the UI
+The UI redesign should build on groups from the start, never on `left/center/right`:
+- **Stage canvas.** The preview is a 2D canvas of groups and their fixtures at their stored positions.
+  Dragging a group or a fixture writes `RigGroup.position` / `PatchedFixture.offset` (undoable, saved with
+  the patch); nothing is recomputed on the 30 Hz path except reading the cached `StageLayout`.
+- **Group editing in place.** Select fixtures on the canvas to create or change a group; rename, recolour
+  or reorder groups in a side list. Segment and COB counts come from the profiles, shown per fixture.
+- **Scene editor.** Track targets are picked on the same canvas (click groups, or segments inside a
+  group), or chosen as a role or spatial ordering; the five classic buttons become presets of these. Motion
+  previews follow the real positions.
+- **Live controls.** One master fader per group, generated from the layout, in the group's label colour;
+  MIDI learn binds to a group id. The classic preset shows exactly today's three faders. Selecting groups
+  in the preview opens direct commands (colour, intensity, flash, solo, mute).
+- **Views share one model.** `RigLayout` + `Patch` + `EngineSnapshot` (fixture visuals with group id and
+  position) are everything a view needs, so new views (a compact live view, a large canvas, a scene
+  miniature) can be added without touching RaysCore. The preview stays a decoder of the real DMX bytes
+  (ADR 0004).
 
 ## Incremental plan
 Each step is one small PR, green on its own, with no visible behaviour change until step 6.
 
 1. **Golden frames.** Add a fingerprint test that renders every scene and bank on the classic rig at fixed
    beats and stores the hashes (extend `FingerprintRegressionTests`). Every later step must keep them.
-2. **`RigLayout` and ids.** Add `RigGroupID`, `RigGroup`, `RigLayout.classic`, `Patch.layout` (optional)
-   and `PatchedFixture.group` with decoding tests for old patches. Nothing reads them yet.
-3. **`RigFrame` over an array.** Change storage to `[RoleFrame]` with `left/center/right` computed
+2. **`RigLayout` and ids.** Add `RigGroupID`, `RigGroup` (position, shape, label colour, roles, master),
+   `RigLayout.classic`, optional `Patch.layout` and `PatchedFixture.group` with decoding tests for old
+   patches. Nothing reads them yet.
+3. **`RigFrame` over groups.** Change storage to `[GroupFrame]` with `left/center/right` computed
    accessors and the `FixtureRole` subscript kept. Golden frames unchanged; allocation-free check on the
    30 Hz path.
-4. **Layout-driven emitter table.** Generate `SceneLook.rgbX/cobX` from the layout; `TrackTarget` gains the
-   selector with old-key decoding. Golden frames unchanged.
-5. **Group levels.** `levels: [RigGroupID: Double]` in `CustomScene`, `ShowSettings` and MIDI routing, with
-   dual-key writing and compatibility tests.
+4. **Spatial targets.** Generate `SceneLook.rgbX/cobX` from group positions; `TrackTarget` gains role,
+   ordering and explicit-group targets with old-key decoding. Golden frames unchanged.
+5. **Group masters.** `masters: [RigGroupID: Double]` in `CustomScene`, `ShowSettings` and MIDI routing,
+   with dual-key writing and compatibility tests; then engine-side direct commands per group (colour,
+   intensity, flash, solo, mute) with blackout-wins tests.
 6. **Engine and preview.** `LightEngine` builds frames and the shadow rig from the patch layout;
-   `StageLayout` takes segment counts and `x`. First user-visible change: a patch with an explicit layout.
-7. **Setup UI.** Group editor in Setup (add, rename, reorder, assign fixtures), localized strings in
+   `StageLayout` takes segment counts and 2D positions; `FixtureVisual` carries group id and position.
+   First user-visible change: a patch with an explicit layout.
+7. **Stage canvas UI.** Draggable groups and fixtures in the preview, group editor (add, rename,
+   reorder, assign fixtures), scene targets picked on the canvas, localized strings in
    `it.lproj`. Choreographies tuned for 1, 2, 4 and 5 groups with screenshot-free numeric tests
    (peaks, motion order, no strobe/program channel ever above 0).
 8. **Cleanup.** Deprecate `FixtureRole` in public API once nothing in RaysCore uses it; stop writing the
@@ -134,5 +181,5 @@ Each step is one small PR, green on its own, with no visible behaviour change un
 - More surface to test: choreographies must be checked for several layouts, not one.
 - Old files keep opening; files saved with a non-classic layout do not open in older versions (they are
   refused with the existing "newer version" message, never silently rewritten).
-- The selector replaces booleans in `TrackTarget`, so the scene editor needs a group picker once more than
-  three groups exist.
+- Role and ordering targets replace booleans in `TrackTarget`, so the scene editor needs a canvas picker
+  once more than three groups exist.

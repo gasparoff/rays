@@ -77,7 +77,8 @@ Scenes never name a physical position. A target is one of:
 Each emitter gets a normalised stage point from its group position, fixture offset and segment index; the
 `SceneLook.rgbX/cobX` tables become a function of the layout instead of static data. `TrackMotion.chase` and
 `TrackDirection.forward/backward/center` already rank units by x, so they become spatial orderings
-unchanged. The six built-in choreographies keep their intent ("centre spokes", "edges", "across the stage")
+unchanged; a chase is always computed from each group's real x (and fixture offset), never from patch
+order. The six built-in choreographies keep their intent ("centre spokes", "edges", "across the stage")
 through roles plus orderings, which is why **existing scenes stay valid with any layout**: on the classic
 preset they render byte-identically, on another layout they follow the same roles and directions.
 `TrackTarget`'s presets (`.centerOnly`, `.sides`, `Preset.left/right`) map 1:1 onto role and ordering
@@ -88,8 +89,11 @@ targets (left/right become "left half"/"right half" of the x ordering).
   `masters: [RigGroupID: Double]`; the three role faders become N faders generated from the groups, and MIDI
   `.level` actions take a group id. The global master and blackout stay above everything.
 - Groups can be selected in the preview for direct commands: colour, intensity, flash, solo and mute.
-  These are engine-side overrides keyed by group id, applied after the scene and before the masters, so
-  blackout still wins and nothing is ever written to strobe, macro or program channels.
+  These are engine-side overrides keyed by group id, layered in a fixed order per frame:
+  scene → **per-group colour override** (replaces the scene's colour, keeps its intensity shape) →
+  per-group master → **solo/mute** (solo darkens every non-soloed group, mute darkens the group) →
+  global master → **blackout**. Blackout always wins over every override, and nothing is ever written to
+  strobe, macro or program channels. Overrides are performance state, not saved in scenes.
 
 ### Saved-file compatibility
 Every decoder keeps reading today's keys, as `TrackTarget` and `ShowSettings` already do with `decodeIfPresent`:
@@ -119,7 +123,8 @@ saved, and the existing "file comes from a newer version" path protects older bu
 - ADR 0004 is unaffected: the preview still decodes the composed DMX bytes.
 
 ## Implications for the UI
-The UI redesign should build on groups from the start, never on `left/center/right`:
+The UI redesign proposal builds on groups from the start, never on `left/center/right`; this model is
+what it needs:
 - **Stage canvas.** The preview is a 2D canvas of groups and their fixtures at their stored positions.
   Dragging a group or a fixture writes `RigGroup.position` / `PatchedFixture.offset` (undoable, saved with
   the patch); nothing is recomputed on the 30 Hz path except reading the cached `StageLayout`.
@@ -137,7 +142,9 @@ The UI redesign should build on groups from the start, never on `left/center/rig
   (ADR 0004).
 
 ## Incremental plan
-Each step is one small PR, green on its own, with no visible behaviour change until step 6.
+Each step is one small PR, green on its own. The engine group model comes first (steps 1–6, no visible
+behaviour change on the classic preset); the free-layout stage and per-group faders in the UI come after
+it (steps 7–8).
 
 1. **Golden frames.** Add a fingerprint test that renders every scene and bank on the classic rig at fixed
    beats and stores the hashes (extend `FingerprintRegressionTests`). Every later step must keep them.
@@ -149,17 +156,19 @@ Each step is one small PR, green on its own, with no visible behaviour change un
    30 Hz path.
 4. **Spatial targets.** Generate `SceneLook.rgbX/cobX` from group positions; `TrackTarget` gains role,
    ordering and explicit-group targets with old-key decoding. Golden frames unchanged.
-5. **Group masters.** `masters: [RigGroupID: Double]` in `CustomScene`, `ShowSettings` and MIDI routing,
-   with dual-key writing and compatibility tests; then engine-side direct commands per group (colour,
-   intensity, flash, solo, mute) with blackout-wins tests.
-6. **Engine and preview.** `LightEngine` builds frames and the shadow rig from the patch layout;
-   `StageLayout` takes segment counts and 2D positions; `FixtureVisual` carries group id and position.
-   First user-visible change: a patch with an explicit layout.
-7. **Stage canvas UI.** Draggable groups and fixtures in the preview, group editor (add, rename,
-   reorder, assign fixtures), scene targets picked on the canvas, localized strings in
-   `it.lproj`. Choreographies tuned for 1, 2, 4 and 5 groups with screenshot-free numeric tests
-   (peaks, motion order, no strobe/program channel ever above 0).
-8. **Cleanup.** Deprecate `FixtureRole` in public API once nothing in RaysCore uses it; stop writing the
+5. **Group masters and overrides (engine).** `masters: [RigGroupID: Double]` in `CustomScene`,
+   `ShowSettings` and MIDI routing, with dual-key writing and compatibility tests; engine-side per-group
+   colour override, flash and solo/mute in the order above, with blackout-wins tests.
+6. **Engine and preview model.** `LightEngine` builds frames and the shadow rig from the patch layout;
+   `StageLayout` takes shapes, segment counts and 2D positions; `FixtureVisual` carries group id and
+   position. Choreographies checked on 1, 2, 4 and 5 groups with numeric tests (peaks, chase order by x,
+   no strobe/program channel ever above 0).
+7. **Free-layout stage (UI).** Draggable groups and fixtures on the canvas, group editor (name, label
+   colour, shape, assign fixtures), scene targets picked on the canvas; localized strings in `it.lproj`.
+   First user-visible change.
+8. **Per-group faders and direct commands (UI).** N faders generated from the groups, MIDI learn per
+   group, selection on the canvas for colour, intensity, flash, solo and mute.
+9. **Cleanup.** Deprecate `FixtureRole` in public API once nothing in RaysCore uses it; stop writing the
    old keys after one release.
 
 ## Alternatives considered

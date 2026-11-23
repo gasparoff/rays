@@ -23,7 +23,10 @@ jobs:
       - name: Swift version
         run: swift --version
       - name: Test
-        run: swift test --parallel
+        run: swift test --parallel --enable-code-coverage
+      - name: Coverage summary
+        # Line coverage per module, printed in the log and in the run's summary page. No external service.
+        run: Scripts/coverage-summary.sh
 
   app:
     # Builds RAYS.app without the Beat Link helper so every change yields a runnable app.

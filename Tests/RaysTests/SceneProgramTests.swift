@@ -364,13 +364,18 @@ final class SceneProgramTests: XCTestCase {
                          color: .cycle, blend: i % 2 == 0 ? .max : .add)
         }
         let look = SceneLook(scene(heavy, baseLevel: 1))
-        let start = ProcessInfo.processInfo.systemUptime
         var sink = 0.0
-        for frame in 0..<300 {
-            let b = 1000 + Double(frame) / 15
-            sink += look.render(.chase, SceneContext(beat: b, phrase: b, energy: 0.5)).center.rgb[0].r
+        // Best of three timed runs of the same 300 frames: a shared CI runner (parallel tests,
+        // coverage instrumentation) can preempt one run, but not make the code itself slower.
+        var perFrame = Double.infinity
+        for _ in 0..<3 {
+            let start = ProcessInfo.processInfo.systemUptime
+            for frame in 0..<300 {
+                let b = 1000 + Double(frame) / 15
+                sink += look.render(.chase, SceneContext(beat: b, phrase: b, energy: 0.5)).center.rgb[0].r
+            }
+            perFrame = min(perFrame, (ProcessInfo.processInfo.systemUptime - start) / 300)
         }
-        let perFrame = (ProcessInfo.processInfo.systemUptime - start) / 300
         XCTAssertTrue(sink.isFinite)
         XCTAssertLessThan(perFrame, 0.005, "worst-case program must stay far below the 33 ms frame (debug build)")
     }

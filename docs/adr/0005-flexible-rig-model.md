@@ -34,13 +34,19 @@ mapping a group's frame onto each fixture's profile with the existing resampling
 ### Data model (RaysCore)
 ```swift
 public struct RigGroupID: Hashable, Codable, Sendable { public var rawValue: String }  // "left", "g-3F2A…"
-public enum FixtureShape: String, Codable, Sendable { case triangle, bar, par, movingHead, generic }
+public enum FixtureShape: String, Codable, Sendable {
+    case triangle, par, bar, wash, spot, movingHead, strip, blinder, generic
+}
+public struct FixtureAppearance: Codable, Equatable, Sendable {  // optional "visual" key of a FixtureProfile
+    public var kind: FixtureShape
+    public var zones: ZoneLayout?    // .horizontal, .vertical, .radial (triangle facets), .grid(columns:)
+}
 public struct StagePoint: Codable, Equatable, Sendable { public var x: Double; public var y: Double }
 public struct RigGroup: Codable, Equatable, Sendable {
     public var id: RigGroupID
     public var name: String          // user-given, editable
     public var labelColor: SceneRGB  // colour of the group's label and selection in the UI
-    public var shape: FixtureShape   // every fixture in a group has the same shape kind
+    public var shape: FixtureShape?  // drawing default for placeholders; real fixtures use their profile
     public var position: StagePoint  // free 2D position on the stage canvas, x and y normalised 0…1
                                      // (x: left → right, y: back → front); set by dragging
     public var rotation: Double      // optional drawing hints, degrees / factor; never affect DMX
@@ -55,6 +61,11 @@ public struct RigLayout: Codable, Equatable, Sendable {
 public struct RigFrame { public var groups: [GroupFrame] }  // indexed like RigLayout.groups
 public struct GroupFrame { public var fixtures: [RoleFrame] } // one RoleFrame per fixture, sized by profile
 ```
+- **The preview always looks like the real light.** Appearance belongs to the fixture profile, not to the
+  group: a profile may declare `"visual": {"kind": "bar", "zones": "horizontal"}`. The key is optional, so
+  every existing profile keeps decoding; without it the kind is inferred from the channels (repeated RGB
+  groups → zones in channel order, as `Fixtures.swift` already counts segments; white/blinder channels →
+  white/COB sources) with `par` as fallback. `CommunityProfilesTests` validates the key when present.
 - A group holds 1 to a few dozen fixtures (`PatchedFixture.group: RigGroupID?`). Segment and COB counts
   come from each fixture's profile, not from the group, so a 12-zone bar gets 12 zones and a PAR gets 1.
   An optional `PatchedFixture.offset: StagePoint` spreads fixtures inside their group on the canvas.
@@ -117,7 +128,9 @@ saved, and the existing "file comes from a newer version" path protects older bu
   patched fixture gets one preview-only placeholder of the group's shape kind. The classic preset still
   shows the familiar three lights.
 - `StageLayout` places fixtures by group position, rotation, scale and fixture offset (2D, not a single
-  row) and draws each fixture by its group's `shape`, with as many zones as its profile has segments (the
+  row) and draws each fixture with the renderer of its profile's visual kind (triangle, par, bar, wash,
+  spot/moving head, strip, blinder), colouring each zone and white source from the composed DMX bytes, with
+  as many zones as its profile has segments, in the declared zone order (the
   facet angle already divides by a zone count; it becomes a parameter instead of 6). `isLarge(profileID:)`
   and its `tri380` substring check go away.
 - ADR 0004 is unaffected: the preview still decodes the composed DMX bytes.
@@ -160,8 +173,9 @@ it (steps 7–8).
    `ShowSettings` and MIDI routing, with dual-key writing and compatibility tests; engine-side per-group
    colour override, flash and solo/mute in the order above, with blackout-wins tests.
 6. **Engine and preview model.** `LightEngine` builds frames and the shadow rig from the patch layout;
-   `StageLayout` takes shapes, segment counts and 2D positions; `FixtureVisual` carries group id and
-   position. Choreographies checked on 1, 2, 4 and 5 groups with numeric tests (peaks, chase order by x,
+   `FixtureProfile` gains the optional `visual` key with channel-based inference (tests on every bundled
+   profile); `StageLayout` takes appearances, segment counts and 2D positions; `FixtureVisual` carries
+   group id, position and appearance. Choreographies checked on 1, 2, 4 and 5 groups with numeric tests (peaks, chase order by x,
    no strobe/program channel ever above 0).
 7. **Free-layout stage (UI).** Draggable groups and fixtures on the canvas, group editor (name, label
    colour, shape, assign fixtures), scene targets picked on the canvas; localized strings in `it.lproj`.

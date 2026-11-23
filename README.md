@@ -73,7 +73,10 @@ open dist/RAYS.app
 **No lights yet?** Launch the app anyway: the stage preview runs without any hardware, and the
 internal clock or Tap gives it a tempo.
 
-Ready-to-run downloads will be published on the [Releases](../../releases) page.
+**Just want the app?** Download `RAYS-<version>-macOS-arm64.zip` from the
+[latest release](../../releases/latest) (Apple silicon, macOS 14+), unzip it and move RAYS.app to
+Applications. The build is not notarized yet: the first time, open System Settings → Privacy &
+Security and click **Open Anyway**.
 
 ## Supported hardware
 

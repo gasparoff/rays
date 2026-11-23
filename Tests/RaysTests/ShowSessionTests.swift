@@ -98,7 +98,7 @@ extension ManualSaveScheduler: SaveScheduling {
         scheduled += 1
     }
 
-    func fire() {
+    @MainActor func fire() {
         let work = pending
         pending = nil
         work?()

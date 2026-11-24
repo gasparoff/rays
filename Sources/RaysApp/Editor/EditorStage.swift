@@ -62,23 +62,28 @@ private struct StageOutputBadge: View {
     }
 }
 
-/// One fixture of the preview as the overlay needs it (role and size class only).
+/// One fixture of the preview as the overlay needs it (role and how it is drawn).
 struct StageFixtureKey: Equatable {
     var role: FixtureRole
-    var large: Bool
+    var spec: StageFixtureSpec
 }
 
 private struct EditorLiveStage: View {
     let frames: LiveState
+    @EnvironmentObject private var model: AppModel
     @EnvironmentObject private var live: LiveState
     let target: TrackTarget?
     let onToggleRole: (FixtureRole) -> Void
 
     var body: some View {
         let s = live.snapshot
-        let rig = s.fixtures.map { StageFixtureKey(role: $0.role, large: StageLayout.isLarge(profileID: $0.profileID)) }
+        let rig = s.fixtures.map {
+            StageFixtureKey(
+                role: $0.role,
+                spec: .preview(profileID: $0.profileID, zones: $0.rgb.count, cobs: $0.cob.count, library: model.library))
+        }
         ZStack {
-            LiveStageView(state: frames)
+            LiveStageView(state: frames, library: model.library)
             // Equatable: redrawn only when the rig or the target changes, not at 30 Hz.
             StageTargetOverlay(rig: rig, target: target, onToggleRole: onToggleRole).equatable()
             if s.blackout {
@@ -100,7 +105,7 @@ private struct StageTargetOverlay: View, Equatable {
 
     var body: some View {
         GeometryReader { geo in
-            let layout = StageLayout(size: geo.size, large: rig.map(\.large))
+            let layout = StageLayout(size: geo.size, specs: rig.map(\.spec))
             Canvas { ctx, _ in
                 guard let target else { return }
                 draw(&ctx, layout: layout, target: target)
@@ -144,8 +149,8 @@ private struct StageTargetOverlay: View, Equatable {
             let role = rig[i].role
             let on = selected(role, t)
             let outline = Path { p in
-                p.move(to: outward(f.top, f.center, 9)); p.addLine(to: outward(f.left, f.center, 9))
-                p.addLine(to: outward(f.right, f.center, 9)); p.closeSubpath()
+                p.addLines(f.outline.map { outward($0, f.center, 9) })
+                p.closeSubpath()
             }
             if !on {
                 ctx.stroke(outline, with: .color(Color.white.opacity(0.14)), style: StrokeStyle(lineWidth: 1, dash: [3, 4]))
@@ -155,7 +160,7 @@ private struct StageTargetOverlay: View, Equatable {
             ctx.stroke(
                 outline, with: .color(Theme.lavender.opacity(active ? 0.95 : 0.4)),
                 style: StrokeStyle(lineWidth: 2, lineJoin: .round, dash: active ? [] : [4, 3]))
-            guard role == .center, f.large, f.strips.count >= RigFrame.centerCOBs else { continue }
+            guard role == .center, f.kind == .triangle, f.large, f.strips.count >= RigFrame.centerCOBs else { continue }
             // Centre masks: selected RGB segments as bars outside the edges, selected COBs outlined.
             if t.color {
                 for k in 0..<RigFrame.centerSegments where t.segments[k] {
@@ -197,18 +202,8 @@ private struct StageTargetOverlay: View, Equatable {
     }
 
     private func hit(_ p: CGPoint, layout: StageLayout) -> FixtureRole? {
-        for (i, f) in layout.fixtures.enumerated() where i < rig.count {
-            // Slightly enlarged triangle so the outline and the label area also count.
-            let a = outward(f.top, f.center, 12), b = outward(f.left, f.center, 12), c = outward(f.right, f.center, 12)
-            if inside(p, a, b, c) || abs(p.x - f.labelCenter.x) < f.width * 0.3 && abs(p.y - f.labelCenter.y) < 12 { return rig[i].role }
-        }
-        return nil
-    }
-
-    private func inside(_ p: CGPoint, _ a: CGPoint, _ b: CGPoint, _ c: CGPoint) -> Bool {
-        func side(_ p1: CGPoint, _ p2: CGPoint, _ p3: CGPoint) -> CGFloat { (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y) }
-        let d1 = side(p, a, b), d2 = side(p, b, c), d3 = side(p, c, a)
-        let neg = d1 < 0 || d2 < 0 || d3 < 0, pos = d1 > 0 || d2 > 0 || d3 > 0
-        return !(neg && pos)
+        // A wider margin than the live preview so the outline drawn around each light also counts.
+        guard let i = layout.fixtureIndex(at: p, slop: 12), i < rig.count else { return nil }
+        return rig[i].role
     }
 }

@@ -47,11 +47,15 @@ struct LiveStageView: NSViewRepresentable {
 
 extension StageFixtureSpec {
     /// How the preview draws a light: its profile's own appearance (declared `visual` or inferred from the
-    /// channels); a light with an unknown profile is drawn as a generic lamp with the zones it carries.
-    static func preview(profileID: String?, zones: Int, cobs: Int, library: ProfileLibrary?) -> StageFixtureSpec {
+    /// channels); a light with an unknown profile is drawn with the appearance the engine gives it (a
+    /// preview-only placeholder), or as a generic lamp with the zones it carries.
+    static func preview(
+        profileID: String?, zones: Int, cobs: Int, library: ProfileLibrary?, appearance: FixtureAppearance? = nil
+    ) -> StageFixtureSpec {
         if let profileID, let profile = library?.profile(id: profileID) ?? ProfileLibrary.builtIn.first(where: { $0.id == profileID }) {
             return StageFixtureSpec(profile: profile)
         }
+        if let appearance { return StageFixtureSpec(appearance: appearance, zones: max(1, zones), cobs: cobs) }
         return .unknown(zones: max(1, zones), cobs: cobs)
     }
 }
@@ -71,8 +75,14 @@ final class StageRendererView: NSView {
                     "Preview of the \(String(describing: snapshot.fixtures.count)) lights, drawn as the real fixtures with their colours"
                 )
             }
+            freeLayout = snapshot.freeLayout
             fixtures = snapshot.fixtures
         }
+    }
+
+    /// Place fixtures at their stage positions instead of in a row (a layout other than the classic preset).
+    var freeLayout = false {
+        didSet { if freeLayout != oldValue { needsDisplay = true } }
     }
 
     var fixtures: [FixtureVisual] = [] {
@@ -114,6 +124,8 @@ final class StageRendererView: NSView {
         var profileID: String?
         var zones: Int
         var cobs: Int
+        var appearance: FixtureAppearance?
+        var position: StagePoint?
     }
     var onSelect: ((String?, Bool) -> Void)? {
         didSet { if (onSelect == nil) != (oldValue == nil) { window?.invalidateCursorRects(for: self) } }
@@ -184,11 +196,22 @@ final class StageRendererView: NSView {
     }
 
     private func currentSpecs() -> [StageFixtureSpec] {
-        let key = fixtures.map { SpecKey(profileID: $0.profileID, zones: $0.rgb.count, cobs: $0.cob.count) }
+        let key = fixtures.map {
+            SpecKey(
+                profileID: $0.profileID, zones: $0.rgb.count, cobs: $0.cob.count, appearance: $0.appearance,
+                position: freeLayout ? $0.position : nil)
+        }
         if key != specs.key {
-            specs = (key, key.map { StageFixtureSpec.preview(profileID: $0.profileID, zones: $0.zones, cobs: $0.cobs, library: library) })
+            specs = (key, key.map { Self.spec($0, library: library) })
         }
         return specs.value
+    }
+
+    private static func spec(_ key: SpecKey, library: ProfileLibrary?) -> StageFixtureSpec {
+        var spec = StageFixtureSpec.preview(
+            profileID: key.profileID, zones: key.zones, cobs: key.cobs, library: library, appearance: key.appearance)
+        spec.position = key.position
+        return spec
     }
 
     private func drawFixture(_ ctx: CGContext, _ f: FixtureVisual, index: Int, cache: Cache) {

@@ -54,6 +54,9 @@ public struct SpatialRig: Equatable, Sendable {
     public let xRank: [Int]
     /// Number of distinct group x positions.
     public let xPositions: Int
+    /// How each group takes its light from a classic frame that lacks it (see `fitting`); empty on a
+    /// layout with exactly the classic group ids.
+    let fills: [Fill]
 
     /// The reference rig: classic layout, centre TRI 380 (6 + 3), side TRI 180 (1 + 1).
     public static let classic = SpatialRig(layout: .classic, sizes: .black)
@@ -130,6 +133,7 @@ public struct SpatialRig: Equatable, Sendable {
         for x in xs.sorted() where !distinct.contains(where: { abs($0 - x) <= Self.tolerance }) { distinct.append(x) }
         xRank = xs.map { x in distinct.firstIndex { abs($0 - x) <= Self.tolerance } ?? 0 }
         xPositions = distinct.count
+        fills = Self.fills(groups: groups, rgb: self.rgb, cob: self.cob)
     }
 
     /// Which groups a selection reaches, indexed like `groups`.
@@ -147,5 +151,97 @@ public struct SpatialRig: Equatable, Sendable {
         case .groups(let ids):
             return groups.map { ids.contains($0.id) }
         }
+    }
+}
+
+// MARK: - Frames of the rig (ADR 0005, step 6)
+
+extension SpatialRig {
+    /// One emitter of the classic frame: group index and segment or COB index.
+    struct Slot: Equatable, Sendable {
+        var group: Int
+        var index: Int
+    }
+
+    /// How a group the classic choreographies do not know is lit.
+    enum Fill: Equatable, Sendable {
+        /// Resampled from the classic group at this index: role "center", or "side" by x.
+        case role(Int)
+        /// Every emitter takes the classic emitter nearest to it across the stage.
+        case nearest(rgb: [Slot], cob: [Slot])
+    }
+
+    /// Fills of a layout other than the classic ids. A group tagged with the centre role follows the centre
+    /// light, a side group the left or right light by x; any other group samples the classic emitters by
+    /// position, so the built-in choreographies keep moving across the stage on any layout.
+    static func fills(groups: [Group], rgb: [StageEmitter], cob: [StageEmitter]) -> [Fill] {
+        let classicIDs: [RigGroupID] = [.left, .center, .right]
+        guard groups.map(\.id) != classicIDs else { return [] }
+        let source = SpatialRig.classic
+        func nearest(_ x: Double, in list: [StageEmitter]) -> Slot {
+            var best = list[0]
+            for e in list where abs(e.x - x) < abs(best.x - x) { best = e }
+            return Slot(group: best.group, index: best.index)
+        }
+        func slots(_ emitters: [StageEmitter], group g: Int, count: Int, source list: [StageEmitter]) -> [Slot] {
+            var out = Array(repeating: Slot(group: 0, index: 0), count: count)
+            for e in emitters where e.group == g && e.index < count { out[e.index] = nearest(e.x, in: list) }
+            return out
+        }
+        return groups.enumerated().map { g, group in
+            if group.roles.contains(TrackTarget.centerRole) { return .role(1) }
+            if group.roles.contains(TrackTarget.sideRole) { return .role(group.position.x <= 0.5 ? 0 : 2) }
+            return .nearest(
+                rgb: slots(rgb, group: g, count: group.rgbCount, source: source.rgb),
+                cob: slots(cob, group: g, count: group.cobCount, source: source.cob))
+        }
+    }
+
+    /// Whether `frame` already has this rig's groups, in order, with their segment and COB counts.
+    public func matches(_ frame: RigFrame) -> Bool {
+        guard frame.groups.count == groups.count else { return false }
+        var i = 0
+        while i < groups.count {
+            let light = frame.groups[i].light
+            if frame.groups[i].id != groups[i].id || light.rgb.count != groups[i].rgbCount || light.cob.count != groups[i].cobCount {
+                return false
+            }
+            i += 1
+        }
+        return true
+    }
+
+    /// `frame` in this rig's shape: one group per rig group, sized like the rig.
+    ///
+    /// A frame that already has the shape is returned as it is (the classic rig with a classic
+    /// choreography frame: nothing is copied). Otherwise a group the frame has is resampled to the rig's
+    /// counts (averaged or repeated, as `FixtureLevels.resampled`); a group it lacks is filled from a
+    /// classic frame by role or position (see `fills`), and stays black when `frame` is not classic.
+    public func fitting(_ frame: RigFrame) -> RigFrame {
+        if matches(frame) { return frame }
+        let classic = SpatialRig.classic.matches(frame)
+        var out = black
+        for g in groups.indices {
+            let rgbCount = groups[g].rgbCount, cobCount = groups[g].cobCount
+            if let j = frame.index(of: groups[g].id) {
+                out.groups[g].light = Self.resampled(frame.groups[j].light, rgb: rgbCount, cob: cobCount)
+                continue
+            }
+            guard classic, g < fills.count else { continue }
+            switch fills[g] {
+            case .role(let j):
+                out.groups[g].light = Self.resampled(frame.groups[j].light, rgb: rgbCount, cob: cobCount)
+            case .nearest(let rgbSlots, let cobSlots):
+                for (k, s) in rgbSlots.enumerated() { out.groups[g].light.rgb[k] = frame.groups[s.group].light.rgb[s.index] }
+                for (k, s) in cobSlots.enumerated() { out.groups[g].light.cob[k] = frame.groups[s.group].light.cob[s.index] }
+            }
+        }
+        return out
+    }
+
+    private static func resampled(_ light: RoleFrame, rgb: Int, cob: Int) -> RoleFrame {
+        if light.rgb.count == rgb && light.cob.count == cob { return light }
+        let levels = FixtureLevels(light).resampled(rgbCount: rgb, cobCount: cob)
+        return RoleFrame(rgb: levels.rgb, cob: levels.cob)
     }
 }

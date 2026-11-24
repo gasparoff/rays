@@ -49,13 +49,22 @@ public struct FixtureVisual: Equatable, Identifiable, Sendable {
     /// Per warm COB (TRI 380 25CH: 3, TRI 180: 1; empty if the profile has no white channel).
     public var cob: [Double]
     public var status: Status
+    /// Rig group of the fixture (ADR 0005); nil only for visuals built outside the engine.
+    public var group: RigGroupID?
+    /// Position on the stage canvas: the group's position plus the fixture's offset (fixtures of a group
+    /// without offsets are spread across x, see `PatchRig`). Normalised like `RigGroup.position`.
+    public var position: StagePoint?
+    /// How the fixture is drawn: its profile's appearance, or the placeholder's for a preview-only light.
+    public var appearance: FixtureAppearance?
 
     public init(
         id: String, label: String, profileID: String?, role: FixtureRole, universe: Int, address: Int,
-        rgb: [LightColor], cob: [Double], status: Status
+        rgb: [LightColor], cob: [Double], status: Status, group: RigGroupID? = nil, position: StagePoint? = nil,
+        appearance: FixtureAppearance? = nil
     ) {
         self.id = id; self.label = label; self.profileID = profileID; self.role = role
         self.universe = universe; self.address = address; self.rgb = rgb; self.cob = cob; self.status = status
+        self.group = group; self.position = position; self.appearance = appearance
     }
 
     /// Average RGB (convenience for simple views and tests).
@@ -88,6 +97,9 @@ public struct EngineSnapshot: Equatable, Sendable {
     public var pendingScene: SceneID?
     public var pendingSceneBank: SceneBank?
     public var fixtures: [FixtureVisual] = []
+    /// The patch has a layout other than the classic preset at its classic positions: the preview places
+    /// fixtures at `FixtureVisual.position` instead of in today's row.
+    public var freeLayout = false
     public var isDemo = true
     public var master = 0.8
     public var energy = 0.5

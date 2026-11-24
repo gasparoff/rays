@@ -22,3 +22,33 @@ jobs:
           if [ -z "$files" ]; then echo "No Swift files changed."; exit 0; fi
           echo "$files"
           echo "$files" | xargs swift format lint --strict
+
+  swift-format-debt:
+    # Report only: counts strict findings across the whole tree so the debt is visible before
+    # whole-tree lint becomes mandatory. Never blocks a PR; the changed-files job above does.
+    runs-on: macos-15
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Lint the whole tree (report only)
+        continue-on-error: true
+        run: |
+          set +e +o pipefail
+          swift format lint --strict --recursive --parallel Sources Tests > lint.txt 2>&1
+          status=$?
+          pattern='^[^:]+\.swift:[0-9]+:[0-9]+: (warning|error):'
+          count=$(grep -Ec "$pattern" lint.txt)
+          files=$(grep -E "$pattern" lint.txt | cut -d: -f1 | sort -u | wc -l | tr -d ' ')
+          echo "swift-format exit status $status: $count findings in $files files"
+          {
+            echo "### swift-format debt (whole tree, --strict)"
+            echo
+            echo "**$count** findings in **$files** files (report only, not blocking)."
+            echo
+            echo "| Findings | File |"
+            echo "|---:|---|"
+            grep -E "$pattern" lint.txt | cut -d: -f1 | sort | uniq -c | sort -rn | head -n 25 \
+              | awk '{printf "| %s | `%s` |\n", $1, $2}'
+          } >> "$GITHUB_STEP_SUMMARY"

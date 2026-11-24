@@ -35,8 +35,8 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/real-rig.gif" alt="Three LED triangle fixtures on a DJ table changing colour in time with the music, driven by RAYS" width="480">
-  <br><sub>And on a real rig: RAYS driving LED fixtures during a DJ set.</sub>
+  <img src="docs/images/real-rig.gif" alt="Three LED triangle fixtures on a table changing colour on the beat, driven by RAYS during a test session" width="480">
+  <br><sub>And on a real rig: RAYS driving LED fixtures during a test session.</sub>
 </p>
 
 RAYS turns a Mac into a lighting console that **follows the music by itself**. Plug in an

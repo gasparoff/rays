@@ -9,6 +9,10 @@ project uses [Semantic Versioning](https://semver.org/).
 ### Added
 - Performance faders follow the rig: one level fader per group of lights in the patch, named after the group, and Warm light only when a light has a white channel. The classic three-position rig keeps today's six faders.
 - Customize faders: right-click the faders, or use the slider button in Layout mode, to hide faders or change their order. Master brightness always stays; hidden faders keep their level.
+- Interface language in Setup › Advanced › Language: follow macOS, or pick English or Italian. It applies after a restart, with a Restart now button. New translations in `Localization/` appear there without code changes.
+
+### Fixed
+- Section titles (Shortcuts, Tempo, Scenes…) are now translated like the rest of the interface.
 
 ## [0.2.0] - 2026-11-24
 
@@ -24,6 +28,7 @@ Signed and notarized app, composable Live window, user guide.
 - The stage preview draws every light as it looks, from its profile: PARs with their LED array, bars and pixel strips, LED panels, spots and moving heads on their yoke, blinder cells, besides the Varytec mirrors. Each zone and white emitter is coloured from the DMX values, in the order the profile declares.
 
 ### Changed
+- Smaller, uniform corner radii across the app: one shared scale (10 points for panels, 6 for controls, 4 for chips) instead of values from 3 to 18 and pill shapes. Controls on the same row share one height: the top bar status boxes, Layout, Setup, search and Blackout are all 40 points high.
 - Saved files now live in `~/Library/Application Support/RAYS`. An existing `Light System` folder is moved there on first launch and a link is left at the old path, so nothing is lost and older builds still find it.
 - RAYS appears as "RAYS" on the Pro DJ Link network and in macOS MIDI, instead of the old project name.
 - The app is signed with a Developer ID and notarized by Apple: it opens with a double click, no more Open Anyway ([docs/releasing.md](docs/releasing.md)).

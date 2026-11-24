@@ -176,9 +176,9 @@ private struct StartCard: View {
             }
             .padding(14)
             .frame(maxWidth: .infinity, minHeight: 116, alignment: .topLeading)
-            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(0.05)))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.lavender.opacity(0.35)))
-            .contentShape(RoundedRectangle(cornerRadius: 12))
+            .background(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).fill(Color.white.opacity(0.05)))
+            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).strokeBorder(Theme.lavender.opacity(0.35)))
+            .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.control))
         }
         .buttonStyle(.plain)
         .foregroundStyle(Theme.text)

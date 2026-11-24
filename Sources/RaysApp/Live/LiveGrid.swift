@@ -121,7 +121,7 @@ private struct LayoutEditChrome: ViewModifier {
         content
             .overlay {
                 if store.editing {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous)
                         .strokeBorder(
                             Theme.lavender.opacity(targeted ? 1 : 0.5),
                             style: StrokeStyle(lineWidth: targeted ? 2 : 1, dash: targeted ? [] : [5, 4])
@@ -188,8 +188,8 @@ private struct PanelTools: View {
         .font(.system(size: 11, weight: .semibold))
         .foregroundStyle(Theme.text)
         .padding(3)
-        .background(Capsule().fill(Theme.panelRaised))
-        .overlay(Capsule().strokeBorder(Theme.lavender.opacity(0.5)))
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).fill(Theme.panelRaised))
+        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).strokeBorder(Theme.lavender.opacity(0.5)))
         .shadow(color: .black.opacity(0.5), radius: 8, y: 3)
     }
 
@@ -239,9 +239,9 @@ struct LayoutEditBar: View {
         .buttonStyle(.bordered)
         .controlSize(.small)
         .padding(.horizontal, 14).padding(.vertical, 9)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.lavender.opacity(0.06)))
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).fill(Theme.lavender.opacity(0.06)))
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
                 .strokeBorder(Theme.lavender.opacity(0.45), style: StrokeStyle(lineWidth: 1, dash: [5, 4])))
     }
 }

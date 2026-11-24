@@ -27,7 +27,7 @@ struct StepGrid: View, Equatable {
                     let w = CGFloat(cell.width) * perBeat
                     let gap: CGFloat = w > 16 ? 3 : (w > 7 ? 2 : 1)
                     let rect = CGRect(x: x + gap / 2, y: 3, width: max(1, w - gap), height: size.height - 6)
-                    let shape = Path(roundedRect: rect, cornerRadius: min(5, w / 4))
+                    let shape = Path(roundedRect: rect, cornerRadius: min(Theme.Radius.chip, w / 4))
                     let v = steps[cell.source]
                     let echo = cell.repetition > 0 ? 0.62 : 1.0
                     if v > 0 {

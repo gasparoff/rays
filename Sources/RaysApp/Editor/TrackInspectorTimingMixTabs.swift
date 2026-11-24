@@ -146,9 +146,12 @@ struct MixTab: View {
             }
             .padding(10)
             .frame(maxWidth: .infinity, minHeight: 92, alignment: .topLeading)
-            .background(RoundedRectangle(cornerRadius: 10).fill(selected ? Theme.lavender.opacity(0.2) : Color.white.opacity(0.04)))
+            .background(
+                RoundedRectangle(cornerRadius: Theme.Radius.control).fill(
+                    selected ? Theme.lavender.opacity(0.2) : Color.white.opacity(0.04))
+            )
             .overlay(
-                RoundedRectangle(cornerRadius: 10).strokeBorder(
+                RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(
                     selected ? Theme.lavender.opacity(0.9) : Theme.stroke, lineWidth: selected ? 1.5 : 1)
             )
             .contentShape(Rectangle())

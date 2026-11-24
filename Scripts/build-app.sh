@@ -60,8 +60,11 @@ cp "$BIN_DIR/LightSystem" "$APP/Contents/MacOS/LightSystem"
 find "$ROOT/Controllers" -maxdepth 1 -name '*.json' -exec cp {} "$APP/Contents/Resources/Controllers/" \; 2>/dev/null || true
 
 # Translations (English is the source language in code; see Localization/README.md).
+# Every folder there is a shipped language: it is listed in CFBundleLocalizations below and in Setup.
+LOCALIZATIONS=""
 for lproj in "$ROOT"/Localization/*.lproj; do
   cp -R "$lproj" "$APP/Contents/Resources/"
+  LOCALIZATIONS+="<string>$(basename "$lproj" .lproj)</string>"
 done
 
 cp "Vendor/link/LICENSE.md" "$APP/Contents/Resources/Licenses/AbletonLink-LICENSE.md"
@@ -112,7 +115,7 @@ cat > "$APP/Contents/Info.plist" <<EOF
 <plist version="1.0">
 <dict>
   <key>CFBundleDevelopmentRegion</key><string>en</string>
-  <key>CFBundleLocalizations</key><array><string>en</string><string>it</string></array>
+  <key>CFBundleLocalizations</key><array>$LOCALIZATIONS</array>
   <key>CFBundleDisplayName</key><string>$APP_NAME</string>
   <key>CFBundleName</key><string>$APP_NAME</string>
   <key>CFBundleExecutable</key><string>LightSystem</string>

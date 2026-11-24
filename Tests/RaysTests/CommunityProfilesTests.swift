@@ -27,6 +27,70 @@ final class CommunityProfilesTests: XCTestCase {
         }
     }
 
+    /// The optional `visual` key: an object with a known `kind`, known `zones`, and `columns` (≥ 1) only for a grid.
+    func testVisualKeyIsValidWhenPresent() throws {
+        let enumerator = try XCTUnwrap(FileManager.default.enumerator(at: profilesDirectory, includingPropertiesForKeys: nil))
+        let files = enumerator.compactMap { $0 as? URL }.filter { $0.pathExtension == "json" }
+        let kinds = Set(FixtureShape.allCases.map(\.rawValue))
+        var checked = 0
+        for file in files {
+            let json = try JSONSerialization.jsonObject(with: Data(contentsOf: file))
+            let entries = (json as? [[String: Any]]) ?? [(json as? [String: Any]) ?? [:]]
+            for entry in entries {
+                guard let raw = entry["visual"] else { continue }
+                let name = file.lastPathComponent
+                guard let visual = raw as? [String: Any] else {
+                    XCTFail("\(name): visual must be an object")
+                    continue
+                }
+                checked += 1
+                XCTAssertTrue(Set(visual.keys).isSubset(of: ["kind", "zones", "columns"]), "\(name): unknown visual key")
+                XCTAssertTrue(kinds.contains(visual["kind"] as? String ?? ""), "\(name): unknown visual kind")
+                if let zones = visual["zones"] {
+                    let zoneName = zones as? String ?? ""
+                    XCTAssertTrue(ZoneLayout.names.contains(zoneName), "\(name): unknown zones")
+                    if zoneName == "grid" {
+                        XCTAssertGreaterThanOrEqual(visual["columns"] as? Int ?? 0, 1, "\(name): a grid needs columns")
+                    } else {
+                        XCTAssertNil(visual["columns"], "\(name): columns only apply to a grid")
+                    }
+                } else {
+                    XCTAssertNil(visual["columns"], "\(name): columns only apply to a grid")
+                }
+                let profile = try JSONDecoder().decode(FixtureProfile.self, from: JSONSerialization.data(withJSONObject: entry))
+                XCTAssertNotNil(profile.visual, name)
+            }
+        }
+        XCTAssertGreaterThanOrEqual(checked, 1, "the bar example declares its visual")
+    }
+
+    /// Every bundled profile gets a sensible preview appearance, declared or inferred from its channels.
+    func testEveryBundledProfileHasASensibleAppearance() {
+        let par = FixtureAppearance(kind: .par)
+        let expected: [String: FixtureAppearance] = [
+            "generic.rgb3": par, "generic.rgbw4": par, "generic.drgb4": par, "generic.drgbw5": par,
+            "varytec.tri180.5": VarytecRig.triangle, "varytec.tri180.8": VarytecRig.triangle,
+            "varytec.tri380.5": VarytecRig.triangle, "varytec.tri380.25": VarytecRig.triangle,
+            "community.generic.bar-2zone-rgb-6ch": FixtureAppearance(kind: .bar, zones: .horizontal),
+            "community.generic.par-drgba-5ch": par, "community.generic.par-drgbwa-6ch": par,
+            "community.generic.par-drgbwauv-7ch": par, "community.generic.par-rgba-4ch": par,
+            "community.generic.par-rgbw-6ch": par, "community.generic.par-rgbwa-5ch": par,
+            "varytec.event-par-ip65-4ch": par, "varytec.event-par-ip65-7ch": par, "varytec.event-par-ip65-9ch": par,
+            "varytec.pad7-rgbwa-5ch": par, "varytec.pad7-rgbwa-6ch": par, "varytec.pad7-rgbwa-9ch": par,
+            "varytec.pad7-rgbwauv-10ch": par, "varytec.pad7-rgbwauv-6ch": par, "varytec.pad7-rgbwauv-7ch": par,
+        ]
+        let all = ProfileLibrary.builtIn + ProfileLibrary.loadProfiles(in: profilesDirectory).profiles
+        let listed = all.filter { !$0.id.hasPrefix("ofl.") }
+        XCTAssertEqual(Set(listed.map(\.id)), Set(expected.keys), "add new bundled profiles to this list")
+        for profile in listed { XCTAssertEqual(profile.appearance, expected[profile.id], profile.id) }
+        for profile in all {
+            let look = profile.appearance
+            XCTAssertNotEqual(look.kind, .generic, profile.id)
+            if profile.rgbSegmentCount >= 2 { XCTAssertNotNil(look.zones, "\(profile.id): zones in channel order") }
+            if profile.visual == nil && profile.rgbSegmentCount == 1 { XCTAssertEqual(look, par, profile.id) }
+        }
+    }
+
     /// Strobe, programme, sound and UV channels are mapped to `ignore` and must never leave 0,
     /// whatever the scene asks for; every light channel must respond.
     func testIgnoredChannelsStayAtZeroAndLightChannelsRespond() {

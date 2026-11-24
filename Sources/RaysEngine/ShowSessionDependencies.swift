@@ -41,14 +41,21 @@ public protocol ShowStateStore {
 
 extension ConfigStore: ShowStateStore {}
 
-/// Saved custom scenes and edited presets. `CustomScenesStore` in the app.
+/// Saved custom scenes, edited presets and user banks. `CustomScenesStore` in the app.
 @MainActor
 public protocol ScenePresetStore: AnyObject {
+    /// Built-in banks first, then the user's.
+    var sceneBanks: [SceneBankInfo] { get }
     func preset(_ slot: SceneID, bank: SceneBank) -> CustomScene?
     func scene(id: UUID) -> CustomScene?
     /// Stores the scene and returns the stored (sanitized) copy.
     func upsert(_ scene: CustomScene) -> CustomScene
     func delete(id: UUID)
+    /// Adds a user bank starting from `origin`'s factory scenes; nil when no more banks fit.
+    func addSceneBank(name: String, origin: SceneBank) -> SceneBankInfo?
+    func renameSceneBank(_ id: SceneBank, to name: String)
+    /// Removes a user bank and its pad edits.
+    func deleteSceneBank(_ id: SceneBank)
 }
 
 /// Debounces preference saves: each `schedule` replaces the work still pending.

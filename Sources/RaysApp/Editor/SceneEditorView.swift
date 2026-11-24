@@ -432,7 +432,12 @@ struct SceneSettingsView: View {
 
     private func presetNote(_ d: CustomScene) -> String {
         let gesture = d.presetSlot == .aurora || d.presetSlot == .respiro ? String(localized: ", including the Build → Drop gesture") : ""
-        let bank = d.presetBank == .club ? String(localized: "the Club bank") : String(localized: "the House bank")
+        let bank: String
+        switch d.presetBank {
+        case .club: bank = String(localized: "the Club bank")
+        case .house: bank = String(localized: "the House bank")
+        default: bank = String(localized: "the “\(session.bank?.name ?? "")” bank")
+        }
         return String(
             localized:
                 "Stays in \(String(describing: bank)) on its button and on the K2\(String(describing: gesture)). Rhythm, lights and hit shape remain editable."

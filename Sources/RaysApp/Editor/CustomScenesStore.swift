@@ -2,7 +2,7 @@ import Foundation
 import RaysCore
 import RaysEngine
 
-/// User-created scenes, persisted atomically in Application Support/RAYS/custom-scenes.json.
+/// User-created scenes, pad edits and user banks, persisted atomically in Application Support/RAYS/custom-scenes.json.
 ///
 /// If the file exists but cannot be read (corrupt or written by a newer version), it is never
 /// overwritten automatically: edits stay in memory, `error` explains the problem and
@@ -10,6 +10,8 @@ import RaysEngine
 @MainActor
 final class CustomScenesStore: ObservableObject {
     @Published private(set) var scenes: [CustomScene] = []
+    /// The user's banks (the built-in ones are not stored).
+    @Published private(set) var userBanks: [SceneBankInfo] = []
     @Published private(set) var error: String?
     /// True when the file on disk could not be read and is protected from automatic writes.
     @Published private(set) var fileIsUnreadable = false
@@ -24,16 +26,40 @@ final class CustomScenesStore: ObservableObject {
     }
 
     var personalScenes: [CustomScene] { scenes.filter { $0.presetSlot == nil } }
-    func preset(_ slot: SceneID, bank: SceneBank = .house) -> CustomScene? {
-        scenes.first { $0.presetSlot == slot && $0.presetBank == bank }
+    func preset(_ slot: SceneID, bank: SceneBank = .house) -> CustomScene? { library.preset(slot, bank: bank) }
+
+    var sceneBanks: [SceneBankInfo] { library.allBanks }
+    var canAddSceneBank: Bool { library.canAddBank }
+
+    func addSceneBank(name: String, origin: SceneBank) -> SceneBankInfo? {
+        var next = library
+        guard let bank = next.addBank(name: name, origin: origin) else { return nil }
+        commit(next)
+        return bank
     }
+
+    func renameSceneBank(_ id: SceneBank, to name: String) {
+        var next = library
+        next.renameBank(id, to: name)
+        if next != library { commit(next) }
+    }
+
+    func deleteSceneBank(_ id: SceneBank) {
+        var next = library
+        next.deleteBank(id)
+        if next != library { commit(next) }
+    }
+
+    private var library: SceneLibrary { SceneLibrary(scenes: scenes, banks: userBanks) }
 
     func scene(id: UUID) -> CustomScene? { scenes.first { $0.id == id } }
 
     /// Reloads from disk. On failure the current list is kept as it is.
     func load() {
         do {
-            scenes = try file.load()
+            let loaded = try file.loadLibrary()
+            scenes = loaded.scenes
+            userBanks = loaded.banks
             fileIsUnreadable = false
             hasUnsavedChanges = false
             error = nil
@@ -59,6 +85,11 @@ final class CustomScenesStore: ObservableObject {
     func delete(id: UUID) {
         guard scenes.contains(where: { $0.id == id }) else { return }
         commit(scenes.filter { $0.id != id })
+    }
+
+    private func commit(_ next: SceneLibrary) {
+        userBanks = next.banks
+        commit(next.scenes)
     }
 
     /// Copies a scene with a new id right after the original. Returns the copy.
@@ -113,7 +144,7 @@ final class CustomScenesStore: ObservableObject {
             return
         }
         do {
-            try file.save(scenes)
+            try file.save(library)
             hasUnsavedChanges = false
             error = nil
         } catch {

@@ -59,7 +59,8 @@ public final class ShowSession {
         self.prefs = preferences
         self.showSettings = showSettings
         self.storageErrors = storageErrors
-        self.sceneBank = SceneBank(rawValue: defaults.string(forKey: DefaultsKey.sceneBank) ?? "") ?? .club
+        let saved = SceneBank(rawValue: defaults.string(forKey: DefaultsKey.sceneBank) ?? "")
+        self.sceneBank = saved.flatMap { id in presets.sceneBanks.contains { $0.id == id } ? id : nil } ?? .club
     }
 
     // MARK: Launch
@@ -94,15 +95,16 @@ public final class ShowSession {
     /// Relaunches the custom scene or edited preset that was playing at quit, if it still exists.
     public func restoreLastCustomScene() {
         guard let raw = defaults.string(forKey: DefaultsKey.customScene), let id = UUID(uuidString: raw),
-            let saved = presets.scene(id: id) ?? ClubSceneBank.scene(id: id)
+            let saved = presets.scene(id: id) ?? FactoryScenes.scene(id: id, banks: presets.sceneBanks)
         else { return }
         useCustomScene(saved, immediate: true)
     }
 
     // MARK: Banks and scenes
 
-    /// Browsing banks never launches a scene or changes the shared Link tempo.
+    /// Browsing banks never launches a scene or changes the shared Link tempo. Unknown banks are ignored.
     public func setSceneBank(_ bank: SceneBank) {
+        guard presets.sceneBanks.contains(where: { $0.id == bank }) else { return }
         sceneBank = bank
         defaults.set(bank.rawValue, forKey: DefaultsKey.sceneBank)
         onSceneBankChanged?()
@@ -117,16 +119,23 @@ public final class ShowSession {
 
     public var currentSceneIsInBank: Bool { currentSceneBank == sceneBank }
 
-    public func factoryScene(_ slot: SceneID) -> CustomScene? {
-        sceneBank == .club ? ClubSceneBank.scene(for: slot) : nil
-    }
+    /// The selected bank's name and origin (House if it has just been removed).
+    public var sceneBankInfo: SceneBankInfo { presets.sceneBanks.first { $0.id == sceneBank } ?? .house }
 
-    /// What a pad of the selected bank launches: the user's edit, the Club factory look, or nil (plain scene).
+    /// The pad's original scene in the selected bank.
+    public func factoryScene(_ slot: SceneID) -> CustomScene { FactoryScenes.scene(for: slot, in: sceneBankInfo) }
+
+    /// The scene a pad of the selected bank shows and opens in the editor: the user's edit or the original.
+    public func presetScene(_ slot: SceneID) -> CustomScene { presets.preset(slot, bank: sceneBank) ?? factoryScene(slot) }
+
+    /// What a pad of the selected bank launches: the user's edit, the factory look, or nil for an
+    /// untouched House pad, which plays as it always has (keeping the live Energy, speed and levels).
     public func presetLook(_ slot: SceneID) -> CustomScene? {
-        presets.preset(slot, bank: sceneBank) ?? factoryScene(slot)
+        if let edit = presets.preset(slot, bank: sceneBank) { return edit }
+        return sceneBank == .house ? nil : factoryScene(slot)
     }
 
-    public func sceneTitle(_ slot: SceneID) -> String { presetLook(slot)?.name ?? slot.title }
+    public func sceneTitle(_ slot: SceneID) -> String { presetScene(slot).name }
 
     public func selectScene(_ s: SceneID) {
         sceneCommandID = UUID()
@@ -231,18 +240,22 @@ public final class ShowSession {
 
     // MARK: Presets
 
-    /// The draft the editor opens for a pad: the saved edit or factory look, else the plain scene.
-    public func presetDraft(_ slot: SceneID) -> CustomScene {
-        presetLook(slot)
-            ?? CustomScene(
-                name: slot.title, presetSlot: slot, base: slot, energy: prefs.energy,
-                subdivision: slot == .aurora || slot == .respiro ? .one : prefs.subdivision,
-                masters: showSettings.masters)
+    /// The draft the editor opens for a pad: the saved edit or factory look. An untouched House pad
+    /// opens with the live Energy, speed and levels it plays with.
+    public func presetDraft(_ slot: SceneID) -> CustomScene { presetLook(slot) ?? liveHouseDraft(slot) }
+
+    /// The House factory scene of `slot` with the live controls the plain scene plays with.
+    private func liveHouseDraft(_ slot: SceneID) -> CustomScene {
+        var draft = HouseSceneBank.scene(for: slot)
+        draft.energy = prefs.energy
+        draft.subdivision = slot == .aurora || slot == .respiro ? .one : prefs.subdivision
+        draft.masters = showSettings.masters
+        return draft.sanitized
     }
 
     /// A personal (House) copy of a pad's look, with a new id.
     public func presetCopyDraft(_ slot: SceneID) -> CustomScene {
-        var draft = presetLook(slot) ?? CustomScene(name: slot.title, base: slot)
+        var draft = presetScene(slot)
         draft.id = UUID()
         draft.presetSlot = nil
         draft.presetBank = .house
@@ -270,12 +283,34 @@ public final class ShowSession {
     public func runningSceneDraft() -> CustomScene {
         let playing = snapshot
         if let look = playing.sceneLook ?? (playing.stopped ? previewedCustom : nil) { return look }
-        // A plain playing scene is a House preset, even while the user browses the Club bank.
-        return presets.preset(playing.scene, bank: .house)
-            ?? CustomScene(
-                name: playing.scene.title, presetSlot: playing.scene,
-                presetBank: .house, base: playing.scene, energy: prefs.energy,
-                subdivision: prefs.subdivision, masters: showSettings.masters)
+        // A plain playing scene is a House preset, even while the user browses another bank.
+        if let edit = presets.preset(playing.scene, bank: .house) { return edit }
+        var draft = liveHouseDraft(playing.scene)
+        draft.subdivision = prefs.subdivision
+        return draft
+    }
+
+    // MARK: Banks
+
+    /// Adds a bank whose pads start from `origin`'s scenes and shows it. nil when no more banks fit.
+    @discardableResult
+    public func addSceneBank(name: String, origin: SceneBank) -> SceneBankInfo? {
+        guard let bank = presets.addSceneBank(name: name, origin: origin) else { return nil }
+        setSceneBank(bank.id)
+        return bank
+    }
+
+    public func renameSceneBank(_ id: SceneBank, to name: String) {
+        presets.renameSceneBank(id, to: name)
+        onChange?()
+    }
+
+    /// Removes a user bank and its pad edits. A scene of that bank that is playing keeps playing;
+    /// if the bank was shown, its origin is shown instead.
+    public func deleteSceneBank(_ id: SceneBank) {
+        guard let bank = presets.sceneBanks.first(where: { $0.id == id }), !id.isBuiltIn else { return }
+        presets.deleteSceneBank(id)
+        if sceneBank == id { setSceneBank(bank.origin) }
     }
 
     /// Checkpoints the show so Cancel (or quitting) restores it exactly. False if already editing.

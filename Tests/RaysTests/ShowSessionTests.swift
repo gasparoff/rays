@@ -68,12 +68,20 @@ final class FakeShowStore: ShowStateStore {
 /// Same replacement rule as the app's `CustomScenesStore`: one edit per pad and bank.
 final class FakePresetStore {
     var scenes: [CustomScene] = []
+    var userBanks: [SceneBankInfo] = []
+
+    private var library: SceneLibrary {
+        get { SceneLibrary(scenes: scenes, banks: userBanks) }
+        set { scenes = newValue.scenes; userBanks = newValue.banks }
+    }
 }
 
 extension FakePresetStore: ScenePresetStore {
-    func preset(_ slot: SceneID, bank: SceneBank) -> CustomScene? {
-        scenes.first { $0.presetSlot == slot && $0.presetBank == bank }
-    }
+    var sceneBanks: [SceneBankInfo] { library.allBanks }
+    func addSceneBank(name: String, origin: SceneBank) -> SceneBankInfo? { library.addBank(name: name, origin: origin) }
+    func renameSceneBank(_ id: SceneBank, to name: String) { library.renameBank(id, to: name) }
+    func deleteSceneBank(_ id: SceneBank) { library.deleteBank(id) }
+    func preset(_ slot: SceneID, bank: SceneBank) -> CustomScene? { library.preset(slot, bank: bank) }
     func scene(id: UUID) -> CustomScene? { scenes.first { $0.id == id } }
     func upsert(_ scene: CustomScene) -> CustomScene {
         let clean = scene.sanitized
@@ -285,7 +293,7 @@ final class ShowSessionTests: XCTestCase {
 
         session.setSceneBank(.house)
         XCTAssertNil(session.presetLook(.pulse))
-        XCTAssertNil(session.factoryScene(.pulse))
+        XCTAssertEqual(session.factoryScene(.pulse), HouseSceneBank.scene(for: .pulse), "House pads have a scene model too")
         XCTAssertEqual(session.sceneTitle(.pulse), SceneID.pulse.title)
         engine.calls = []
         session.selectScene(.pulse)
@@ -754,5 +762,61 @@ final class ShowSessionTests: XCTestCase {
         XCTAssertEqual(session.prefs.preferredNodeIdentity, "node-3")
         session.patchDidChange()
         XCTAssertEqual(store.preferences.last?.outputEnabled, false)
+    }
+
+    // MARK: User banks
+
+    func testUserBankPlaysItsOriginsScenesUnderItsOwnIdsAndKeepsItsEdits() throws {
+        let defaults = makeDefaults(bank: "house")
+        let session = makeSession(defaults: defaults)
+        let bank = try XCTUnwrap(session.addSceneBank(name: "  Techno  ", origin: .club))
+        XCTAssertEqual(bank.name, "Techno")
+        XCTAssertEqual(session.sceneBank, bank.id, "a new bank is shown at once")
+        XCTAssertEqual(defaults.string(forKey: DefaultsKey.sceneBank), bank.id.rawValue)
+
+        let pad = try XCTUnwrap(session.presetLook(.pulse))
+        let club = ClubSceneBank.scene(for: .pulse)
+        XCTAssertEqual(pad.program, club.program)
+        XCTAssertEqual(pad.name, club.name)
+        XCTAssertEqual(pad.presetBank, bank.id)
+        XCTAssertNotEqual(pad.id, club.id, "a user bank never shares a pad identity with its origin")
+        XCTAssertEqual(session.presetLook(.pulse)?.id, pad.id, "ids are stable")
+
+        var edit = pad
+        edit.name = "Mio Jack"
+        presets.scenes = [edit]
+        session.selectScene(.pulse)
+        XCTAssertEqual(session.activeCustomSceneID, pad.id)
+        XCTAssertEqual(session.sceneTitle(.pulse), "Mio Jack")
+
+        session.renameSceneBank(bank.id, to: "Peak time")
+        XCTAssertEqual(session.sceneBankInfo.name, "Peak time")
+
+        session.deleteSceneBank(bank.id)
+        XCTAssertTrue(presets.scenes.isEmpty, "the bank's pad edits go with it")
+        XCTAssertEqual(session.sceneBank, .club, "the origin is shown instead")
+        XCTAssertFalse(presets.sceneBanks.contains { $0.id == bank.id })
+    }
+
+    func testBuiltInBanksCannotBeRemovedAndUnknownBanksAreIgnored() throws {
+        let session = makeSession(defaults: makeDefaults(bank: "user-gone"))
+        XCTAssertEqual(session.sceneBank, .club, "a saved bank that no longer exists falls back to Club")
+        session.deleteSceneBank(.house)
+        XCTAssertEqual(presets.sceneBanks.map(\.id), SceneBank.builtIn)
+        session.setSceneBank(try XCTUnwrap(SceneBank(rawValue: "user-missing")))
+        XCTAssertEqual(session.sceneBank, .club)
+    }
+
+    func testUntouchedHousePadStillPlaysThePlainSceneWithTheLiveControls() {
+        var prefs = Preferences()
+        prefs.energy = 0.27
+        let session = makeSession(defaults: makeDefaults(bank: "house"), prefs: prefs)
+        XCTAssertNil(session.presetLook(.ambra))
+        XCTAssertEqual(session.presetScene(.ambra).id, HouseSceneBank.scene(for: .ambra).id)
+        session.selectScene(.ambra)
+        XCTAssertEqual(engine.calls, ["scene ambra look=none immediate=false"])
+        XCTAssertEqual(session.prefs.energy, 0.27, "the live Energy is not replaced")
+        XCTAssertEqual(session.presetDraft(.ambra).id, HouseSceneBank.scene(for: .ambra).id)
+        XCTAssertEqual(session.presetDraft(.ambra).energy, 0.27)
     }
 }

@@ -38,6 +38,8 @@ final class SceneEditorSession: ObservableObject {
 
     let initial: CustomScene
     let isNew: Bool
+    /// The bank of the pad being edited; nil for personal scenes.
+    let bank: SceneBankInfo?
     private(set) var finished = false
     private var history = EditHistory<CustomScene>(limit: 120, coalesceWindow: 1)
     private var previewTask: Task<Void, Never>?
@@ -49,6 +51,7 @@ final class SceneEditorSession: ObservableObject {
 
     init(
         initial: CustomScene?,
+        bank: SceneBankInfo? = nil,
         onPreview: @escaping (CustomScene) -> Void,
         onSave: @escaping (CustomScene) -> Void,
         onCancel: @escaping () -> Void,
@@ -57,6 +60,7 @@ final class SceneEditorSession: ObservableObject {
         let start = (initial ?? CustomScene()).sanitized
         self.initial = start
         isNew = initial == nil
+        self.bank = start.presetSlot == nil ? nil : (bank ?? SceneBankInfo.builtIn.first { $0.id == start.presetBank })
         draft = start
         selection = start.program?.firstPlayingTrack
         navigation = RhythmNavigation(total: RhythmViewport.totalBeats(start.program?.tracks ?? []))
@@ -81,23 +85,25 @@ final class SceneEditorSession: ObservableObject {
     }
 
     /// Musical identity: presets keep their slot and choreography.
-    var presetTitle: String? {
-        draft.presetSlot.map { draft.presetBank == .club ? ClubSceneBank.scene(for: $0).name : $0.title }
-    }
+    var presetTitle: String? { factoryPreset?.name }
 
     var contextTitle: String {
-        guard let slot = draft.presetSlot else {
+        guard let slot = draft.presetSlot, let bank else {
             return isNew ? String(localized: "New personal scene") : String(localized: "Personal scene")
         }
-        return draft.presetBank == .club
-            ? String(localized: "Club preset · key \(String(describing: slotNumber(slot)))")
-            : String(localized: "House preset · key \(String(describing: slotNumber(slot)))")
+        let key = String(describing: slotNumber(slot))
+        switch bank.id {
+        case .club: return String(localized: "Club preset · key \(key)")
+        case .house: return String(localized: "House preset · key \(key)")
+        default: return String(localized: "Preset of “\(bank.name)” · key \(key)")
+        }
     }
 
-    /// Club factory scene for this slot (nil for House presets and personal scenes).
+    /// The pad's original scene in its bank, House included (nil for personal scenes): every pad
+    /// restores to it the same way.
     var factoryPreset: CustomScene? {
-        guard draft.presetBank == .club, let slot = draft.presetSlot else { return nil }
-        return ClubSceneBank.scene(for: slot)
+        guard let slot = draft.presetSlot, let bank else { return nil }
+        return FactoryScenes.scene(for: slot, in: bank)
     }
 
     var originalColors: [SceneRGB] { factoryPreset?.colors ?? CustomScene.defaultColors(for: draft.base) }

@@ -7,7 +7,10 @@ project uses [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Live window layout: press Layout to reorder, resize and hide panels on a 12-column grid, or pick a preset (Classic, Tempo on the right, Big stage, Minimal). The layout is saved; the performance panel with Blackout can't be hidden.
+- Live window layout: press Layout to reorder, resize and hide panels on a 12-column grid, or pick a preset (Classic, Tempo on the right, Big stage, Minimal). The layout is saved; the performance panel can't be hidden.
+- Blackout always in the top bar, with a red frame around the window while it is on.
+- Command search (⌘K): type a few letters of a scene or an action (blackout, lights, banks, layouts, Setup) and press Return.
+- Countdown ring on a queued scene button: it fills until the scene starts on its beat or downbeat.
 
 ### Changed
 - Saved files now live in `~/Library/Application Support/RAYS`. An existing `Light System` folder is moved there on first launch and a link is left at the old path, so nothing is lost and older builds still find it.

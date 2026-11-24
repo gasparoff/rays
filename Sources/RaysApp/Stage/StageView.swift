@@ -5,7 +5,9 @@ import SwiftUI
 import RaysCore
 import RaysEngine
 
-/// Vector model of the faceted triangular mirrors and linear COB strips.
+/// Vector model of the real lights: faceted triangular mirrors with COB strips, PARs with their LED array,
+/// bars and strips with their pixels, LED panels, moving heads on their yoke, blinder cells. Each fixture is
+/// drawn from its profile's appearance (`FixtureProfile.appearance`), zone by zone in the profile's order.
 /// Colors come from the composed DMX bytes; this is an optical approximation,
 /// not a measured photometric simulation. Centre segment orientation needs a rig test.
 ///
@@ -17,6 +19,8 @@ import RaysEngine
 /// values, so a new frame invalidates pixels without invalidating the surrounding SwiftUI layout.
 struct LiveStageView: NSViewRepresentable {
     let state: LiveState
+    /// Profiles of the patched lights, for drawing each one as it looks.
+    var library: ProfileLibrary?
     /// Fixture ids outlined as selected (direct control from the preview).
     var selection: Set<String> = []
     /// Click on a light (its id) or on the empty stage (nil); the flag is true with Shift held.
@@ -29,13 +33,26 @@ struct LiveStageView: NSViewRepresentable {
                 localized:
                     "Colors and warm whites come from the same DMX values. The layout of the six center segments still has to be checked on the TRI 380."
             )
+        view.library = library
         view.follow(state)
         return view
     }
 
     func updateNSView(_ view: StageRendererView, context: Context) {
+        view.library = library
         view.selection = selection
         view.onSelect = onSelect
+    }
+}
+
+extension StageFixtureSpec {
+    /// How the preview draws a light: its profile's own appearance (declared `visual` or inferred from the
+    /// channels); a light with an unknown profile is drawn as a generic lamp with the zones it carries.
+    static func preview(profileID: String?, zones: Int, cobs: Int, library: ProfileLibrary?) -> StageFixtureSpec {
+        if let profileID, let profile = library?.profile(id: profileID) ?? ProfileLibrary.builtIn.first(where: { $0.id == profileID }) {
+            return StageFixtureSpec(profile: profile)
+        }
+        return .unknown(zones: max(1, zones), cobs: cobs)
     }
 }
 
@@ -46,12 +63,12 @@ final class StageRendererView: NSView {
         setAccessibilityElement(true)
         setAccessibilityRole(.image)
         setAccessibilityLabel(
-            "Preview of the \(String(describing: state.snapshot.fixtures.count)) lights: mirrored triangles, RGB zones and warm COB strips")
+            "Preview of the \(String(describing: state.snapshot.fixtures.count)) lights, drawn as the real fixtures with their colours")
         frames = state.$snapshot.sink { [weak self] snapshot in
             guard let self else { return }
             if fixtures.count != snapshot.fixtures.count {
                 setAccessibilityLabel(
-                    "Preview of the \(String(describing: snapshot.fixtures.count)) lights: mirrored triangles, RGB zones and warm COB strips"
+                    "Preview of the \(String(describing: snapshot.fixtures.count)) lights, drawn as the real fixtures with their colours"
                 )
             }
             fixtures = snapshot.fixtures
@@ -80,6 +97,7 @@ final class StageRendererView: NSView {
         let scale: CGFloat
         let ground: CGPath
         let faces: [CGPath]
+        let hardware: [CGPath]
         let facets: [[CGPath]]
         let highlights: [[CGPath]]
         let strips: [[CGPath]]
@@ -88,6 +106,15 @@ final class StageRendererView: NSView {
     }
 
     private var cache: Cache?
+    var library: ProfileLibrary?
+    /// Drawing specs of `fixtures`, rebuilt only when a profile or a zone count changes.
+    private var specs: (key: [SpecKey], value: [StageFixtureSpec]) = ([], [])
+
+    private struct SpecKey: Equatable {
+        var profileID: String?
+        var zones: Int
+        var cobs: Int
+    }
     var onSelect: ((String?, Bool) -> Void)? {
         didSet { if (onSelect == nil) != (oldValue == nil) { window?.invalidateCursorRects(for: self) } }
     }
@@ -123,7 +150,7 @@ final class StageRendererView: NSView {
 
     override func resetCursorRects() {
         guard onSelect != nil, let cache else { return }
-        for face in cache.faces { addCursorRect(face.boundingBox, cursor: .pointingHand) }
+        for path in cache.faces + cache.hardware where !path.isEmpty { addCursorRect(path.boundingBox, cursor: .pointingHand) }
     }
 
     override func viewDidChangeBackingProperties() {
@@ -136,9 +163,9 @@ final class StageRendererView: NSView {
         guard let ctx = NSGraphicsContext.current?.cgContext else { return }
         let device = ctx.userSpaceToDeviceSpaceTransform
         let scale = max(1, (hypot(device.a, device.b) * 4).rounded() / 4)
-        let large = fixtures.map { StageLayout.isLarge(profileID: $0.profileID) }
-        if cache?.layout.size != bounds.size || cache?.layout.large != large || cache?.scale != scale {
-            cache = Self.makeCache(StageLayout(size: bounds.size, large: large), scale: scale)
+        let specs = currentSpecs()
+        if cache?.layout.size != bounds.size || cache?.layout.specs != specs || cache?.scale != scale {
+            cache = Self.makeCache(StageLayout(size: bounds.size, specs: specs), scale: scale)
             window?.invalidateCursorRects(for: self)
         }
         guard let cache else { return }
@@ -156,11 +183,37 @@ final class StageRendererView: NSView {
         }
     }
 
+    private func currentSpecs() -> [StageFixtureSpec] {
+        let key = fixtures.map { SpecKey(profileID: $0.profileID, zones: $0.rgb.count, cobs: $0.cob.count) }
+        if key != specs.key {
+            specs = (key, key.map { StageFixtureSpec.preview(profileID: $0.profileID, zones: $0.zones, cobs: $0.cobs, library: library) })
+        }
+        return specs.value
+    }
+
     private func drawFixture(_ ctx: CGContext, _ f: FixtureVisual, index: Int, cache: Cache) {
         let geometry = cache.layout.fixtures[index]
         let face = cache.faces[index]
-        let avg = LightColor(f.r, f.g, f.b).previewRGB
-        cache.faceGlows[index]?.fill(ctx, color: Self.rgb(avg.r, avg.g, avg.b, 0.43))
+        let mirror = geometry.kind == .triangle
+        var glow = LightColor(f.r, f.g, f.b).previewRGB
+        if !mirror, !f.cob.isEmpty {
+            // RGBW LEDs and blinder cells: their white is part of the halo too.
+            let white = f.cob.reduce(0, +) / Double(f.cob.count)
+            glow = (
+                min(1, glow.r + white * StageLayout.warmWhite.r), min(1, glow.g + white * StageLayout.warmWhite.g),
+                min(1, glow.b + white * StageLayout.warmWhite.b)
+            )
+        }
+        cache.faceGlows[index]?.fill(ctx, color: Self.rgb(glow.r, glow.g, glow.b, 0.43))
+
+        // Yoke, base, bracket or reflector cups: dark metal with a faint rim.
+        ctx.addPath(cache.hardware[index])
+        ctx.setFillColor(Self.white(0.075, 1))
+        ctx.fillPath()
+        ctx.addPath(cache.hardware[index])
+        ctx.setStrokeColor(Self.white(1, 0.1))
+        ctx.setLineWidth(0.8)
+        ctx.strokePath()
 
         ctx.addPath(face)
         ctx.setFillColor(Self.white(0.025, 1))
@@ -170,15 +223,16 @@ final class StageRendererView: NSView {
         ctx.setLineJoin(.miter)
         let facetEdge = Self.rgb(0, 0, 0, 0.65)
         for (i, facet) in geometry.facets.enumerated() {
-            let c = StageLayout.facetColor(StageLayout.zoneColor(f.rgb, segment: facet.segment), reflection: facet.reflection)
+            let c = StageLayout.elementColor(facet, rgb: f.rgb, cob: f.cob)
             let path = cache.facets[index][i]
             ctx.addPath(path)
             ctx.setFillColor(Self.rgb(c.r, c.g, c.b, 1))
             ctx.fillPath()
             ctx.addPath(path)
             ctx.setStrokeColor(facetEdge)
-            ctx.setLineWidth(0.7)
+            ctx.setLineWidth(mirror ? 0.7 : 0.5)
             ctx.strokePath()
+            guard mirror else { continue }
             ctx.addPath(cache.highlights[index][i])
             ctx.setStrokeColor(Self.white(1, 0.055 + facet.reflection * 0.045))
             ctx.setLineWidth(0.6)
@@ -188,11 +242,11 @@ final class StageRendererView: NSView {
         ctx.setLineJoin(.round)
         ctx.addPath(face)
         ctx.setStrokeColor(Self.rgb(0, 0, 0, 1))
-        ctx.setLineWidth(7)
+        ctx.setLineWidth(mirror ? 7 : max(2, min(geometry.width, geometry.height) * 0.05))
         ctx.strokePath()
         ctx.addPath(face)
         ctx.setStrokeColor(Self.white(1, 0.16))
-        ctx.setLineWidth(1.2)
+        ctx.setLineWidth(mirror ? 1.2 : 1)
         ctx.strokePath()
 
         ctx.setLineCap(.round)
@@ -250,20 +304,29 @@ final class StageRendererView: NSView {
     }
 
     private static func makeCache(_ layout: StageLayout, scale: CGFloat) -> Cache {
-        func triangle(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint) -> CGPath {
-            let p = CGMutablePath(); p.move(to: a); p.addLine(to: b); p.addLine(to: c); p.closeSubpath(); return p
+        func polygon(_ points: [CGPoint]) -> CGPath {
+            let p = CGMutablePath()
+            if !points.isEmpty { p.addLines(between: points); p.closeSubpath() }
+            return p
         }
         func line(_ a: CGPoint, _ b: CGPoint) -> CGPath {
             let p = CGMutablePath(); p.move(to: a); p.addLine(to: b); return p
         }
-        let faces = layout.fixtures.map { triangle($0.top, $0.left, $0.right) }
+        let faces = layout.fixtures.map { polygon($0.outline) }
         let strips = layout.fixtures.map { $0.strips.map { line($0.from, $0.to) } }
         return Cache(
             layout: layout, scale: scale,
             ground: line(CGPoint(x: 20, y: layout.floor + 5), CGPoint(x: layout.size.width - 20, y: layout.floor + 5)),
             faces: faces,
-            facets: layout.fixtures.map { $0.facets.map { triangle($0.a, $0.b, $0.c) } },
-            highlights: layout.fixtures.map { $0.facets.map { line($0.a, $0.b) } },
+            hardware: layout.fixtures.map { fixture in
+                let p = CGMutablePath()
+                for part in fixture.hardware { p.addPath(polygon(part)) }
+                return p
+            },
+            facets: layout.fixtures.map { $0.facets.map { polygon($0.points) } },
+            highlights: layout.fixtures.map { fixture in
+                fixture.kind == .triangle ? fixture.facets.map { line($0.a, $0.b) } : []
+            },
             strips: strips,
             faceGlows: zip(layout.fixtures, faces).map { GlowMask(filling: $1, radius: $0.faceGlowRadius, scale: scale) },
             stripGlows: zip(layout.fixtures, strips).map { fixture, paths in

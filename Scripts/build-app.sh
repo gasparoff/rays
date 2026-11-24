@@ -1,5 +1,6 @@
 #!/bin/bash
-# Builds a release "RAYS.app" into dist/ with SwiftPM only, then signs it ad hoc.
+# Builds a release "RAYS.app" into dist/ with SwiftPM only, then signs it: ad hoc by default, or with a
+# Developer ID and the hardened runtime when RAYS_SIGN_IDENTITY is set (release workflow, ready to notarize).
 # No network access, no system configuration changes, no external build tooling.
 set -euo pipefail
 
@@ -14,6 +15,9 @@ BUILD_NUMBER="${RAYS_BUILD_NUMBER:-$(date +%Y%m%d%H%M)}"
 # Pro DJ Link needs the Beat Link helper (Scripts/bootstrap.sh). Without it the app is built
 # anyway and Pro DJ Link is unavailable; set RAYS_REQUIRE_BEATLINK=1 to fail instead.
 REQUIRE_BEATLINK="${RAYS_REQUIRE_BEATLINK:-0}"
+# "Developer ID Application: Name (TEAMID)" from the keychain, or empty for an ad hoc signature.
+SIGN_IDENTITY="${RAYS_SIGN_IDENTITY:-}"
+HELPER_ENTITLEMENTS="$ROOT/Scripts/entitlements/beatlink-helper.entitlements"
 HELPER="Vendor/BeatLinkHelper"
 HAS_BEATLINK=0
 if [ -x "$HELPER/Contents/MacOS/Beat Link Trigger" ]; then HAS_BEATLINK=1; fi
@@ -87,7 +91,10 @@ if [ "$HAS_BEATLINK" = 1 ]; then
   rm -f "$APP/Contents/Resources/BeatLinkHelper/Contents/app/lightsystem.clj"
   cp -R "$HELPER/Licenses" "$APP/Contents/Resources/Licenses/BeatLink"
   # The original launcher signature covers its old configuration; sign our private copy.
-  codesign --force --sign - --timestamp=none "$APP/Contents/Resources/BeatLinkHelper/Contents/MacOS/Beat Link Trigger"
+  # With a Developer ID this happens below, together with the rest of the runtime.
+  if [ -z "$SIGN_IDENTITY" ]; then
+    codesign --force --sign - --timestamp=none "$APP/Contents/Resources/BeatLinkHelper/Contents/MacOS/Beat Link Trigger"
+  fi
 fi
 
 # Original three-triangle icon, kept as-is (never regenerated over).
@@ -128,8 +135,29 @@ cat > "$APP/Contents/Info.plist" <<EOF
 EOF
 plutil -lint "$APP/Contents/Info.plist" >/dev/null
 
-echo "==> Ad hoc signature"
-codesign --force --deep --sign - --timestamp=none "$APP"
-codesign --verify --strict "$APP"
+if [ -z "$SIGN_IDENTITY" ]; then
+  echo "==> Ad hoc signature"
+  codesign --force --deep --sign - --timestamp=none "$APP"
+  codesign --verify --strict "$APP"
+else
+  # Notarization needs every Mach-O signed with the Developer ID, a secure timestamp and the hardened
+  # runtime, from the inside out (no --deep).
+  echo "==> Developer ID signature"
+  sign() { codesign --force --timestamp --options runtime --sign "$SIGN_IDENTITY" "$@"; }
+  HELPER_APP="$APP/Contents/Resources/BeatLinkHelper"
+  if [ -d "$HELPER_APP" ]; then
+    LAUNCHER="$HELPER_APP/Contents/MacOS/Beat Link Trigger"
+    # Libraries and tools of the bundled Java runtime, deepest first.
+    find "$HELPER_APP/Contents" -type f ! -path "$LAUNCHER" -print0 | sort -rz | while IFS= read -r -d '' f; do
+      if file -b "$f" | grep -q 'Mach-O'; then
+        sign --entitlements "$HELPER_ENTITLEMENTS" "$f"
+      fi
+    done
+    if [ -d "$HELPER_APP/Contents/runtime" ]; then sign "$HELPER_APP/Contents/runtime"; fi
+    sign --entitlements "$HELPER_ENTITLEMENTS" "$LAUNCHER"
+  fi
+  sign "$APP"
+  codesign --verify --strict --deep --verbose=2 "$APP"
+fi
 
 echo "Done: $APP"

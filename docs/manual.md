@@ -37,7 +37,8 @@ To build from source instead, see the [Quick start](../README.md#quick-start).
 ## First launch without lights
 
 RAYS opens on the **Live** window with the output off and the show stopped: the last scene is
-selected but nothing moves until you press **Play** (or a scene pad). The stage preview draws your lights from the
+selected but nothing moves until you press **Play** (or a scene pad). **Pause**, next to Play in
+the top bar and in the performance panel, fades to dark and keeps the scene for the next Play. The stage preview draws your lights from the
 exact DMX values RAYS would send, so everything in this guide works without any hardware: you can
 learn the app and design scenes on a laptop.
 

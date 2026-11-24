@@ -109,7 +109,7 @@ struct PerformanceControls: View {
                                     Label("Play", systemImage: "play.fill").font(.system(size: 12, weight: .semibold))
                                     Text("start").font(.system(size: 10)).opacity(0.7)
                                 } else {
-                                    Text("Stop").font(.system(size: 12, weight: .semibold))
+                                    Label("Pause", systemImage: "pause.fill").font(.system(size: 12, weight: .semibold))
                                     Text("fade").font(.system(size: 10)).foregroundStyle(Theme.secondary)
                                 }
                             }
@@ -129,7 +129,7 @@ struct PerformanceControls: View {
                         .help(
                             state.stopped
                                 ? String(localized: "Starts the selected scene on the beat. A scene pad starts that scene.")
-                                : String(localized: "Fades to dark in one beat. Press Play or a scene to start again."))
+                                : String(localized: "Pauses the show: fades to dark in one beat. Play starts the same scene again."))
                     }
                 }
                 .frame(width: 326)

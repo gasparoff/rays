@@ -148,7 +148,7 @@ struct CommandPalette: View {
             list.append(PaletteCommand(id: "play", title: String(localized: "Play"), symbol: "play.fill", run: { model.play() }))
         } else {
             list.append(
-                PaletteCommand(id: "stop", title: String(localized: "Stop and fade out"), symbol: "stop.fill", run: { model.stopShow() }))
+                PaletteCommand(id: "stop", title: String(localized: "Pause and fade out"), symbol: "pause.fill", run: { model.stopShow() }))
         }
         list.append(
             PaletteCommand(

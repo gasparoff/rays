@@ -30,7 +30,7 @@ Signed and notarized app, composable Live window, user guide.
 - The stage preview draws every light as it looks, from its profile: PARs with their LED array, bars and pixel strips, LED panels, spots and moving heads on their yoke, blinder cells, besides the Varytec mirrors. Each zone and white emitter is coloured from the DMX values, in the order the profile declares.
 
 ### Changed
-- RAYS opens with the show stopped: the saved scene is ready but nothing moves until you press Play (in the performance panel or with ⌘K) or a scene pad. After Stop the same button starts the scene again.
+- Play and Pause: RAYS opens with the show paused, the saved scene ready but nothing moving until you press Play (top bar, performance panel or ⌘K) or a scene pad. Pause fades to dark in one beat and Play starts the same scene again on the beat. Blackout stays separate.
 - Smaller, uniform corner radii across the app: one shared scale (10 points for panels, 6 for controls, 4 for chips) instead of values from 3 to 18 and pill shapes. Controls on the same row share one height: the top bar status boxes, Layout, Setup, search and Blackout are all 40 points high.
 - Saved files now live in `~/Library/Application Support/RAYS`. An existing `Light System` folder is moved there on first launch and a link is left at the old path, so nothing is lost and older builds still find it.
 - RAYS appears as "RAYS" on the Pro DJ Link network and in macOS MIDI, instead of the old project name.

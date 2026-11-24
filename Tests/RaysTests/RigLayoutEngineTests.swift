@@ -351,8 +351,8 @@ final class RigLayoutEngineTests: XCTestCase {
                     }
                 }
             }
-            engine.setBlackout(true)
             let before = engine.sync { transport.dmxPackets.count }
+            engine.setBlackout(true)
             clock.now += 1 / 30
             XCTAssertTrue(snapshot(engine).fixtures.allSatisfy(\.isDark), "\(xs.count) groups: blackout")
             let black = engine.sync { Array(transport.dmxPackets.dropFirst(before)) }

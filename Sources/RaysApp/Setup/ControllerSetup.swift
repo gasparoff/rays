@@ -30,10 +30,10 @@ struct ControllerSetup: View {
                             .font(small).foregroundStyle(Theme.good)
                         }
                     }
-                    Picker("Layout", selection: Binding(get: { midi.map.k2Layout }, set: { midi.setLayout($0) })) {
-                        ForEach(XoneK2.Layout.allCases) { layout in Text(layout.label).tag(layout) }
-                    }
-                    .pickerStyle(.segmented).frame(width: 280)
+                    SegmentedChoice(
+                        options: XoneK2.Layout.allCases, selection: Binding(get: { midi.map.k2Layout }, set: { midi.setLayout($0) })
+                    ) { $0.label }
+                    .frame(width: 280)
                     .help("Live v2 follows the console's layout. Controls you assign with Learn take priority.")
                     K2Guide()
                     Text(
@@ -45,10 +45,16 @@ struct ControllerSetup: View {
                     .font(note).foregroundStyle(Theme.tertiary)
                     if let error = midi.error { Text(error).font(note).foregroundStyle(Theme.warn) }
                     if let pickup = midi.pickupMessage { Text(pickup).font(note).foregroundStyle(Theme.amber) }
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 18), GridItem(.flexible())], alignment: .leading, spacing: 8) {
-                        ForEach(ControlAction.allCases) { action in
-                            LearnRow(action: action)
+                    ForEach(ControlGroup.allCases) { group in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(group.label).font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.lavender)
+                            LazyVGrid(
+                                columns: [GridItem(.flexible(), spacing: 18), GridItem(.flexible())], alignment: .leading, spacing: 8
+                            ) {
+                                ForEach(group.actions) { action in LearnRow(action: action) }
+                            }
                         }
+                        .padding(.top, 4)
                     }
                     if let learned = midi.lastLearned {
                         Label(learned, systemImage: "checkmark").font(small).foregroundStyle(Theme.good)
@@ -100,13 +106,18 @@ struct ControllerSetup: View {
             Panel {
                 VStack(alignment: .leading, spacing: 10) {
                     SectionLabel("Beat source")
-                    Picker("Source", selection: Binding(get: { model.prefs.beatSource }, set: { model.setBeatSource($0) })) {
-                        Text("Automatic").tag(BeatSource.auto)
-                        Text("Link only").tag(BeatSource.link)
-                        Text("Console").tag(BeatSource.xdj)
-                        Text("MIDI Clock").tag(BeatSource.midiClock)
+                    SegmentedChoice(
+                        options: [BeatSource.auto, .link, .xdj, .midiClock],
+                        selection: Binding(get: { model.prefs.beatSource }, set: { model.setBeatSource($0) })
+                    ) { source in
+                        switch source {
+                        case .auto: return String(localized: "Automatic")
+                        case .link: return String(localized: "Link only")
+                        case .xdj: return String(localized: "Console")
+                        case .midiClock: return String(localized: "MIDI Clock")
+                        }
                     }
-                    .pickerStyle(.segmented).labelsHidden().frame(width: 360)
+                    .frame(width: 360)
                     .help(
                         String(
                             localized:
@@ -117,12 +128,10 @@ struct ControllerSetup: View {
                         MIDIClockStatus()
                     } else if model.prefs.beatSource != .link {
                         HStack(spacing: 14) {
-                            Picker("Deck", selection: Binding(get: { model.prefs.xdjDeck }, set: { model.setXDJDeck($0) })) {
-                                Text("Auto master").tag(0)
-                                Text("Deck 1").tag(1)
-                                Text("Deck 2").tag(2)
-                            }
-                            .pickerStyle(.segmented).frame(width: 300)
+                            SegmentedChoice(
+                                options: [0, 1, 2], selection: Binding(get: { model.prefs.xdjDeck }, set: { model.setXDJDeck($0) })
+                            ) { $0 == 0 ? String(localized: "Auto master") : String(localized: "Deck \(String(describing: $0))") }
+                            .frame(width: 300)
                             XDJStatusText()
                         }
                         Text(

@@ -26,6 +26,23 @@ struct NetworkSetup: View {
     @ViewBuilder private var artNetSetup: some View {
         let net = live.snapshot.network
         VStack(alignment: .leading, spacing: 18) {
+            HStack {
+                SectionLabel("ENTTEC nodes found")
+                Spacer()
+                Button {
+                    model.rediscover()
+                } label: {
+                    Label("Search again", systemImage: "arrow.clockwise")
+                }
+            }
+            if net.nodes.isEmpty {
+                Text("No ENTTEC node found yet. Connected with a direct cable? Prepare the Mac below.")
+                    .foregroundStyle(Theme.secondary).font(.system(size: 13))
+            }
+            ForEach(net.nodes) { node in
+                NodeRow(node: node, selected: net.selectedID == node.id && net.manualIP == nil)
+            }
+
             Panel {
                 VStack(alignment: .leading, spacing: 10) {
                     SectionLabel("Mac → ENTTEC cable")
@@ -60,22 +77,6 @@ struct NetworkSetup: View {
                             .buttonStyle(.link).font(note).disabled(cable.busy)
                     }
                 }
-            }
-
-            HStack {
-                SectionLabel("ENTTEC nodes found")
-                Spacer()
-                Button {
-                    model.rediscover()
-                } label: {
-                    Label("Search again", systemImage: "arrow.clockwise")
-                }
-            }
-            if net.nodes.isEmpty {
-                Text("No ENTTEC node found yet.").foregroundStyle(Theme.secondary).font(.system(size: 13))
-            }
-            ForEach(net.nodes) { node in
-                NodeRow(node: node, selected: net.selectedID == node.id && net.manualIP == nil)
             }
 
             DisclosureGroup("Manual IP") {

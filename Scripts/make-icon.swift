@@ -1,4 +1,4 @@
-// Generates an .iconset (PNG sizes for iconutil) for RAYS using AppKit only.
+// Generates an .iconset (PNG sizes for iconutil) for Light System using AppKit only.
 // Usage: swift Scripts/make-icon.swift <output.iconset>
 import AppKit
 

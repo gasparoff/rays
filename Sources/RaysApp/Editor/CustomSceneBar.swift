@@ -34,8 +34,8 @@ struct CustomSceneBar: View {
                         .font(.system(size: 12, weight: .semibold))
                         .padding(.horizontal, 12).padding(.vertical, 8)
                         .foregroundStyle(Theme.amber)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.04)))
-                        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.amber.opacity(0.6)))
+                        .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Color.white.opacity(0.04)))
+                        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(Theme.amber.opacity(0.6)))
                 }
                 .buttonStyle(.plain)
                 .help("Choreography, colors, movement and structure on the beat. The preview updates as you work.")
@@ -102,8 +102,10 @@ struct CustomSceneBar: View {
             .help("Edit \(String(describing: scene.name))")
             .accessibilityLabel("Edit \(String(describing: scene.name))")
         }
-        .background(RoundedRectangle(cornerRadius: 8).fill(active ? Theme.amber.opacity(0.18) : Color.white.opacity(0.05)))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(active ? Theme.amber : Theme.stroke))
+        .background(
+            RoundedRectangle(cornerRadius: Theme.Radius.control).fill(active ? Theme.amber.opacity(0.18) : Color.white.opacity(0.05))
+        )
+        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(active ? Theme.amber : Theme.stroke))
         .contextMenu {
             Button("Edit…") { model.beginSceneEditing(scene) }
             Button("Duplicate") { store.duplicate(id: scene.id) }

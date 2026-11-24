@@ -61,9 +61,9 @@ struct SceneMiniatureView: View {
                 }
             }
             .padding(compact ? 6 : 8)
-            .background(RoundedRectangle(cornerRadius: 9).fill(Color.white.opacity(0.025)))
-            .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(Theme.stroke))
-            .contentShape(RoundedRectangle(cornerRadius: 9))
+            .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Color.white.opacity(0.025)))
+            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(Theme.stroke))
+            .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.control))
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Structure of scene \(String(describing: look?.name ?? scene.title))")

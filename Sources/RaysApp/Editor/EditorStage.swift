@@ -14,7 +14,7 @@ struct EditorStagePanel: View {
     var body: some View {
         EditorCard(padding: 0) {
             ZStack(alignment: .topLeading) {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous)
                     .fill(LinearGradient(colors: [Color(white: 0.03), Color(white: 0.055)], startPoint: .top, endPoint: .bottom))
                 EditorLiveStage(frames: live, target: target, onToggleRole: onToggleRole).environmentObject(controls)
                     .padding(.horizontal, 10).padding(.top, 34).padding(.bottom, 4)
@@ -29,7 +29,7 @@ struct EditorStagePanel: View {
                 }
                 .padding(.horizontal, 14).padding(.top, 10)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous))
         }
     }
 }
@@ -51,7 +51,7 @@ private struct StageOutputBadge: View {
         Label(text, systemImage: symbol)
             .font(.system(size: 11.5, weight: .medium))
             .padding(.horizontal, 10).padding(.vertical, 4)
-            .background(Capsule().fill(color.opacity(0.16)))
+            .background(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).fill(color.opacity(0.16)))
             .foregroundStyle(color)
             .help(
                 onLights

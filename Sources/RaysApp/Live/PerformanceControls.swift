@@ -105,10 +105,10 @@ struct PerformanceControls: View {
                                 Text("Stop").font(.system(size: 12, weight: .semibold))
                                 Text("fade").font(.system(size: 10)).foregroundStyle(Theme.secondary)
                             }
-                            .frame(maxWidth: .infinity).frame(height: 44)
-                            .background(RoundedRectangle(cornerRadius: 10).fill(Theme.panelRaised))
-                            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.stroke))
-                            .contentShape(RoundedRectangle(cornerRadius: 10))
+                            .frame(maxWidth: .infinity).frame(height: Theme.Height.performance)
+                            .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Theme.panelRaised))
+                            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(Theme.stroke))
+                            .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.control))
                         }
                         .buttonStyle(.plain)
                         .help("Fades to dark in one beat. Select a scene to start again.")
@@ -161,16 +161,17 @@ struct OutputButton: View {
                 .font(.system(size: 12, weight: .semibold))
                 Text("Space").font(.system(size: 10)).opacity(0.7)
             }
-            .frame(maxWidth: .infinity).frame(height: 44)
+            .frame(maxWidth: .infinity).frame(height: Theme.Height.performance)
             .background(
-                RoundedRectangle(cornerRadius: 10).fill(
+                RoundedRectangle(cornerRadius: Theme.Radius.control).fill(
                     armed ? Theme.good.opacity(0.85) : (ready ? Theme.amber.opacity(0.14) : Color.white.opacity(0.03)))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 10).strokeBorder(armed ? Theme.good : (ready ? Theme.amber.opacity(0.5) : Theme.stroke))
+                RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(
+                    armed ? Theme.good : (ready ? Theme.amber.opacity(0.5) : Theme.stroke))
             )
             .foregroundStyle(armed ? Color.black : (enabled || ready ? Theme.amber : Theme.secondary))
-            .contentShape(RoundedRectangle(cornerRadius: 10))
+            .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.control))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(enabled ? String(localized: "Turn DMX output off") : String(localized: "Turn DMX output on"))
@@ -194,10 +195,10 @@ struct HoldControl: View {
             Text(title).font(.system(size: 12, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.9)
             Text(subtitle).font(.system(size: 10)).foregroundStyle(Theme.secondary)
         }
-        .frame(maxWidth: .infinity).frame(height: 44)
-        .background(RoundedRectangle(cornerRadius: 10).fill(color.opacity(held ? 0.35 : 0.10)))
-        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(color.opacity(held ? 1 : 0.4)))
-        .contentShape(RoundedRectangle(cornerRadius: 10))
+        .frame(maxWidth: .infinity).frame(height: Theme.Height.performance)
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(color.opacity(held ? 0.35 : 0.10)))
+        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(color.opacity(held ? 1 : 0.4)))
+        .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.control))
         .gesture(
             DragGesture(minimumDistance: 0).onChanged { _ in
                 accessibilityRelease?.cancel()

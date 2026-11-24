@@ -303,6 +303,6 @@ struct CustomProfileEditor: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Theme.panel))
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Theme.panel))
     }
 }

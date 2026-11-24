@@ -290,11 +290,11 @@ private struct TrackRow: View, Equatable {
         .padding(.horizontal, MatrixMetrics.rowPadding)
         .frame(height: MatrixMetrics.rowHeight)
         .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
                 .fill(selected ? Theme.lavender.opacity(0.12) : Color.white.opacity(0.025))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
                 .strokeBorder(selected ? Theme.lavender.opacity(0.75) : Theme.stroke, lineWidth: selected ? 1.5 : 1))
     }
 

@@ -23,7 +23,22 @@ jobs:
       - name: Swift version
         run: swift --version
       - name: Test
-        run: swift test --parallel --enable-code-coverage
+        shell: bash
+        run: swift test --parallel --enable-code-coverage 2>&1 | tee test.log
+      - name: No compiler warnings in the library modules
+        # The library targets build with complete strict concurrency checking (Package.swift).
+        # Any warning from their sources, concurrency or not, fails the job. RaysApp, LinkBridge
+        # and the vendored Link SDK are not checked here.
+        if: success() || failure()
+        shell: bash
+        run: |
+          pattern='Sources/Rays(Output|Tempo|Core|Control|Engine)/[^:]+\.swift:[0-9]+:[0-9]+: warning:'
+          if grep -E "$pattern" test.log | sort -u > library-warnings.txt && [ -s library-warnings.txt ]; then
+            cat library-warnings.txt
+            echo "::error::$(wc -l < library-warnings.txt | tr -d ' ') compiler warning(s) in the library modules (listed above)."
+            exit 1
+          fi
+          echo "No compiler warnings in RaysOutput, RaysTempo, RaysCore, RaysControl, RaysEngine."
       - name: Coverage summary
         # Line coverage per module, printed in the log and in the run's summary page. No external service.
         run: Scripts/coverage-summary.sh

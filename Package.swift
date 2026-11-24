@@ -10,6 +10,11 @@ import PackageDescription
 //   RaysControl             MIDI decoding, controller layouts, routing to actions
 //   RaysEngine              30 Hz engine, persisted configuration
 //   RaysApp                 SwiftUI app (executable "LightSystem")
+
+// Complete data-race checking for the library modules. CI fails on any compiler warning from
+// these targets (see .github/workflows/ci.yml), so a concurrency diagnostic cannot slip in.
+let strictConcurrency: [SwiftSetting] = [.enableExperimentalFeature("StrictConcurrency")]
+
 let package = Package(
     name: "LightSystem",
     platforms: [.macOS(.v14)],
@@ -30,14 +35,15 @@ let package = Package(
                 .define("ASIO_NO_DEPRECATED", to: "1"),
             ]
         ),
-        .target(name: "RaysOutput", path: "Sources/RaysOutput"),
-        .target(name: "RaysTempo", path: "Sources/RaysTempo"),
-        .target(name: "RaysCore", dependencies: ["RaysOutput"], path: "Sources/RaysCore"),
-        .target(name: "RaysControl", dependencies: ["RaysCore"], path: "Sources/RaysControl"),
+        .target(name: "RaysOutput", path: "Sources/RaysOutput", swiftSettings: strictConcurrency),
+        .target(name: "RaysTempo", path: "Sources/RaysTempo", swiftSettings: strictConcurrency),
+        .target(name: "RaysCore", dependencies: ["RaysOutput"], path: "Sources/RaysCore", swiftSettings: strictConcurrency),
+        .target(name: "RaysControl", dependencies: ["RaysCore"], path: "Sources/RaysControl", swiftSettings: strictConcurrency),
         .target(
             name: "RaysEngine",
             dependencies: ["RaysCore", "RaysOutput", "RaysTempo", "RaysControl"],
-            path: "Sources/RaysEngine"
+            path: "Sources/RaysEngine",
+            swiftSettings: strictConcurrency
         ),
         .executableTarget(
             name: "RaysApp",

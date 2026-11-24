@@ -105,7 +105,7 @@ struct PerformanceControls: View {
                                 Text("Stop").font(.system(size: 12, weight: .semibold))
                                 Text("fade").font(.system(size: 10)).foregroundStyle(Theme.secondary)
                             }
-                            .frame(maxWidth: .infinity).frame(height: 44)
+                            .frame(maxWidth: .infinity).frame(height: Theme.Height.performance)
                             .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Theme.panelRaised))
                             .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(Theme.stroke))
                             .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.control))
@@ -161,7 +161,7 @@ struct OutputButton: View {
                 .font(.system(size: 12, weight: .semibold))
                 Text("Space").font(.system(size: 10)).opacity(0.7)
             }
-            .frame(maxWidth: .infinity).frame(height: 44)
+            .frame(maxWidth: .infinity).frame(height: Theme.Height.performance)
             .background(
                 RoundedRectangle(cornerRadius: Theme.Radius.control).fill(
                     armed ? Theme.good.opacity(0.85) : (ready ? Theme.amber.opacity(0.14) : Color.white.opacity(0.03)))
@@ -195,7 +195,7 @@ struct HoldControl: View {
             Text(title).font(.system(size: 12, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.9)
             Text(subtitle).font(.system(size: 10)).foregroundStyle(Theme.secondary)
         }
-        .frame(maxWidth: .infinity).frame(height: 44)
+        .frame(maxWidth: .infinity).frame(height: Theme.Height.performance)
         .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(color.opacity(held ? 0.35 : 0.10)))
         .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(color.opacity(held ? 1 : 0.4)))
         .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.control))

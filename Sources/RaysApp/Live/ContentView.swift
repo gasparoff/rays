@@ -93,7 +93,7 @@ struct TopBar: View {
                         cable.busy ? String(localized: "Preparing…") : String(localized: "Prepare light network"),
                         systemImage: "cable.connector")
                 }
-                .buttonStyle(.borderedProminent).tint(Theme.amber.opacity(0.75)).controlSize(.large)
+                .buttonStyle(BarButtonStyle(tint: Theme.amber, prominent: true))
                 .disabled(cable.busy)
                 .help(cable.status)
             }
@@ -108,10 +108,8 @@ struct TopBar: View {
                 layout.editing.toggle()
             } label: {
                 Label("Layout", systemImage: "square.grid.2x2")
-                    .foregroundStyle(layout.editing ? Theme.lavender : Theme.text)
             }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
+            .buttonStyle(BarButtonStyle(tint: layout.editing ? Theme.lavender : Theme.text))
             .help("Move, resize and hide the panels of this window")
             .accessibilityValue(layout.editing ? String(localized: "on") : String(localized: "off"))
             Button {
@@ -119,16 +117,14 @@ struct TopBar: View {
             } label: {
                 Label("Setup", systemImage: "slider.horizontal.3")
             }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
+            .buttonStyle(BarButtonStyle())
             .accessibilityHint("Opens the setup for the DMX interface, lights and Link")
             Button {
                 palette.isOpen.toggle()
             } label: {
                 Image(systemName: "magnifyingglass")
             }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
+            .buttonStyle(BarButtonStyle(square: true))
             .keyboardShortcut("k", modifiers: .command)
             .help("Search scenes and actions · ⌘K")
             .accessibilityLabel("Search scenes and actions")
@@ -191,7 +187,7 @@ struct TopBlackoutButton: View {
                 Text("BLACKOUT").font(.system(size: 12.5, weight: .bold)).tracking(1.4)
                 Text(blackout ? String(localized: "B · resume") : "Esc").font(.system(size: 10, weight: .medium))
             }
-            .frame(width: 132, height: 40)
+            .frame(width: 132, height: Theme.Height.bar)
             .foregroundStyle(blackout ? Color.black : Theme.bad)
             .background(
                 RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).fill(Theme.bad.opacity(blackout ? 0.9 : 0.13))
@@ -236,8 +232,8 @@ struct StatusPill: View {
                 Text(value).font(.system(size: 12, weight: .medium)).lineLimit(1)
             }
         }
-        .padding(.horizontal, 12).padding(.vertical, 7)
-        .frame(maxWidth: 240, alignment: .leading)
+        .padding(.horizontal, 12)
+        .frame(maxWidth: 240, minHeight: Theme.Height.bar, maxHeight: Theme.Height.bar, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).fill(Theme.panel))
         .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).strokeBorder(Theme.stroke))
         .accessibilityElement(children: .ignore)

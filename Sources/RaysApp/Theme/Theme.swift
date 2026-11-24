@@ -26,6 +26,40 @@ enum Theme {
         /// Small chips, keycaps and swatches.
         static let chip: CGFloat = 4
     }
+
+    /// Shared heights, so controls on the same row line up.
+    enum Height {
+        /// Top bar: status, Layout, Setup, search and Blackout.
+        static let bar: CGFloat = 40
+        /// Performance buttons: lights, Build → Drop, Flash, Stop / Play.
+        static let performance: CGFloat = 44
+    }
+}
+
+/// The top bar's buttons: same height and corners as the status boxes and Blackout next to them.
+struct BarButtonStyle: ButtonStyle {
+    var tint: Color = Theme.text
+    var prominent = false
+    var square = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(prominent ? Color.black : tint)
+            .padding(.horizontal, square ? 0 : 12)
+            .frame(minWidth: square ? Theme.Height.bar : nil)
+            .frame(height: Theme.Height.bar)
+            .background(
+                RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
+                    .fill(prominent ? tint.opacity(configuration.isPressed ? 0.7 : 0.85) : Theme.panel)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
+                    .fill(Color.white.opacity(configuration.isPressed && !prominent ? 0.06 : 0))
+            )
+            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).strokeBorder(Theme.stroke))
+            .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous))
+    }
 }
 
 extension LightColor {

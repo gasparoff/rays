@@ -40,7 +40,7 @@ RaysApp  ◄── LinkBridge       SwiftUI app, executable "LightSystem"
 | `RaysTempo` | Foundation | `TempoSource`, `TempoSnapshot`, internal clock, downbeat alignment, tap tempo, Pro DJ Link beat types, MIDI Clock, `TempoSourceRegistry` |
 | `RaysCore` | RaysOutput | Fixtures, patch, profiles, Varytec rig, scenes, choreography, scene programs and editing, custom scenes, sequencer, DMX composer, stage geometry |
 | `RaysControl` | RaysCore | MIDI decoder, `ControlAction`, `MIDIRouter` (Learn, soft takeover, relative encoders), `XoneK2`, LED feedback, `ControllerProfile` |
-| `RaysEngine` | all of the above | `LightEngine` (30 Hz), `ConfigStore`, `Preferences`, `ShowSettings` |
+| `RaysEngine` | all of the above | `LightEngine` (30 Hz), `OutputGate` (output safety rules), `ShowSession` (show decisions behind the controls, tested with fakes), `ConfigStore`, `Preferences`, `ShowSettings`, `DefaultsKey` |
 | `LinkBridge` | Ableton Link SDK | C API over Link's C++ session state |
 | `RaysApp` | everything, SwiftUI/AppKit/CoreMIDI | The macOS app: `Stage/`, `Editor/`, `Setup/`, `Live/`, `Services/`, `Theme/` |
 | `BeatLinkHelper` | Beat Link (Java) | Child process that prints Pro DJ Link beats as JSON lines |
@@ -53,20 +53,34 @@ Cross-module helpers that are not public API use Swift's `package` access level.
 |---|---|---|
 | Fixtures | `Profiles/*.json` | `FixtureProfile` JSON, no code ([guide](adding-a-fixture.md)) |
 | Controllers | `Controllers/*.json` | `ControllerProfile` JSON ([guide](adding-a-controller.md)) |
-| Outputs | `OutputDriver` in `RaysOutput` | Swift: conform, then `OutputDriverRegistry.register` |
+| Outputs | `OutputDriver` in `RaysOutput` | Swift: conform, then `OutputDriverRegistry.register` ([guide](adding-an-output.md)) |
 | Tempo | `TempoSource` in `RaysTempo` | Swift: conform, then `TempoSourceRegistry.register` |
 | Scenes | `SceneProgram` / `CustomScene` | JSON, editable in-app |
 
 ### Output drivers
 
-`OutputDriver` is the surface `LightEngine` uses: open/close, discovery (`pollIfDue`, `nodes`),
-target selection (`preferredIdentity`, `manualIP`), `sendDMX` per universe and status strings
-for Setup. Drivers: `ArtNetController` (default), `SACNDriver` (E1.31 multicast/unicast) and
-`DMXUSBProDriver` (ENTTEC DMX USB Pro protocol over a POSIX serial port). `LightEngine(…,
-outputDrivers:, outputDriverID:)` builds its driver from a registry; unknown ids fall back to
-Art-Net. `useOutputDriver(_:registry:)` swaps it at runtime after disarming output.
-`OutputSettings` (in `Preferences`) stores the choice and each driver's settings and builds the
-registry. Drivers are only ever called from the engine's serial queue.
+`OutputDriver` is the surface `LightEngine` uses. It has a small core every driver implements:
+`driverID`, `isOpen`, `open`/`close`, `target(now:patchUniverses:)`, `sendDMX` per universe,
+`socketError`/`sendError` and `diagnosis` for Setup. Discovery and node selection (`pollIfDue`,
+`forcePoll`, `nodes`, `preferredIdentity`, `manualIP`, `onPreferredIdentityChanged`, `select`,
+`interfaces`, `pollError`, `reopenInterval`) are requirements too, with inert defaults in a
+protocol extension, so a driver without discovery leaves them out and one with discovery still
+gets its own versions called through the protocol. [Adding an output](adding-an-output.md)
+walks through a new driver.
+
+Drivers: `ArtNetController` (default, ArtPoll discovery), `SACNDriver` (E1.31 multicast or
+unicast, no discovery) and `DMXUSBProDriver` (ENTTEC DMX USB Pro protocol over a POSIX serial
+port). `LightEngine(…, outputDrivers:, outputDriverID:)` builds its driver from a registry;
+unknown ids fall back to Art-Net. `useOutputDriver(_:registry:)` swaps it at runtime after
+disarming output. `OutputSettings` (in `Preferences`) stores the choice and each driver's
+settings and builds the registry.
+
+Drivers are only ever called from the engine's serial queue, and `sendDMX` must not block it.
+UDP sends are non-blocking already; `DMXUSBProDriver` hands each frame to its own serial writer
+queue (latest frame only, through `LatestMailbox`) and returns at once. A write error is
+reported as `sendError` on the next frame, which closes the driver so the engine reopens it;
+`close()` writes the last queued frame before closing the port, so the black frames sent on
+disarm, sleep and quit reach the widget.
 
 ### Tempo sources
 

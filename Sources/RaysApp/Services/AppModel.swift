@@ -11,7 +11,6 @@ final class AppModel: ObservableObject {
     let live = LiveState()
     let controls = LiveState()
     private var lastControlState: EngineSnapshot?
-    private var latestSnapshot = EngineSnapshot()
     private var previewVisible = true
     private var visibilityObservers: [NSObjectProtocol] = []
     @Published var showSetup = false
@@ -21,15 +20,12 @@ final class AppModel: ObservableObject {
     /// Enlarges the window for the editor and puts it back on Save/Annulla.
     let editorWindow = EditorWindowState()
     @Published private(set) var activeCustomSceneID: UUID?
-    @Published private(set) var sceneBank =
-        SceneBank(rawValue: UserDefaults.standard.string(forKey: "LightSystem.sceneBank") ?? "") ?? .club
+    @Published private(set) var sceneBank = SceneBank.club
     @Published private(set) var showSettings = ShowSettings()
     let customScenes = CustomScenesStore()
-    private var editorBackup: (scene: SceneID, energy: Double, subdivision: Subdivision, show: ShowSettings, custom: CustomScene?)?
-    private var previewedCustom: CustomScene?
-    private var handlingMIDI = false
-    private var buildIsHeld = false
-    private var sceneCommandID = UUID()
+    /// Show decisions (scenes, banks, presets, editor checkpoint, levels, saving). This model forwards
+    /// UI events to it and republishes its state.
+    let session: ShowSession
     @Published private(set) var patch: Patch
     @Published private(set) var library: ProfileLibrary
     @Published private(set) var prefs: Preferences
@@ -50,7 +46,6 @@ final class AppModel: ObservableObject {
     private let lightingTempo: DownbeatTempoSource
     let engine: LightEngine
     private var tapTempo = TapTempo()
-    private var saveWork: DispatchWorkItem?
     private var started = false
     private var keyMonitor: Any?
     private var sleepObservers: [NSObjectProtocol] = []
@@ -97,19 +92,13 @@ final class AppModel: ObservableObject {
             }
         }
         var p = store.loadPreferences()
-        let setupKey = "LightSystem.automaticSetup.v1"
-        if !UserDefaults.standard.bool(forKey: setupKey) {
-            p.beatSource = .auto
-            p.xdjDeck = 0
-            UserDefaults.standard.set(true, forKey: setupKey)
-            try? store.savePreferences(p)
-        }
+        if let error = ShowSession.applyAutomaticSetupIfNeeded(&p, defaults: .standard, store: store) { errors.append(error) }
         library = lib
         patch = loadedPatch
         prefs = p
         storageErrors = errors
         controllerProfiles = controllers
-        let storedBPM = UserDefaults.standard.object(forKey: "LightSystem.internalBPM") as? Double
+        let storedBPM = UserDefaults.standard.object(forKey: DefaultsKey.internalBPM) as? Double
         var tempoSources = TempoSourceRegistry.builtIn
         tempoSources.register(LinkTempoSource.descriptor)
         // Link is the only grid the app runs on; the registry keeps sources pluggable.
@@ -118,10 +107,15 @@ final class AppModel: ObservableObject {
             as? LinkTempoSource ?? LinkTempoSource(bpm: storedBPM.map(TempoRange.clamp) ?? 120)
         lightingTempo = DownbeatTempoSource(source: link)
         let store = self.store
-        midi = MIDIService(map: store.loadMIDIMap(), profiles: controllers) { map in try? store.saveMIDIMap(map) }
         engine = LightEngine(
             tempo: lightingTempo, transport: UDPSocket(), library: lib,
             outputDrivers: p.output.registry, outputDriverID: p.output.driverID)
+        let session = ShowSession(
+            engine: engine, store: store, presets: customScenes, defaults: .standard,
+            saveScheduler: DebouncedSaveScheduler(), preferences: p, showSettings: store.loadShowSettings(),
+            storageErrors: errors)
+        self.session = session
+        midi = MIDIService(map: store.loadMIDIMap(), profiles: controllers) { [weak session] map in session?.saveMIDIMap(map) }
 
         // Latest-only: if the main thread stalls, it skips to the newest frame instead of
         // queueing one block per 30 Hz snapshot. DMX output is not affected.
@@ -135,34 +129,41 @@ final class AppModel: ObservableObject {
             DispatchQueue.main.async { self?.rememberAutoSelectedNode(id) }
         }
         engine.setPatch(loadedPatch, library: lib)
-        engine.setScene(p.scene, immediate: true)
-        engine.setMaster(p.master)
-        engine.setEnergy(p.energy)
-        engine.setSubdivision(p.subdivision, immediate: true)
-        engine.setStartStopSync(p.startStopSync)
-        applyArtNetSelection(p)
-        engine.setOutputRequested(p.outputEnabled)
-        if p.blackout { engine.setBlackout(true) }
+        session.applyLaunchState()
 
         usingDefaultPatch = fresh && !store.hasSavedPatch
         let link = self.link
         xdj.onBeat = { beat in link.followBeat(bpm: beat.bpm, beatInBar: beat.beatWithinBar) }
         midiClock.onBeat = { bpm, beatInBar in link.followBeat(bpm: bpm, beatInBar: beatInBar) }
         xdj.deck = p.xdjDeck
-        showSettings = store.loadShowSettings()
-        engine.setShowSettings(showSettings)
-        midi.onCommand = { [weak self] command in self?.perform(command) }
-        midi.currentValue = { [weak self] action in self?.controlValue(action) ?? 0 }
-        if let raw = UserDefaults.standard.string(forKey: "LightSystem.customScene"), let id = UUID(uuidString: raw),
-            let saved = customScenes.scene(id: id) ?? ClubSceneBank.scene(id: id)
-        {
-            useCustomScene(saved, immediate: true)
-        }
+        session.onChange = { [weak self] in self?.publishSession() }
+        session.onResetTakeover = { [weak self] action in self?.midi.resetTakeover(action) }
+        session.onSceneBankChanged = { [weak self] in self?.sendFeedback() }
+        session.onSceneFirstBeat = { [weak self] in self?.setFirstBeat() }
+        midi.onCommand = { [weak self] command in self?.session.perform(command) }
+        midi.currentValue = { [weak self] action in self?.session.controlValue(action) ?? 0 }
+        publishSession()
+        session.restoreLastCustomScene()
+    }
+
+    /// Republishes the session's state, writing only values that changed.
+    private func publishSession() {
+        if prefs != session.prefs { prefs = session.prefs }
+        if showSettings != session.showSettings { showSettings = session.showSettings }
+        if sceneBank != session.sceneBank { sceneBank = session.sceneBank }
+        if activeCustomSceneID != session.activeCustomSceneID { activeCustomSceneID = session.activeCustomSceneID }
+        if storageErrors != session.storageErrors { storageErrors = session.storageErrors }
+    }
+
+    private func sendFeedback() {
+        midi.feedback(
+            snapshot, sceneInBank: session.currentSceneIsInBank, selectedBank: session.sceneBank,
+            playingBank: session.currentSceneBank)
     }
 
     private func receiveSnapshot(_ snapshot: EngineSnapshot) {
-        latestSnapshot = snapshot
-        midi.feedback(snapshot, sceneInBank: currentSceneIsInBank, selectedBank: sceneBank, playingBank: currentSceneBank)
+        session.snapshot = snapshot
+        sendFeedback()
         guard previewVisible else { return }
         publishUI(snapshot)
     }
@@ -231,11 +232,11 @@ final class AppModel: ObservableObject {
             }
         guard visible != previewVisible else { return }
         previewVisible = visible
-        if visible { publishUI(latestSnapshot) }
+        if visible { publishUI(session.snapshot) }
     }
 
     func shutdown() {
-        if editorBackup != nil { cancelSceneEditing(animated: false) }
+        if session.isEditing { cancelSceneEditing(animated: false) }
         started = false
         cableTimer?.invalidate()
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
@@ -248,81 +249,37 @@ final class AppModel: ObservableObject {
         engine.shutdown()  // synchronous zero frames + close
         let tempo = link.capture()
         if tempo.peers == 0 && !tempo.externalClock {
-            UserDefaults.standard.set(TempoRange.clamp(tempo.bpm), forKey: "LightSystem.internalBPM")
+            UserDefaults.standard.set(TempoRange.clamp(tempo.bpm), forKey: DefaultsKey.internalBPM)
         }
         link.close()
-        savePreferencesNow()
+        session.savePreferencesNow()
     }
 
     // MARK: Actions
 
-    var snapshot: EngineSnapshot { latestSnapshot }
+    var snapshot: EngineSnapshot { session.snapshot }
 
     /// Browsing banks never launches a scene or changes the shared Link tempo.
-    func setSceneBank(_ bank: SceneBank) {
-        sceneBank = bank
-        UserDefaults.standard.set(bank.rawValue, forKey: "LightSystem.sceneBank")
-        midi.feedback(snapshot, sceneInBank: currentSceneIsInBank, selectedBank: sceneBank, playingBank: currentSceneBank)
-    }
+    func setSceneBank(_ bank: SceneBank) { session.setSceneBank(bank) }
 
-    private var currentSceneBank: SceneBank? {
-        guard !snapshot.stopped, snapshot.sceneBeatAnchor != nil else { return nil }
-        if let custom = snapshot.sceneLook { return custom.presetSlot == nil ? nil : custom.presetBank }
-        return .house
-    }
+    func factoryScene(_ slot: SceneID) -> CustomScene? { session.factoryScene(slot) }
 
-    private var currentSceneIsInBank: Bool { currentSceneBank == sceneBank }
+    func sceneTitle(_ slot: SceneID) -> String { session.sceneTitle(slot) }
 
-    func factoryScene(_ slot: SceneID) -> CustomScene? {
-        sceneBank == .club ? ClubSceneBank.scene(for: slot) : nil
-    }
+    func selectScene(_ s: SceneID) { session.selectScene(s) }
 
-    func sceneTitle(_ slot: SceneID) -> String { presetLook(slot)?.name ?? slot.title }
-
-    private func presetLook(_ slot: SceneID) -> CustomScene? {
-        customScenes.preset(slot, bank: sceneBank) ?? factoryScene(slot)
-    }
-
-    func selectScene(_ s: SceneID) {
-        sceneCommandID = UUID()
-        buildIsHeld = false
-        if let modified = presetLook(s) { useCustomScene(modified); return }
-        activeCustomSceneID = nil
-        previewedCustom = nil
-        UserDefaults.standard.removeObject(forKey: "LightSystem.customScene")
-        prefs.scene = s
-        if s == .aurora || s == .respiro { prefs.subdivision = .one; engine.setSubdivision(.one) }
-        // Scene and look together: the outgoing custom scene keeps its own look while it fades.
-        engine.setScene(s, look: nil)
-        scheduleSave()
-    }
-
-    func setMaster(_ v: Double) { if !handlingMIDI { midi.resetTakeover(.master) }; prefs.master = v; engine.setMaster(v); scheduleSave() }
-    func setEnergy(_ v: Double) { if !handlingMIDI { midi.resetTakeover(.energy) }; prefs.energy = v; engine.setEnergy(v); scheduleSave() }
+    func setMaster(_ v: Double) { session.setMaster(v) }
+    func setEnergy(_ v: Double) { session.setEnergy(v) }
 
     func setFirstBeat() {
         if let beat = lightingTempo.setDownbeat() { engine.restartScene(at: beat) }
     }
-    func setSubdivision(_ s: Subdivision) {
-        guard !snapshot.movementLocked else { return }; prefs.subdivision = s; engine.setSubdivision(s); scheduleSave()
-    }
+    func setSubdivision(_ s: Subdivision) { session.setSubdivision(s) }
 
-    func blackoutOn() {
-        prefs.blackout = true
-        engine.setBlackout(true)
-        savePreferencesNow()
-    }
-    func toggleBlackout() {
-        prefs.blackout = !snapshot.blackout
-        engine.setBlackout(prefs.blackout)
-        savePreferencesNow()
-    }
+    func blackoutOn() { session.blackoutOn() }
+    func toggleBlackout() { session.toggleBlackout() }
 
-    func toggleOutput() {
-        prefs.outputEnabled = !(snapshot.outputRequested || snapshot.armed)
-        engine.setOutputRequested(prefs.outputEnabled)
-        savePreferencesNow()
-    }
+    func toggleOutput() { session.toggleOutput() }
 
     func tap() {
         if let bpm = tapTempo.tap(at: ProcessInfo.processInfo.systemUptime) { engine.setTempo(bpm) }
@@ -331,58 +288,17 @@ final class AppModel: ObservableObject {
     func nudgeTempo(_ delta: Double) { engine.setTempo((snapshot.tempo.bpm + delta).rounded()) }
     func setTempo(_ bpm: Double) { engine.setTempo(bpm) }
 
-    func setStartStopSync(_ on: Bool) { prefs.startStopSync = on; engine.setStartStopSync(on); scheduleSave() }
-
-    /// Node selection and manual IP belong to Art-Net; other drivers keep their own settings.
-    private func applyArtNetSelection(_ p: Preferences) {
-        guard p.output.driverID == OutputDriverRegistry.defaultDriverID else { return }
-        if let ip = p.manualIP.flatMap(IPv4Address.init(string:)) {
-            engine.setManualIP(ip)
-        } else {
-            engine.setPreferredIdentity(p.preferredNodeIdentity)
-        }
-    }
+    func setStartStopSync(_ on: Bool) { session.setStartStopSync(on) }
 
     /// Changes the output driver or its settings. Output is switched off first.
-    func setOutput(_ settings: OutputSettings) {
-        var s = settings
-        if s.driverID == SACNDriver.driverID, s.sacn.cid == nil { s.sacn.cid = UUID() }
-        guard s != prefs.output else { return }
-        prefs.output = s
-        prefs.outputEnabled = false
-        engine.useOutputDriver(s.driverID, registry: s.registry)
-        applyArtNetSelection(prefs)
-        scheduleSave()
-    }
+    func setOutput(_ settings: OutputSettings) { session.setOutput(settings) }
 
-    func selectNode(_ id: String?) {
-        prefs.outputEnabled = false
-        prefs.preferredNodeIdentity = id
-        prefs.manualIP = nil
-        engine.setManualIP(nil)
-        engine.selectNode(id)
-        scheduleSave()
-    }
+    func selectNode(_ id: String?) { session.selectNode(id) }
 
     /// Returns an error message for invalid input.
-    func useManualIP(_ text: String) -> String? {
-        guard let ip = IPv4Address(string: text), !ip.isUnspecified, !ip.isLoopback, ip.octets[3] != 255 else {
-            return String(localized: "Invalid IPv4 address.")
-        }
-        prefs.manualIP = ip.description
-        prefs.outputEnabled = false
-        prefs.preferredNodeIdentity = nil
-        engine.setManualIP(ip)
-        scheduleSave()
-        return nil
-    }
+    func useManualIP(_ text: String) -> String? { session.useManualIP(text) }
 
-    func clearManualIP() {
-        prefs.outputEnabled = false
-        prefs.manualIP = nil
-        engine.setManualIP(nil)
-        scheduleSave()
-    }
+    func clearManualIP() { session.clearManualIP() }
 
     func rediscover() { engine.rediscover() }
 
@@ -401,48 +317,16 @@ final class AppModel: ObservableObject {
     // MARK: Beat source
 
     func setBeatSource(_ source: BeatSource) {
-        prefs.beatSource = source
         if source.usesProDJLink { xdj.start() } else { xdj.stop() }
         if source == .midiClock { midiClock.start() } else { midiClock.stop() }
         if !source.usesProDJLink && source != .midiClock { link.clearExternalClock() }
-        scheduleSave()
+        session.updatePreferences { $0.beatSource = source }
     }
 
     func setXDJDeck(_ deck: Int) {
-        prefs.xdjDeck = deck
         xdj.deck = deck
         xdj.restart()
-        scheduleSave()
-    }
-
-    // MARK: MIDI
-
-    private func perform(_ command: MIDICommand) {
-        // Performance navigation cannot replace the live preview behind an unsaved editor.
-        if editorSession != nil {
-            switch command {
-            case .scene, .bank, .sceneFirstBeat, .cancelPending, .buildHold(true): return
-            default: break
-            }
-        }
-        handlingMIDI = true
-        defer { handlingMIDI = false }
-        switch command {
-        case let .scene(s): selectScene(s)
-        case let .master(v): setMaster(v)
-        case let .energy(v): setEnergy(v)
-        case let .level(role, value): setLevel(role, value)
-        case let .accentLevel(value): setAccentLevel(value)
-        case let .accent(on): engine.setAccent(on)
-        case let .buildHold(on): setBuildDropHeld(on)
-        case let .rate(rate): setSubdivision(rate)
-        case .stop: stopShow()
-        case .toggleBlackout: toggleBlackout()
-        case .toggleOutput: toggleOutput()
-        case let .bank(bank): setSceneBank(bank)
-        case .sceneFirstBeat: setFirstBeat()
-        case .cancelPending: cancelPendingLaunch()
-        }
+        session.updatePreferences { $0.xdjDeck = deck }
     }
 
     func openWebConfig(_ ip: IPv4Address) {
@@ -458,170 +342,41 @@ final class AppModel: ObservableObject {
         patch = draft
         usingDefaultPatch = false
         engine.setPatch(draft, library: library)
-        prefs.outputEnabled = false
-        savePreferencesNow()
+        session.patchDidChange()
     }
 
-    private func rememberAutoSelectedNode(_ id: String?) {
-        prefs.preferredNodeIdentity = id
-        scheduleSave()
-    }
+    private func rememberAutoSelectedNode(_ id: String?) { session.rememberAutoSelectedNode(id) }
 
     // MARK: Saved scenes and performance controls
 
-    func stopShow() { sceneCommandID = UUID(); buildIsHeld = false; engine.stop() }
+    func stopShow() { session.stopShow() }
 
-    func cancelPendingLaunch() {
-        let commandID = UUID()
-        sceneCommandID = commandID
-        engine.cancelPendingScene { [weak self] scene, look in
-            guard let self, self.sceneCommandID == commandID, self.editorSession == nil else { return }
-            self.prefs.scene = scene
-            self.previewedCustom = look
-            self.activeCustomSceneID = look?.id
-            if let id = look?.id {
-                UserDefaults.standard.set(id.uuidString, forKey: "LightSystem.customScene")
-            } else {
-                UserDefaults.standard.removeObject(forKey: "LightSystem.customScene")
-            }
-            self.scheduleSave()
-        }
-    }
+    func cancelPendingLaunch() { session.cancelPendingLaunch() }
 
-    func setBuildDropHeld(_ held: Bool) {
-        guard held || buildIsHeld else { return }
-        sceneCommandID = UUID()
-        buildIsHeld = held
-        let slot: SceneID = held ? .aurora : .respiro
-        let modified = presetLook(slot)
-        activeCustomSceneID = modified?.id
-        previewedCustom = modified
-        if let modified {
-            prefs.energy = modified.energy
-            engine.setEnergy(modified.energy)
-            showSettings.levelLeft = modified.leftLevel
-            showSettings.levelCenter = modified.centerLevel
-            showSettings.levelRight = modified.rightLevel
-            engine.setShowSettings(showSettings)
-            UserDefaults.standard.set(modified.id.uuidString, forKey: "LightSystem.customScene")
-        } else {
-            UserDefaults.standard.removeObject(forKey: "LightSystem.customScene")
-        }
-        prefs.scene = slot
-        engine.setBuildDropGesture(held, look: modified)
-        scheduleSave()
-    }
+    func setBuildDropHeld(_ held: Bool) { session.setBuildDropHeld(held) }
 
-    func editPreset(_ slot: SceneID) {
-        let draft =
-            presetLook(slot)
-            ?? CustomScene(
-                name: slot.title, presetSlot: slot, base: slot, energy: prefs.energy,
-                subdivision: slot == .aurora || slot == .respiro ? .one : prefs.subdivision,
-                leftLevel: showSettings.levelLeft, centerLevel: showSettings.levelCenter,
-                rightLevel: showSettings.levelRight)
-        beginSceneEditing(draft)
-    }
+    func editPreset(_ slot: SceneID) { beginSceneEditing(session.presetDraft(slot)) }
 
-    func resetPreset(_ slot: SceneID) {
-        guard let saved = customScenes.preset(slot, bank: sceneBank) else { return }
-        customScenes.delete(id: saved.id)
-        if activeCustomSceneID == saved.id { selectScene(slot) }
-    }
+    func resetPreset(_ slot: SceneID) { session.resetPreset(slot) }
 
-    func copyPreset(_ slot: SceneID) {
-        var draft = presetLook(slot) ?? CustomScene(name: slot.title, base: slot)
-        draft.id = UUID(); draft.presetSlot = nil; draft.presetBank = .house
-        draft.name += String(localized: " (copy)")
-        beginSceneEditing(draft)
-    }
+    func copyPreset(_ slot: SceneID) { beginSceneEditing(session.presetCopyDraft(slot)) }
 
-    func setLevel(_ role: FixtureRole, _ value: Double) {
-        if !handlingMIDI {
-            midi.resetTakeover(role == .left ? .levelLeft : (role == .center ? .levelCenter : .levelRight))
-        }
-        showSettings.setLevel(role, value)
-        engine.setLevel(role, value)
-        scheduleSave()
-    }
+    func setLevel(_ role: FixtureRole, _ value: Double) { session.setLevel(role, value) }
 
-    func setWhiteLevel(_ value: Double) {
-        showSettings.whiteLevel = value.isFinite ? min(1, max(0, value)) : 0
-        engine.setWhiteLevel(showSettings.whiteLevel)
-        scheduleSave()
-    }
+    func setWhiteLevel(_ value: Double) { session.setWhiteLevel(value) }
 
-    func setAccentLevel(_ value: Double) {
-        if !handlingMIDI { midi.resetTakeover(.accentLevel) }
-        showSettings.accentLevel = value
-        engine.setAccentLevel(value)
-        scheduleSave()
-    }
-
-    private func controlValue(_ action: ControlAction) -> Double {
-        if let role = action.role { return showSettings.level(role) }
-        switch action {
-        case .master: return prefs.master
-        case .energy: return prefs.energy
-        case .accentLevel: return showSettings.accentLevel
-        default: return 0
-        }
-    }
+    func setAccentLevel(_ value: Double) { session.setAccentLevel(value) }
 
     func useCustomScene(_ scene: CustomScene, immediate: Bool = false, persist: Bool = true) {
-        sceneCommandID = UUID()
-        let clean = scene.sanitized
-        let changedBase = previewedCustom?.base != clean.base || previewedCustom?.id != clean.id
-        // Editor previews call this every 100 ms during a gesture. Each @Published write invalidates every
-        // view observing the model even when the value is unchanged, so write only real changes.
-        if activeCustomSceneID != clean.id { activeCustomSceneID = clean.id }
-        var nextPrefs = prefs
-        nextPrefs.scene = clean.base
-        nextPrefs.energy = clean.energy
-        nextPrefs.subdivision = clean.subdivision
-        if nextPrefs != prefs { prefs = nextPrefs }
-        if changedBase || immediate {
-            engine.setScene(clean.base, look: clean, immediate: immediate)
-        } else {
-            engine.setCustomScene(clean, relaunchingIfStoppedAs: clean.base)
-        }
-        engine.setEnergy(clean.energy)
-        if previewedCustom?.subdivision != clean.subdivision || immediate { engine.setSubdivision(clean.subdivision, immediate: immediate) }
-        var nextShow = showSettings
-        nextShow.levelLeft = clean.leftLevel
-        nextShow.levelCenter = clean.centerLevel
-        nextShow.levelRight = clean.rightLevel
-        if nextShow != showSettings { showSettings = nextShow }
-        engine.setShowSettings(nextShow)
-        previewedCustom = clean
-        midi.resetTakeover()
-        if persist {
-            UserDefaults.standard.set(clean.id.uuidString, forKey: "LightSystem.customScene")
-            scheduleSave()
-        }
+        session.useCustomScene(scene, immediate: immediate, persist: persist)
     }
 
     /// Opens the full-window editor. Nothing is written until Save; the engine state is checkpointed
     /// so Annulla (or quitting) restores it exactly.
-    func editRunningScene() {
-        let playing = snapshot
-        if let look = playing.sceneLook ?? (playing.stopped ? previewedCustom : nil) {
-            beginSceneEditing(look); return
-        }
-        // A plain playing scene is a House preset, even while the user browses the Club bank.
-        beginSceneEditing(
-            customScenes.preset(playing.scene, bank: .house)
-                ?? CustomScene(
-                    name: playing.scene.title, presetSlot: playing.scene,
-                    presetBank: .house, base: playing.scene, energy: prefs.energy,
-                    subdivision: prefs.subdivision, leftLevel: showSettings.levelLeft,
-                    centerLevel: showSettings.levelCenter, rightLevel: showSettings.levelRight))
-    }
+    func editRunningScene() { beginSceneEditing(session.runningSceneDraft()) }
 
     func beginSceneEditing(_ initial: CustomScene?) {
-        guard editorBackup == nil else { return }
-        editorBackup = (prefs.scene, prefs.energy, prefs.subdivision, showSettings, previewedCustom)
-        engine.beginScenePreview()
+        guard session.beginEditing() else { return }
         let window = editorWindow
         window.prepareEnter(NSApp.windows.first { $0.isVisible && $0.isMainWindow } ?? NSApp.mainWindow)
         editorSession = SceneEditorSession(
@@ -633,30 +388,17 @@ final class AppModel: ObservableObject {
         showSceneEditor = true
     }
 
-    func previewCustomScene(_ draft: CustomScene) {
-        guard editorBackup != nil else { return }
-        useCustomScene(draft, persist: false)
-    }
+    func previewCustomScene(_ draft: CustomScene) { session.previewCustomScene(draft) }
 
     func finishSceneEditing(_ draft: CustomScene) {
-        guard editorBackup != nil else { return }
-        let saved = customScenes.upsert(draft)
-        editorBackup = nil
-        engine.finishScenePreview(restore: false)
-        useCustomScene(saved)
+        guard session.finishEditing(draft) else { return }
         closeEditor(animated: true)
     }
 
     func cancelSceneEditing(animated: Bool = true) {
-        guard let before = editorBackup else { return }
-        editorBackup = nil
+        guard session.isEditing else { return }
         closeEditor(animated: animated)
-        prefs.scene = before.scene; prefs.energy = before.energy; prefs.subdivision = before.subdivision
-        showSettings = before.show; previewedCustom = before.custom
-        activeCustomSceneID = before.custom?.id
-        engine.finishScenePreview(restore: true)
-        midi.resetTakeover()
-        scheduleSave()
+        session.cancelEditing()
     }
 
     private func closeEditor(animated: Bool) {
@@ -666,33 +408,7 @@ final class AppModel: ObservableObject {
         editorWindow.restore(animated: animated)
     }
 
-    func deleteCustomScene(_ scene: CustomScene) {
-        customScenes.delete(id: scene.id)
-        if activeCustomSceneID == scene.id { selectScene(scene.base) }
-    }
-
-    // MARK: Persistence
-
-    private func scheduleSave() {
-        saveWork?.cancel()
-        let work = DispatchWorkItem { [weak self] in self?.savePreferencesNow() }
-        saveWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: work)
-    }
-
-    private func savePreferencesNow() {
-        var savedPrefs = prefs
-        var savedShow = showSettings
-        if let before = editorBackup {
-            savedPrefs.scene = before.scene
-            savedPrefs.energy = before.energy
-            savedPrefs.subdivision = before.subdivision
-            savedShow = before.show
-        }
-        do { try store.savePreferences(savedPrefs); try store.saveShowSettings(savedShow) } catch {
-            storageErrors.append(String(localized: "Could not save preferences: \(String(describing: error.localizedDescription))"))
-        }
-    }
+    func deleteCustomScene(_ scene: CustomScene) { session.deleteCustomScene(scene) }
 
     // MARK: Keyboard
 
@@ -723,3 +439,5 @@ final class AppModel: ObservableObject {
         return false
     }
 }
+
+extension CustomScenesStore: ScenePresetStore {}

@@ -22,6 +22,10 @@ jobs:
           submodules: recursive
       - name: Swift version
         run: swift --version
+      - name: Golden table (temporary)
+        env:
+          RAYS_PRINT_GOLDEN: "1"
+        run: swift test --filter GoldenFrameTests
       - name: Test
         run: swift test --parallel --enable-code-coverage
       - name: Coverage summary

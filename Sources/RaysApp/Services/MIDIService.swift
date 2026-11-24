@@ -58,19 +58,19 @@ final class MIDIService: ObservableObject {
 
     func start() {
         guard client == 0 else { return }
-        let status = MIDIClientCreateWithBlock("Light System" as CFString, &client) { [weak self] notification in
+        let status = MIDIClientCreateWithBlock("RAYS" as CFString, &client) { [weak self] notification in
             guard notification.pointee.messageID == .msgSetupChanged else { return }
             DispatchQueue.main.async { self?.rescan() }
         }
         guard status == noErr else { error = String(localized: "CoreMIDI unavailable (\(String(describing: status)))."); return }
-        let portStatus = MIDIInputPortCreateWithProtocol(client, "K2 in" as CFString, ._1_0, &port) { [weak self] list, refCon in
+        let portStatus = MIDIInputPortCreateWithProtocol(client, "Controller in" as CFString, ._1_0, &port) { [weak self] list, refCon in
             let bytes = Self.bytes(from: list)
             guard !bytes.isEmpty else { return }
             let tag = Int(bitPattern: refCon)
             DispatchQueue.main.async { self?.receive(bytes, tag: tag) }
         }
         guard portStatus == noErr else { error = String(localized: "MIDI port unavailable (\(String(describing: portStatus)))."); return }
-        MIDIOutputPortCreate(client, "K2 luci" as CFString, &outPort)
+        MIDIOutputPortCreate(client, "Controller out" as CFString, &outPort)
         rescan()
     }
 

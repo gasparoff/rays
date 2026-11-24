@@ -79,17 +79,45 @@ public struct Preferences: Codable, Equatable, Sendable {
     }
 }
 
-/// Atomic JSON persistence in Application Support/Light System.
+/// Atomic JSON persistence in Application Support/RAYS.
 public struct ConfigStore: Sendable {
     public let directory: URL
 
     public init(directory: URL) { self.directory = directory }
 
-    public static var defaultDirectory: URL {
+    /// Folder name inside Application Support.
+    public static let directoryName = "RAYS"
+    /// Folder name used before the project was called RAYS. Moved once by `resolveDirectory(in:)`.
+    public static let legacyDirectoryName = "Light System"
+
+    /// `Application Support/RAYS`, after moving an existing `Application Support/Light System` there.
+    /// Resolved once per launch.
+    public static let defaultDirectory: URL = {
         let base =
             FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support")
-        return base.appendingPathComponent("Light System", isDirectory: true)
+        return resolveDirectory(in: base)
+    }()
+
+    /// Returns `base/RAYS`. When only the legacy `base/Light System` folder exists, it is moved to
+    /// `base/RAYS` and a symbolic link is left at the old path, so an older build still finds the same
+    /// files. If the move fails the legacy folder is used as it is: saved data is never left behind.
+    public static func resolveDirectory(in base: URL, fileManager: FileManager = .default) -> URL {
+        let current = base.appendingPathComponent(directoryName, isDirectory: true)
+        let legacy = base.appendingPathComponent(legacyDirectoryName, isDirectory: true)
+        if fileManager.fileExists(atPath: current.path) { return current }
+        // A link at the legacy path is the one left by an earlier migration, never data to move.
+        let legacyIsLink = (try? fileManager.destinationOfSymbolicLink(atPath: legacy.path)) != nil
+        var isDirectory: ObjCBool = false
+        guard !legacyIsLink, fileManager.fileExists(atPath: legacy.path, isDirectory: &isDirectory), isDirectory.boolValue
+        else { return current }
+        do {
+            try fileManager.moveItem(at: legacy, to: current)
+        } catch {
+            return legacy
+        }
+        try? fileManager.createSymbolicLink(atPath: legacy.path, withDestinationPath: directoryName)
+        return current
     }
 
     public var patchURL: URL { directory.appendingPathComponent("patch.json") }

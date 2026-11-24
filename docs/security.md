@@ -32,7 +32,7 @@ defence is careful parsing and bounded state, not trust in the sender.
   to `ignore`, which is always 0, and blackout zeroes every slot, constants included.
   `CommunityProfilesTests` and `CommunityControllersTests` validate every file in the
   repository on each pull request.
-- **Saved files** live in `~/Library/Application Support/Light System/` and are written
+- **Saved files** live in `~/Library/Application Support/RAYS/` and are written
   atomically. A damaged file is reported in the app and falls back to defaults; it never
   crashes the app.
 

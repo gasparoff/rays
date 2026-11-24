@@ -19,14 +19,14 @@ public final class LightEngine: @unchecked Sendable {
     public var onPreferredNodeChanged: ((String?) -> Void)?
 
     private let tempo: TempoSource
-    private var artnet: OutputDriver
+    private var output: OutputDriver
     private let transport: DatagramTransport
     private let interfaces: () -> [NetworkInterface]
     private let clock: () -> TimeInterval
     private var baseLibrary: ProfileLibrary
     private var timer: DispatchSourceTimer?
-    private var running = false
-    private var suspended = false
+    /// Output safety: armed, request, blackout, diagnostic, running. Decides; the engine does the I/O.
+    private var gate = OutputGate()
     private let outputActivity = OutputActivity()
 
     private var sequencer = SceneSequencer()
@@ -36,21 +36,21 @@ public final class LightEngine: @unchecked Sendable {
     private var lastTick: TimeInterval?
     private var master = 0.8
     private var levels = ShowSettings()
-    private var blackout = false
-    private var armed = false
-    private var outputRequested = false
     private var lastSocketAttempt: TimeInterval = -.infinity
     private var patch = Patch.empty
     private var patchIssues: [PatchIssue] = []
     private var patchConfirmed = false
-    private var roles: [FixtureRole] = []
     /// Default-rig fixtures missing from the real patch; composed into a buffer that is never sent.
     private var shadow = VarytecRig.referenceRig()
+    /// Patch-derived data for the frame, rebuilt only when the patch or library changes.
+    private var cache = PatchCache()
+    /// Network part of the snapshot, refreshed at a low rate or when something changed.
+    private var network = NetworkStatus()
+    private var networkRefreshedAt: TimeInterval = -.infinity
+    private var networkWasOpen = false
+    /// Set by user actions that change the network selection: refresh on the next snapshot.
+    private var networkDirty = true
     private var framesSent: UInt64 = 0
-    private var diagnosticColor: LightColor?
-    private var diagnosticTarget = DiagnosticTarget.all
-    private var diagnosticEnd: TimeInterval = 0
-    private var armedBeforeDiagnostic = false
     private var accentOn = false
     private var accentStart: TimeInterval = 0
     private var accentReleaseFrom: TimeInterval?
@@ -82,9 +82,10 @@ public final class LightEngine: @unchecked Sendable {
         self.tempo = tempo
         self.transport = transport
         self.interfaces = interfaces
-        self.artnet = outputDrivers.make(id: outputDriverID, transport: transport, interfaces: interfaces)
+        self.output = outputDrivers.make(id: outputDriverID, transport: transport, interfaces: interfaces)
         self.baseLibrary = library
         self.clock = clock
+        rebuildPatchCacheLocked()
         observeOutputDriver()
     }
 
@@ -93,13 +94,12 @@ public final class LightEngine: @unchecked Sendable {
     public func start() { queue.async { self.startLocked() } }
 
     private func startLocked() {
-        guard !running else { return }
-        running = true
-        suspended = false
-        outputActivity.update(active: outputRequested || armed)
+        guard gate.start() else { return }
+        outputActivity.update(active: gate.wantsOutput)
         lastSocketAttempt = clock()
-        artnet.open(queue: queue, now: clock)
-        artnet.forcePoll(now: clock())
+        output.open(queue: queue, now: clock)
+        output.forcePoll(now: clock())
+        networkDirty = true
         guard runsTimer else { return }
         let t = DispatchSource.makeTimerSource(flags: .strict, queue: queue)
         t.schedule(deadline: .now(), repeating: 1 / Self.frameRate, leeway: .milliseconds(2))
@@ -108,43 +108,41 @@ public final class LightEngine: @unchecked Sendable {
         t.resume()
     }
 
-    private func stopLocked() {
-        sendBlackFramesLocked()
+    /// `effects` comes from the gate's stop transition (black frames while still armed).
+    private func stopLocked(_ effects: OutputGate.Effects) {
+        perform(effects)
         timer?.cancel()
         timer = nil
-        artnet.close()
-        running = false
+        output.close()
+        networkDirty = true
         outputActivity.stop()
     }
 
     /// System sleep: zero frames, stop timer and socket. Armed state is kept for wake.
     public func suspend() {
         queue.async {
-            guard self.running else { return }
-            self.stopLocked()
-            self.suspended = true
+            guard let effects = self.gate.suspend() else { return }
+            self.stopLocked(effects)
+            let now = self.clock(), t = self.tempo.capture()
+            let (readiness, target) = self.currentReadinessLocked()
             self.publish(
                 self.snapshotLocked(
-                    visuals: [], now: self.clock(), beat: self.musicalBeat(self.tempo.capture()),
-                    sending: false))
+                    visuals: [], now: now, beat: self.musicalBeat(t), tempo: t,
+                    readiness: readiness, target: target, sending: false))
         }
     }
 
     /// Wake: rebind socket (interfaces may have changed) and rediscover immediately.
     public func resume() {
         queue.async {
-            guard self.suspended else { return }
+            guard self.gate.resume() else { return }
             self.startLocked()
         }
     }
 
     /// App termination: synchronously send zero frames, disarm and close.
     public func shutdown() {
-        queue.sync {
-            stopLocked()
-            armed = false
-            outputRequested = false
-        }
+        queue.sync { stopLocked(gate.shutdown()) }
     }
 
     // MARK: Controls (thread-safe, applied on the engine queue)
@@ -301,7 +299,7 @@ public final class LightEngine: @unchecked Sendable {
         queue.async {
             let now = self.clock()
             if on {
-                guard !self.blackout else { return }
+                guard !self.gate.blackout else { return }
                 self.accentOn = true
                 self.accentStart = now
                 self.accentReleaseFrom = nil
@@ -317,15 +315,7 @@ public final class LightEngine: @unchecked Sendable {
     public func setExternalBeatGrid(_ on: Bool) { queue.async { self.externalGrid = on } }
 
     public func setBlackout(_ on: Bool) {
-        queue.async {
-            self.blackout = on
-            if on {
-                if self.diagnosticColor != nil { self.endDiagnosticLocked() }
-                self.accentOn = false
-                self.accentReleaseFrom = nil
-                self.tick()
-            }
-        }
+        queue.async { self.perform(self.gate.setBlackout(on)) }
     }
 
     /// Brief static check using the same validated patch and socket as the show. If output was
@@ -333,49 +323,22 @@ public final class LightEngine: @unchecked Sendable {
     /// Ignored during blackout: blackout always wins, so a test never lights a blacked-out rig.
     public func runDiagnostic(_ color: LightColor, duration: TimeInterval = 5, target: DiagnosticTarget = .all) {
         queue.async {
-            guard color.isFinite, !self.blackout, self.readinessLocked(now: self.clock()).0 == .ready else { return }
-            if self.diagnosticColor == nil { self.armedBeforeDiagnostic = self.armed }
-            self.diagnosticColor = color.clamped
-            self.diagnosticTarget = target
-            self.diagnosticEnd = self.clock() + min(10, max(0.5, duration.isFinite ? duration : 5))
-            self.armed = true
-            self.tick()
+            let effects = self.gate.startDiagnostic(
+                color, target: target, duration: duration, now: self.clock(),
+                ready: self.currentReadinessLocked().0 == .ready)
+            self.perform(effects)
         }
     }
 
-    public func cancelDiagnostic() {
-        queue.async {
-            guard self.diagnosticColor != nil else { return }
-            self.endDiagnosticLocked()
-        }
-    }
-
-    private func endDiagnosticLocked() {
-        diagnosticColor = nil
-        if !armedBeforeDiagnostic {
-            sendBlackFramesLocked()
-            armed = false
-        }
-        armedBeforeDiagnostic = false
-    }
+    public func cancelDiagnostic() { queue.async { self.perform(self.gate.endDiagnostic()) } }
 
     public func setTempo(_ bpm: Double) { queue.async { self.tempo.setTempo(bpm) } }
     public func setStartStopSync(_ on: Bool) { queue.async { self.tempo.setStartStopSync(on) } }
 
     public func setArmed(_ on: Bool) {
         queue.async {
-            if on {
-                if self.readinessLocked(now: self.clock()).0 == .ready {
-                    self.outputRequested = true
-                    self.armed = true
-                }
-            } else {
-                self.outputRequested = false
-                self.sendBlackFramesLocked()
-                self.diagnosticColor = nil
-                self.armedBeforeDiagnostic = false
-                self.armed = false
-            }
+            let ready = on && self.currentReadinessLocked().0 == .ready
+            self.perform(self.gate.setOutput(on, ready: ready))
         }
     }
 
@@ -383,42 +346,41 @@ public final class LightEngine: @unchecked Sendable {
     /// still checked on every frame. Explicit off cancels both active and pending output.
     public func setOutputRequested(_ on: Bool) {
         if !on { setArmed(false); return }
-        queue.async { self.outputRequested = true }
+        queue.async { self.gate.restoreRequest() }
     }
 
     public func setPatch(_ newPatch: Patch, library: ProfileLibrary? = nil) {
         queue.async {
-            self.outputRequested = false
-            if self.armed { self.sendBlackFramesLocked(); self.armed = false }
-            self.diagnosticColor = nil
-            self.armedBeforeDiagnostic = false
+            // Black frames go out on the old patch, before it is replaced.
+            self.perform(self.gate.patchChanged())
             if let library { self.baseLibrary = library }
             self.patch = newPatch
             self.patchIssues = newPatch.validate(library: self.baseLibrary)
             self.patchConfirmed = newPatch.isConfirmed(library: self.baseLibrary)
-            self.roles = newPatch.roles(library: self.baseLibrary)
-            let present: Set<FixtureRole> = self.showsRealPatch ? Set(self.roles) : []
+            let present: Set<FixtureRole> = self.showsRealPatch ? Set(newPatch.roles(library: self.baseLibrary)) : []
             var rig = VarytecRig.referenceRig(universe: 1)
             rig.fixtures.removeAll { present.contains($0.role ?? .center) }
             self.shadow = rig
+            self.rebuildPatchCacheLocked()
+            self.networkDirty = true
         }
     }
 
     public func selectNode(_ identity: String?) {
         queue.async {
-            self.outputRequested = false
-            if self.armed { self.sendBlackFramesLocked(); self.armed = false }
-            self.artnet.select(identity: identity)
+            self.perform(self.gate.destinationChanged())
+            self.output.select(identity: identity)
+            self.networkDirty = true
         }
     }
 
     public func setManualIP(_ ip: IPv4Address?) {
         queue.async {
-            self.outputRequested = false
-            if self.armed { self.sendBlackFramesLocked(); self.armed = false }
-            self.artnet.manualIP = ip
-            if ip != nil { self.artnet.preferredIdentity = nil }
-            self.artnet.forcePoll(now: self.clock())
+            self.perform(self.gate.destinationChanged())
+            self.output.manualIP = ip
+            if ip != nil { self.output.preferredIdentity = nil }
+            self.output.forcePoll(now: self.clock())
+            self.networkDirty = true
         }
     }
 
@@ -426,44 +388,50 @@ public final class LightEngine: @unchecked Sendable {
     /// so changing the driver never turns lights on.
     public func useOutputDriver(_ id: String, registry: OutputDriverRegistry) {
         queue.async {
-            self.outputRequested = false
-            if self.armed { self.sendBlackFramesLocked(); self.armed = false }
+            self.perform(self.gate.destinationChanged())
             self.outputActivity.update(active: false)
-            self.artnet.close()
-            self.artnet = registry.make(id: id, transport: self.transport, interfaces: self.interfaces)
+            self.output.close()
+            self.output = registry.make(id: id, transport: self.transport, interfaces: self.interfaces)
             self.observeOutputDriver()
             self.lastSocketAttempt = -.infinity
-            if self.running, !self.suspended {
+            if self.gate.running, !self.gate.suspended {
                 self.lastSocketAttempt = self.clock()
-                self.artnet.open(queue: self.queue, now: self.clock)
-                self.artnet.forcePoll(now: self.clock())
+                self.output.open(queue: self.queue, now: self.clock)
+                self.output.forcePoll(now: self.clock())
             }
+            self.networkDirty = true
         }
     }
 
-    public var outputDriverID: String { sync { artnet.driverID } }
+    public var outputDriverID: String { sync { output.driverID } }
 
     /// Forwards the driver's auto-selected node to `onPreferredNodeChanged` without retaining the engine.
     private func observeOutputDriver() {
-        artnet.onPreferredIdentityChanged = { [weak self] id in self?.onPreferredNodeChanged?(id) }
+        output.onPreferredIdentityChanged = { [weak self] id in self?.onPreferredNodeChanged?(id) }
     }
 
-    public func setPreferredIdentity(_ identity: String?) { queue.async { self.artnet.preferredIdentity = identity } }
+    public func setPreferredIdentity(_ identity: String?) {
+        queue.async {
+            self.output.preferredIdentity = identity
+            self.networkDirty = true
+        }
+    }
 
     public func rediscover() {
         queue.async {
             self.reopenSocketIfNeeded(now: self.clock(), force: true)
-            self.artnet.forcePoll(now: self.clock())
+            self.output.forcePoll(now: self.clock())
+            self.networkDirty = true
         }
     }
 
     private func reopenSocketIfNeeded(now: TimeInterval, force: Bool = false) {
-        guard running, !suspended, !artnet.isOpen,
-            force || now - lastSocketAttempt >= artnet.reopenInterval
+        guard gate.running, !gate.suspended, !output.isOpen,
+            force || now - lastSocketAttempt >= output.reopenInterval
         else { return }
         lastSocketAttempt = now
-        artnet.open(queue: queue, now: clock)
-        if artnet.isOpen { artnet.forcePoll(now: now) }
+        output.open(queue: queue, now: clock)
+        if output.isOpen { output.forcePoll(now: now) }
     }
 
     /// Runs one frame synchronously (tests).
@@ -473,15 +441,44 @@ public final class LightEngine: @unchecked Sendable {
 
     // MARK: Frame
 
-    private func readinessLocked(now: TimeInterval) -> (OutputReadiness, OutputTarget?) {
-        if patch.fixtures.isEmpty { return (.noPatch, nil) }
-        if let issue = patchIssues.first { return (.invalidPatch(issue.message), nil) }
-        if !patchConfirmed { return (.notConfirmed, nil) }
-        if !artnet.isOpen { return (.socketUnavailable(artnet.socketError ?? String(localized: "Art-Net socket closed")), nil) }
-        guard let target = artnet.target(now: now, patchUniverses: patch.universes) else { return (.noDevice, nil) }
-        if target.verified && !target.fresh { return (.noDevice, target) }
-        if !Set(patch.universes).isSubset(of: Set(target.universes)) { return (.noMatchingUniverse, target) }
-        return (.ready, target)
+    /// Whether DMX can be sent to `target` (the driver's target for the patch universes, looked up once).
+    private func readinessLocked(target: OutputTarget?) -> OutputReadiness {
+        if patch.fixtures.isEmpty { return .noPatch }
+        if let issue = patchIssues.first { return .invalidPatch(issue.message) }
+        if !patchConfirmed { return .notConfirmed }
+        if !output.isOpen { return .socketUnavailable(output.socketError ?? String(localized: "Output closed")) }
+        guard let target else { return .noDevice }
+        if target.verified && !target.fresh { return .noDevice }
+        // Patch universes are unique: every one must be among the target's.
+        if !cache.universes.allSatisfy({ target.universes.contains($0) }) { return .noMatchingUniverse }
+        return .ready
+    }
+
+    /// Readiness and target right now, for actions outside the frame.
+    private func currentReadinessLocked() -> (OutputReadiness, OutputTarget?) {
+        let target = output.target(now: clock(), patchUniverses: cache.universes)
+        return (readinessLocked(target: target), target)
+    }
+
+    /// Where black frames may go: a validated patch on an open output with a known (even stale) target.
+    static func blackFrameTarget(_ readiness: OutputReadiness, _ target: OutputTarget?) -> OutputTarget? {
+        switch readiness {
+        case .ready, .noDevice, .noMatchingUniverse: return target
+        case .noPatch, .invalidPatch, .notConfirmed, .socketUnavailable: return nil
+        }
+    }
+
+    /// Carries out what the gate decided, outside a frame: black frames go to the current target.
+    private func perform(_ effects: OutputGate.Effects) {
+        if effects.contains(.sendBlack) {
+            let (readiness, target) = currentReadinessLocked()
+            sendBlackFramesLocked(to: Self.blackFrameTarget(readiness, target))
+        }
+        if effects.contains(.killAccent) {
+            accentOn = false
+            accentReleaseFrom = nil
+        }
+        if effects.contains(.renderNow) { tick() }
     }
 
     private var showsRealPatch: Bool { !patch.fixtures.isEmpty && patchIssues.isEmpty }
@@ -534,7 +531,7 @@ public final class LightEngine: @unchecked Sendable {
         sequencer.advance(beat: beat, bpm: t.bpm, now: now, gridTrusted: gridTrusted(t))
         if let s = sequencer.targetScene { lastScene = s }
         previewBlendActive = false
-        if let color = diagnosticColor { return diagnosticFrame(color, diagnosticTarget) }
+        if let test = gate.diagnostic { return diagnosticFrame(test.color, test.target) }
         // Custom looks and program tracks are rendered inside the sequencer layers (fades, Stop).
         var rig = sequencer.render(beat: beat, energy: smoothedEnergy, now: now)
         let accent = accentEnvelope(now: now) * levels.accentLevel
@@ -558,75 +555,115 @@ public final class LightEngine: @unchecked Sendable {
             FixtureLevels(rgb: rig[role].rgb, cob: rig[role].cob.map { $0 * levels.whiteLevel })
         }
         let scales = roles.map { diagnostic || previewBlendActive ? master : master * levels.level($0) }
-        return DMXComposer.compose(patch: p, library: baseLibrary, levels: lv, scales: scales, blackout: blackout)
+        return DMXComposer.compose(patch: p, library: baseLibrary, levels: lv, scales: scales, blackout: gate.blackout)
     }
 
     private func tick() {
         let now = clock()
         reopenSocketIfNeeded(now: now)
-        if diagnosticColor != nil && now >= diagnosticEnd { endDiagnosticLocked() }
-        artnet.pollIfDue(now: now)
+        perform(gate.expireDiagnostic(now: now))
+        output.pollIfDue(now: now)
+        // One tempo capture, one target and one readiness per frame: output, black frames and the
+        // snapshot all describe the same instant.
         let t = tempo.capture()
         let beat = musicalBeat(t)
         let rig = rigFrame(now: now, beat: beat, tempo: t)
-        let diagnostic = diagnosticColor != nil
+        let diagnostic = gate.isTesting
 
         var sending = false
-        let (readiness, target) = readinessLocked(now: now)
-        if armed, readiness != .ready {
+        let target = output.target(now: now, patchUniverses: cache.universes)
+        let readiness = readinessLocked(target: target)
+        if gate.frame(ready: readiness == .ready).contains(.sendBlack) {
             // Stop transmitting until validation passes again, but retain the user's request.
-            sendBlackFramesLocked()
-            armed = false
-            diagnosticColor = nil
-            armedBeforeDiagnostic = false
+            sendBlackFramesLocked(to: Self.blackFrameTarget(readiness, target))
         }
-        if outputRequested, readiness == .ready { armed = true }
-        let real = showsRealPatch ? compose(patch, roles: roles, rig: rig, diagnostic: diagnostic) : [:]
-        if armed, let target {
-            sending = artnet.sendDMX(real, to: target)
+        let real = showsRealPatch ? compose(patch, roles: cache.roles, rig: rig, diagnostic: diagnostic) : [:]
+        if gate.armed, let target {
+            sending = output.sendDMX(real, to: target)
             if sending { framesSent &+= 1 }
         }
-        let shadowRoles = shadow.roles(library: baseLibrary)
-        let shadowFrames = compose(shadow, roles: shadowRoles, rig: rig, diagnostic: diagnostic)
-        var visuals = showsRealPatch ? visualsLocked(patch, roles: roles, frames: real, status: armed && sending ? .live : .off) : []
-        visuals += visualsLocked(shadow, roles: shadowRoles, frames: shadowFrames, status: .previewOnly)
+        let shadowFrames = compose(shadow, roles: cache.shadowRoles, rig: rig, diagnostic: diagnostic)
+        let visuals = visualsLocked(real: real, shadow: shadowFrames, live: gate.armed && sending)
+        publish(
+            snapshotLocked(
+                visuals: visuals, now: now, beat: beat, tempo: t, readiness: readiness, target: target, sending: sending))
+    }
+
+    /// Patch-derived data for the frame. Rebuilt by `rebuildPatchCacheLocked` when the patch or library changes.
+    private struct PatchCache {
+        /// One preview fixture, already in display order.
+        struct Slot {
+            var previewOnly: Bool
+            var id: String
+            var label: String
+            var profileID: String
+            var profile: FixtureProfile?
+            var port: PortAddress?
+            var role: FixtureRole
+            var universe: Int
+            var address: Int
+        }
+        var roles: [FixtureRole] = []
+        var shadowRoles: [FixtureRole] = []
+        var universes: [PortAddress] = []
+        /// Real fixtures (when the patch is shown), then shadow fixtures, sorted left, center, right.
+        var slots: [Slot] = []
+    }
+
+    private func rebuildPatchCacheLocked() {
+        var c = PatchCache()
+        c.roles = patch.roles(library: baseLibrary)
+        c.shadowRoles = shadow.roles(library: baseLibrary)
+        c.universes = patch.universes
+        func slots(_ p: Patch, roles: [FixtureRole], previewOnly: Bool) -> [PatchCache.Slot] {
+            let lib = p.library(base: baseLibrary)
+            return p.fixtures.enumerated().map { i, f in
+                PatchCache.Slot(
+                    previewOnly: previewOnly, id: previewOnly ? "preview-\(roles[i].rawValue)" : f.id.uuidString,
+                    label: f.label, profileID: f.profileID, profile: lib.profile(id: f.profileID),
+                    port: PortAddress(f.universe), role: roles[i], universe: f.universe, address: f.address)
+            }
+        }
+        let all =
+            (showsRealPatch ? slots(patch, roles: c.roles, previewOnly: false) : [])
+            + slots(shadow, roles: c.shadowRoles, previewOnly: true)
         let order: [FixtureRole: Int] = [.left: 0, .center: 1, .right: 2]
-        visuals = visuals.enumerated().sorted {
+        c.slots = all.enumerated().sorted {
             (order[$0.element.role]!, $0.offset) < (order[$1.element.role]!, $1.offset)
         }.map(\.element)
-
-        var snap = snapshotLocked(visuals: visuals, now: now, beat: beat, sending: sending)
-        snap.tempo = t
-        snap.readiness = readiness
-        publish(snap)
+        cache = c
     }
 
-    private func visualsLocked(
-        _ p: Patch, roles: [FixtureRole], frames: [PortAddress: [UInt8]],
-        status: FixtureVisual.Status
-    ) -> [FixtureVisual] {
-        let lib = p.library(base: baseLibrary)
-        return p.fixtures.enumerated().map { i, f in
-            let profile = lib.profile(id: f.profileID)
+    /// Preview fixtures decoded from the composed bytes: `real` for patched ones, `shadow` for the rest.
+    private func visualsLocked(real: [PortAddress: [UInt8]], shadow: [PortAddress: [UInt8]], live: Bool) -> [FixtureVisual] {
+        var visuals: [FixtureVisual] = []
+        visuals.reserveCapacity(cache.slots.count)
+        for slot in cache.slots {
+            let frames = slot.previewOnly ? shadow : real
             let levels =
-                profile.flatMap { pr in
-                    PortAddress(f.universe).flatMap { frames[$0] }.map { DMXComposer.decode(profile: pr, universe: $0, address: f.address) }
+                slot.profile.flatMap { pr in
+                    slot.port.flatMap { frames[$0] }.map { DMXComposer.decode(profile: pr, universe: $0, address: slot.address) }
                 } ?? .off
-            return FixtureVisual(
-                id: status == .previewOnly ? "preview-\(roles[i].rawValue)" : f.id.uuidString,
-                label: f.label, profileID: f.profileID, role: roles[i], universe: f.universe,
-                address: f.address, rgb: levels.rgb, cob: levels.cob, status: status)
+            visuals.append(
+                FixtureVisual(
+                    id: slot.id, label: slot.label, profileID: slot.profileID, role: slot.role, universe: slot.universe,
+                    address: slot.address, rgb: levels.rgb, cob: levels.cob,
+                    status: slot.previewOnly ? .previewOnly : (live ? .live : .off)))
         }
+        return visuals
     }
 
-    private func sendBlackFramesLocked() {
-        guard armed else { return }  // never emit DMX unless output was armed with a confirmed patch
-        guard let target = readinessLocked(now: clock()).1 else { return }
+    /// Zero frames, three times. Only called when the gate disarms an armed output.
+    private func sendBlackFramesLocked(to target: OutputTarget?) {
+        guard let target else { return }
         let zeros = DMXComposer.compose(patch: patch, library: baseLibrary, levels: [], scales: [], blackout: true)
-        for _ in 0..<3 { artnet.sendDMX(zeros, to: target) }
+        for _ in 0..<3 { output.sendDMX(zeros, to: target) }
     }
 
-    private func snapshotLocked(visuals: [FixtureVisual], now: TimeInterval, beat: Double, sending: Bool) -> EngineSnapshot {
+    private func snapshotLocked(
+        visuals: [FixtureVisual], now: TimeInterval, beat: Double, tempo t: TempoSnapshot,
+        readiness: OutputReadiness, target: OutputTarget?, sending: Bool
+    ) -> EngineSnapshot {
         var s = EngineSnapshot()
         s.scene = lastScene
         s.pendingScene = sequencer.pendingScene
@@ -644,37 +681,55 @@ public final class LightEngine: @unchecked Sendable {
         s.sceneBeatAnchor = sequencer.currentSceneBeatAnchor
         s.levels = levels
         s.accentLevel = levels.accentLevel
-        s.accentActive = (accentOn || accentReleaseFrom != nil) && !blackout
-        s.blackout = blackout
-        s.armed = armed
-        s.outputRequested = outputRequested
+        s.accentActive = (accentOn || accentReleaseFrom != nil) && !gate.blackout
+        s.blackout = gate.blackout
+        s.armed = gate.armed
+        s.outputRequested = gate.requested
         s.sending = sending
         s.framesSent = framesSent
-        s.suspended = suspended
-        s.isTesting = diagnosticColor != nil
-        let t = tempo.capture()
+        s.suspended = gate.suspended
+        s.isTesting = gate.isTesting
         s.tempo = t
         s.gridTrusted = gridTrusted(t)
-        s.readiness = readinessLocked(now: now).0
+        s.readiness = readiness
         s.fixtures = visuals
-        var net = NetworkStatus()
-        net.nodes = artnet.nodes(now: now)
-        net.selectedID = artnet.preferredIdentity
-        net.manualIP = artnet.manualIP
-        net.target = artnet.target(now: now, patchUniverses: patch.universes)
-        net.interfaces = artnet.interfaces
-        net.socketError = artnet.socketError
-        net.pollError = artnet.pollError
-        net.sendError = artnet.sendError
-        net.diagnosis = artnet.diagnosis(now: now)
-        s.network = net
+        s.network = networkLocked(now: now, target: target)
         return s
+    }
+
+    /// Node lists and localized diagnosis are rebuilt every `networkRefreshInterval`, after user
+    /// actions that change the selection, and as soon as a cheap field (target, selection, errors) changes.
+    static let networkRefreshInterval: TimeInterval = 0.5
+
+    private func networkLocked(now: TimeInterval, target: OutputTarget?) -> NetworkStatus {
+        let elapsed = now - networkRefreshedAt
+        let changed =
+            network.target != target || network.selectedID != output.preferredIdentity
+            || network.manualIP != output.manualIP || network.socketError != output.socketError
+            || network.pollError != output.pollError || network.sendError != output.sendError
+            || networkWasOpen != output.isOpen
+        guard networkDirty || changed || !(0..<Self.networkRefreshInterval).contains(elapsed) else { return network }
+        var net = NetworkStatus()
+        net.nodes = output.nodes(now: now)
+        net.selectedID = output.preferredIdentity
+        net.manualIP = output.manualIP
+        net.target = target
+        net.interfaces = output.interfaces
+        net.socketError = output.socketError
+        net.pollError = output.pollError
+        net.sendError = output.sendError
+        net.diagnosis = output.diagnosis(now: now)
+        network = net
+        networkRefreshedAt = now
+        networkWasOpen = output.isOpen
+        networkDirty = false
+        return net
     }
 
     private func publish(_ s: EngineSnapshot) {
         // This follows output intent, not window visibility. Keep it through outages,
         // blackout and Stop (which still transmit DMX), and release it when output is off.
-        outputActivity.update(active: running && (s.outputRequested || s.armed))
+        outputActivity.update(active: gate.running && (s.outputRequested || s.armed))
         onSnapshot?(s)
     }
 }

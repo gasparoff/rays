@@ -379,15 +379,20 @@ enum TempoWording {
 struct StagePanel: View {
     @EnvironmentObject private var model: AppModel
     @EnvironmentObject private var live: LiveState
+    /// Lights selected by clicking them in the preview (fixture ids).
+    @State private var selection: Set<String> = []
 
     var body: some View {
         let s = live.snapshot
+        let selected = s.fixtures.filter { selection.contains($0.id) }
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(LinearGradient(colors: [Color(white: 0.03), Color(white: 0.055)], startPoint: .top, endPoint: .bottom))
-            LiveStageView(state: model.live)
-                .padding(.horizontal, 12)
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            LiveStageView(state: model.live, selection: selection) { id, extend in
+                select(id, extend: extend)
+            }
+            .padding(.horizontal, 12)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             HStack(spacing: 8) {
                 let isLive = s.armed && s.sending
                 Text(isLive ? String(localized: "LIVE") : String(localized: "PREVIEW"))
@@ -396,6 +401,11 @@ struct StagePanel: View {
                     .background(Capsule().fill(isLive ? Theme.good.opacity(0.2) : Theme.lavender.opacity(0.18)))
                     .foregroundStyle(isLive ? Theme.good : Theme.lavender)
                 Text(stageCaption(s)).font(.system(size: 12)).foregroundStyle(Theme.secondary)
+                if selected.isEmpty && !s.isDemo {
+                    Spacer(minLength: 8)
+                    Text("Click a light to control it · ⇧ for more")
+                        .font(.system(size: 11)).foregroundStyle(Theme.tertiary)
+                }
             }
             .padding(14)
             if s.blackout {
@@ -403,14 +413,87 @@ struct StagePanel: View {
                     .font(.system(size: 34, weight: .semibold, design: .rounded)).tracking(6)
                     .foregroundStyle(Theme.bad.opacity(0.85))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .allowsHitTesting(false)
+            }
+            if !selected.isEmpty {
+                LightInspector(fixtures: selected) { selection = [] }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             }
         }
         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.stroke))
+        .onChange(of: s.fixtures.map(\.id)) { _, ids in selection.formIntersection(ids) }
+    }
+
+    /// Click selects one light (or clears on a second click); Shift adds or removes; the empty stage clears.
+    private func select(_ id: String?, extend: Bool) {
+        guard let id else {
+            if !extend { selection = [] }
+            return
+        }
+        if extend {
+            if selection.contains(id) { selection.remove(id) } else { selection.insert(id) }
+        } else {
+            selection = selection == [id] ? [] : [id]
+        }
     }
 
     private func stageCaption(_ s: EngineSnapshot) -> String {
         if s.isDemo { return String(localized: "No lights set up") }
         return s.armed ? String(localized: "Same colors on the lights") : String(localized: "Lights off")
+    }
+}
+
+/// Floating bar over the stage for the lights picked in the preview: what they are and where they
+/// are patched, and the brightness of their position (combined with master brightness).
+/// Per-light colour, Solo and Mute come with the group model of ADR 0005.
+struct LightInspector: View {
+    @EnvironmentObject private var model: AppModel
+    let fixtures: [FixtureVisual]
+    let onClose: () -> Void
+
+    var body: some View {
+        let roles = FixtureRole.allCases.filter { role in fixtures.contains { $0.role == role } }
+        HStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                Text(detail).font(.system(size: 11)).foregroundStyle(Theme.secondary).lineLimit(1)
+            }
+            .frame(minWidth: 120, alignment: .leading)
+            ForEach(roles) { role in
+                LabeledSlider(
+                    title: role.label,
+                    value: Binding(get: { model.showSettings.level(role) }, set: { model.setLevel(role, $0) })
+                )
+                .frame(width: 170)
+                .help("Brightness of the \(String(describing: role.label.lowercased())) light, combined with master brightness.")
+            }
+            Button(action: onClose) {
+                Image(systemName: "xmark").font(.system(size: 11, weight: .semibold)).frame(width: 26, height: 26)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Theme.secondary)
+            .help("Deselect")
+            .accessibilityLabel("Deselect the lights")
+        }
+        .padding(.horizontal, 14).padding(.vertical, 10)
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.panelRaised.opacity(0.94)))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.lavender.opacity(0.45)))
+        .shadow(color: .black.opacity(0.5), radius: 14, y: 6)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Selected lights")
+    }
+
+    private var title: String {
+        fixtures.count == 1 ? fixtures[0].label : String(localized: "\(String(describing: fixtures.count)) lights")
+    }
+
+    private var detail: String {
+        guard fixtures.count == 1, let f = fixtures.first else { return fixtures.map(\.label).joined(separator: " · ") }
+        switch f.status {
+        case .previewOnly: return String(localized: "Preview only · not in the patch")
+        case .live, .off: return String(localized: "Universe \(String(describing: f.universe)) · DMX \(String(describing: f.address))")
+        }
     }
 }
 

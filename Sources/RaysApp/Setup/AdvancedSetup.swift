@@ -63,12 +63,10 @@ struct AdvancedSetup: View {
             }
             DisclosureGroup("Licenses and information", isExpanded: $showLicense) {
                 Text(
-                    """
-                    RAYS include l'SDK Ableton Link (© Ableton AG), distribuito sotto GNU GPL v2 o successiva, e ASIO standalone (Boost Software License 1.0). \
-                    Questa build è per uso privato locale. Se l'app viene distribuita ad altri, l'intero programma deve essere rilasciato sotto GPL \
-                    con il codice sorgente completo, oppure occorre una licenza commerciale di Link da Ableton (link-devs@ableton.com). \
-                    I testi delle licenze sono nella cartella Resources/Licenses dell'app.
-                    """
+                    String(
+                        localized:
+                            "RAYS is open source under the MIT license: github.com/gasparoff/rays. The app includes the Ableton Link SDK (© Ableton AG, GNU GPL v2 or later) and standalone ASIO (Boost Software License 1.0), so the app as a whole is distributed under the GPL v2 or later, with its complete source at the address above. Pro DJ Link runs Beat Link (Deep Symmetry, Eclipse Public License 2.0) as a separate process. The license texts are in the app's Resources/Licenses folder."
+                    )
                 )
                 .font(note).foregroundStyle(Theme.secondary).fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 6)

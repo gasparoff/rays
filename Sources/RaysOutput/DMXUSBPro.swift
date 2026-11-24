@@ -44,6 +44,9 @@ public protocol SerialPort: AnyObject {
 /// block for long: the descriptor stays non-blocking and a frame that can't be written within
 /// `writeTimeout` fails with `ETIMEDOUT`. The driver then closes the port and the engine reopens
 /// it later, so a stalled widget can't hold up the black frame written on close or shutdown.
+///
+/// `@unchecked Sendable`: not thread-safe by itself. Its owner serialises every call; in RAYS that
+/// is `SerialFrameWriter`, which only touches the port on its writer queue.
 public final class POSIXSerialPort: SerialPort, @unchecked Sendable {
     private var fd: Int32 = -1
     /// Longest time one frame may wait for the device. A full frame is 518 bytes, well under a
@@ -107,6 +110,10 @@ public final class POSIXSerialPort: SerialPort, @unchecked Sendable {
 /// is replaced by the next one, so a slow or stalled widget never builds a backlog and never
 /// delays the engine. The port is only touched on `queue`. A write error closes the port and is
 /// kept, under `lock`, until the driver collects it with `takeFailure()`.
+///
+/// `@unchecked Sendable`: `port` is only used on `queue` (every method reaches it through
+/// `queue.sync` or a drain scheduled on `queue`), `failure` only under `lock`, and `mailbox` is
+/// itself thread-safe. The other stored properties are immutable.
 final class SerialFrameWriter: @unchecked Sendable {
     private let port: SerialPort
     private let queue = DispatchQueue(label: "rays.dmxusbpro.writer", qos: .userInteractive)

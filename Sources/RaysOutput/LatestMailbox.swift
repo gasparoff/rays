@@ -6,6 +6,8 @@ import Foundation
 /// wake-up is outstanding, so a busy main thread can never accumulate a backlog of stale snapshots
 /// (each holding fixture and network arrays). It catches up with the newest frame instead.
 /// The engine and DMX output are unaffected: they keep running at their own rate.
+///
+/// `@unchecked Sendable`: `value` and `wakePending` are only read or written while holding `lock`.
 public final class LatestMailbox<Value: Sendable>: @unchecked Sendable {
     private let lock = NSLock()
     private var value: Value?
@@ -34,7 +36,8 @@ public final class LatestMailbox<Value: Sendable>: @unchecked Sendable {
     }
 
     /// Posts and, when needed, schedules a single drain on `queue` that delivers the newest value.
-    public func post(_ newValue: Value, on queue: DispatchQueue, deliver: @escaping (Value) -> Void) {
+    /// `deliver` runs on `queue`, not on the caller's thread, so it must be `@Sendable`.
+    public func post(_ newValue: Value, on queue: DispatchQueue, deliver: @escaping @Sendable (Value) -> Void) {
         guard post(newValue) else { return }
         queue.async { [self] in
             if let newest = take() { deliver(newest) }

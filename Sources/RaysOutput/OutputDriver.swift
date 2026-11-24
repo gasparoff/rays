@@ -84,15 +84,18 @@ extension OutputDriver {
 }
 
 /// Builds output drivers by identifier. Start from `.builtIn` and `register` new drivers.
-public struct OutputDriverRegistry {
+///
+/// Sendable: the app builds a registry on the main thread and the engine calls `make` on its own
+/// queue, so factories must be `@Sendable` (capture settings by value, not mutable state).
+public struct OutputDriverRegistry: Sendable {
     /// Builds a driver for the engine's transport and interface list.
-    public typealias Factory = (
+    public typealias Factory = @Sendable (
         _ transport: DatagramTransport,
         _ interfaces: @escaping () -> [NetworkInterface]
     ) -> OutputDriver
 
     /// A driver the registry can build.
-    public struct Descriptor {
+    public struct Descriptor: Sendable {
         public var id: String
         public var name: String
         public var make: Factory

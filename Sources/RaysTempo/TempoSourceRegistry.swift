@@ -5,12 +5,13 @@ import Foundation
 ///
 /// Pro DJ Link is not a `TempoSource`: console beats are fed into the Link timeline
 /// (`LinkTempoSource.followBeat`), so the lights, Live and other Link peers share one grid.
-public struct TempoSourceRegistry {
-    /// Builds a source starting at the given tempo.
-    public typealias Factory = (_ initialBPM: Double) -> TempoSource
+public struct TempoSourceRegistry: Sendable {
+    /// Builds a source starting at the given tempo. `@Sendable`, so descriptors can be shared
+    /// constants (`MIDIClockTempoSource.descriptor`).
+    public typealias Factory = @Sendable (_ initialBPM: Double) -> TempoSource
 
     /// A tempo source the registry can build.
-    public struct Descriptor {
+    public struct Descriptor: Sendable {
         public var id: String
         public var name: String
         public var make: Factory

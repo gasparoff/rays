@@ -1,19 +1,37 @@
 name-template: 'RAYS v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
+# Labels come from the autolabeler below (by changed paths) or are set by hand on the pull request.
 categories:
   - title: 'New hardware'
     labels: [fixture, controller, output]
   - title: 'Features'
-    labels: [feature, idea]
+    labels: [enhancement]
   - title: 'Fixes'
     labels: [bug]
   - title: 'Docs and translations'
-    labels: [docs, translation]
+    labels: [documentation, translation]
+  - title: 'Under the hood'
+    labels: [maintenance, dependencies]
+    collapse-after: 3
+exclude-labels: [skip-changelog]
 change-template: '- $TITLE (#$NUMBER) @$AUTHOR'
 version-resolver:
   major: { labels: [breaking] }
-  minor: { labels: [feature, fixture, controller, output] }
+  minor: { labels: [enhancement, fixture, controller, output] }
   default: patch
+autolabeler:
+  - label: fixture
+    files: ['Profiles/**']
+  - label: controller
+    files: ['Controllers/**']
+  - label: translation
+    files: ['Localization/**']
+  - label: documentation
+    files: ['docs/**', '*.md']
+  - label: maintenance
+    files: ['.github/**', 'Scripts/**', 'Makefile', 'Package.swift']
+  - label: bug
+    title: ['/^fix/i']
 template: |
   $CHANGES
 

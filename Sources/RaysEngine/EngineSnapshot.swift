@@ -111,6 +111,8 @@ public struct EngineSnapshot: Equatable, Sendable {
     /// Scene changes are quantised (Link peers or external beat grid present).
     public var gridTrusted = false
     public var pendingIsDownbeat = false
+    /// Countdown of the queued scene, 0…1 (see `SceneSequencer.pendingProgress`); nil when none.
+    public var pendingProgress: Double?
     public var movementLocked = false
     /// Pattern time of the running scene in scene beats (program step position); nil after Stop.
     public var patternBeat: Double?
@@ -132,6 +134,7 @@ public struct EngineSnapshot: Equatable, Sendable {
         key.tempo.beat = 0
         key.tempo.phase = 0
         key.patternBeat = nil
+        key.pendingProgress = pendingProgress == nil ? nil : 0
         key.network.nodes = network.nodes.map { node in
             var node = node
             node.lastSeen = 0

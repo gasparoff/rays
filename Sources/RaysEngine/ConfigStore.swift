@@ -101,9 +101,15 @@ public struct ConfigStore: Sendable {
     public var hasSavedPatch: Bool { FileManager.default.fileExists(atPath: patchURL.path) }
 
     public func loadMIDIMap() -> MIDIMap {
-        guard let data = try? Data(contentsOf: midiURL),
-              let map = try? JSONDecoder().decode(MIDIMap.self, from: data) else { return MIDIMap() }
-        return map
+        var issue: String?
+        return loadMIDIMap(issue: &issue)
+    }
+
+    /// Like `loadMIDIMap()`, but a `midi.json` that exists and cannot be decoded is first copied aside
+    /// (see `preserveUnreadable(_:)`), so the next save cannot silently destroy the learned mappings.
+    /// `issue` receives a user-facing message in that case.
+    public func loadMIDIMap(issue: inout String?) -> MIDIMap {
+        decodeKeepingUnreadable(MIDIMap.self, from: midiURL, issue: &issue) ?? MIDIMap()
     }
 
     public func saveMIDIMap(_ map: MIDIMap) throws { try write(map, to: midiURL) }
@@ -116,12 +122,52 @@ public struct ConfigStore: Sendable {
     public func savePatch(_ patch: Patch) throws { try write(patch, to: patchURL) }
 
     public func loadPreferences() -> Preferences {
-        guard let data = try? Data(contentsOf: preferencesURL),
-              let prefs = try? JSONDecoder().decode(Preferences.self, from: data) else { return Preferences() }
-        return prefs
+        var issue: String?
+        return loadPreferences(issue: &issue)
+    }
+
+    /// Like `loadPreferences()`, but an undecodable `preferences.json` is copied aside first and
+    /// reported through `issue`.
+    public func loadPreferences(issue: inout String?) -> Preferences {
+        decodeKeepingUnreadable(Preferences.self, from: preferencesURL, issue: &issue) ?? Preferences()
     }
 
     public func savePreferences(_ prefs: Preferences) throws { try write(prefs, to: preferencesURL) }
+
+    /// Decodes `url`. A missing file returns nil quietly; a file that exists but does not decode is
+    /// preserved with `preserveUnreadable(_:)` and described in `issue`, then nil is returned.
+    private func decodeKeepingUnreadable<T: Decodable>(_ type: T.Type, from url: URL, issue: inout String?) -> T? {
+        guard let data = try? Data(contentsOf: url) else { return nil }
+        do {
+            return try JSONDecoder().decode(type, from: data)
+        } catch {
+            let name = url.lastPathComponent
+            if let copy = preserveUnreadable(url) {
+                issue = String(
+                    localized:
+                        "\(String(describing: name)) could not be read. RAYS kept a copy as \(String(describing: copy.lastPathComponent)) and started with defaults."
+                )
+            } else {
+                issue = String(localized: "\(String(describing: name)) could not be read and RAYS started with defaults.")
+            }
+            return nil
+        }
+    }
+
+    /// Copies an unreadable file next to itself as `<name>.unreadable[-n].json` and returns the copy.
+    /// An existing copy is never overwritten, so the first damaged version always survives.
+    @discardableResult
+    public func preserveUnreadable(_ url: URL) -> URL? {
+        let base = url.deletingPathExtension().lastPathComponent
+        let fm = FileManager.default
+        for n in 0..<100 {
+            let suffix = n == 0 ? "" : "-\(n)"
+            let copy = directory.appendingPathComponent("\(base).unreadable\(suffix).json")
+            if fm.fileExists(atPath: copy.path) { continue }
+            return (try? fm.copyItem(at: url, to: copy)) != nil ? copy : nil
+        }
+        return nil
+    }
 
     private func write<T: Encodable>(_ value: T, to url: URL) throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

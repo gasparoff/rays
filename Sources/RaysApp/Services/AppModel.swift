@@ -91,7 +91,12 @@ final class AppModel: ObservableObject {
                 } catch { errors.append(String(localized: "Automatic rig: \(String(describing: error.localizedDescription))")) }
             }
         }
-        var p = store.loadPreferences()
+        var preferencesIssue: String?
+        var p = store.loadPreferences(issue: &preferencesIssue)
+        if let preferencesIssue { errors.append(preferencesIssue) }
+        var midiIssue: String?
+        let midiMap = store.loadMIDIMap(issue: &midiIssue)
+        if let midiIssue { errors.append(midiIssue) }
         if let error = ShowSession.applyAutomaticSetupIfNeeded(&p, defaults: .standard, store: store) { errors.append(error) }
         library = lib
         patch = loadedPatch
@@ -115,7 +120,7 @@ final class AppModel: ObservableObject {
             saveScheduler: DebouncedSaveScheduler(), preferences: p, showSettings: store.loadShowSettings(),
             storageErrors: errors)
         self.session = session
-        midi = MIDIService(map: store.loadMIDIMap(), profiles: controllers) { [weak session] map in session?.saveMIDIMap(map) }
+        midi = MIDIService(map: midiMap, profiles: controllers) { [weak session] map in session?.saveMIDIMap(map) }
 
         // Latest-only: if the main thread stalls, it skips to the newest frame instead of
         // queueing one block per 30 Hz snapshot. DMX output is not affected.

@@ -42,33 +42,37 @@ struct PatchEditor: View {
             Panel {
                 VStack(alignment: .leading, spacing: 10) {
                     SectionLabel("Add lights")
-                    HStack(spacing: 14) {
-                        Picker("Profile", selection: $profileID) {
-                            ForEach(orderedProfiles) { p in
-                                Text("\(p.manufacturer) \(p.displayName)" + (p.isVerified ? " ✓" : "")).tag(p.id)
+                    // Labels above their controls: one baseline for every control, and no label
+                    // squeezed into wrapping in a longer language.
+                    HStack(alignment: .bottom, spacing: 14) {
+                        FieldColumn("Profile") {
+                            Picker("Profile", selection: $profileID) {
+                                ForEach(orderedProfiles) { p in
+                                    Text("\(p.manufacturer) \(p.displayName)" + (p.isVerified ? " ✓" : "")).tag(p.id)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(minWidth: 240, maxWidth: .infinity)
+                        }
+                        FieldColumn("Quantity") {
+                            HStack(spacing: 4) {
+                                TextField("1–48", value: $count, format: .number)
+                                    .textFieldStyle(.roundedBorder).frame(width: 44).monospacedDigit()
+                                    .onChange(of: count) { _, n in count = min(48, max(1, n)) }
+                                Stepper("Quantity", value: $count, in: 1...48).labelsHidden()
                             }
                         }
-                        .frame(width: 330)
-                        Stepper("Quantity \(String(describing: count))", value: $count, in: 1...48)
-                        HStack(spacing: 6) {
-                            Text("Address")
+                        FieldColumn("Address") {
                             TextField("1–512", value: $startAddress, format: .number)
-                                .textFieldStyle(.roundedBorder).frame(width: 60)
+                                .textFieldStyle(.roundedBorder).frame(width: 60).monospacedDigit()
                         }
-                        UniversePicker(
-                            selection: Binding(get: { universe ?? nodeUniverse }, set: { universe = $0 }),
-                            nodeUniverses: nodeUniverses
-                        )
-                        .frame(width: 210)
-                    }
-                    HStack {
-                        if let p = library.profile(id: profileID) {
-                            Text(
-                                "\(String(describing: p.footprint)) channels each · addresses \(String(describing: startAddress))–\(String(describing: startAddress + p.footprint * count - 1))"
+                        FieldColumn("Universe") {
+                            UniversePicker(
+                                selection: Binding(get: { universe ?? nodeUniverse }, set: { universe = $0 }),
+                                nodeUniverses: nodeUniverses
                             )
-                            .font(note).foregroundStyle(Theme.tertiary).lineLimit(1)
+                            .frame(width: 210)
                         }
-                        Spacer()
                         Button("Add") {
                             if let p = library.profile(id: profileID), (1...512).contains(startAddress) {
                                 draft.addGroup(profile: p, count: count, startAddress: startAddress, universe: universe ?? nodeUniverse)
@@ -76,6 +80,12 @@ struct PatchEditor: View {
                             }
                         }
                         .buttonStyle(.borderedProminent).tint(Theme.lavender.opacity(0.6))
+                    }
+                    if let p = library.profile(id: profileID) {
+                        Text(
+                            "\(String(describing: p.footprint)) channels each · addresses \(String(describing: startAddress))–\(String(describing: startAddress + p.footprint * count - 1))"
+                        )
+                        .font(note).foregroundStyle(Theme.tertiary).lineLimit(1)
                     }
                     DisclosureGroup("Custom profile", isExpanded: $showCustom) {
                         CustomProfileEditor { profile in
@@ -195,6 +205,25 @@ struct PatchSaveBar: View {
             .disabled(!issues.isEmpty || !(dirty || model.usingDefaultPatch))
         }
         .onChange(of: draft) { _, _ in saveMessage = nil }
+    }
+}
+
+/// A small caption over one control of a form row; the caption never wraps.
+private struct FieldColumn<Content: View>: View {
+    let title: LocalizedStringKey
+    @ViewBuilder var content: Content
+
+    init(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title).font(.system(size: 11, weight: .medium)).foregroundStyle(Theme.secondary)
+                .lineLimit(1).fixedSize()
+            content
+        }
     }
 }
 

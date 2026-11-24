@@ -184,14 +184,14 @@ struct LearnRow: View {
     var body: some View {
         let isLearning = midi.learning == action
         HStack(spacing: 8) {
-            Text(title).font(.system(size: 12.5, weight: .medium)).frame(width: 90, alignment: .leading)
+            Text(title).font(.system(size: 12.5, weight: .medium)).lineLimit(1).frame(width: 150, alignment: .leading)
             Text(
                 isLearning
                     ? (action.isContinuous ? String(localized: "Move a fader…") : String(localized: "Press a button…"))
                     : (midi.effectiveControl(action)?.label ?? "—")
             )
             .font(small).foregroundStyle(isLearning ? Theme.amber : Theme.secondary)
-            .frame(width: 130, alignment: .leading)
+            .lineLimit(1).frame(width: 120, alignment: .leading)
             Button(isLearning ? String(localized: "Cancel") : String(localized: "Learn")) { midi.learn(isLearning ? nil : action) }
                 .controlSize(.small)
             if midi.map.control(for: action) != nil, !isLearning {

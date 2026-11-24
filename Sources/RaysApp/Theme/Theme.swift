@@ -82,7 +82,10 @@ struct Panel<Content: View>: View {
 
 struct SectionLabel: View {
     let text: String
-    init(_ text: String) { self.text = text }
+    /// A literal title, looked up in the translation table.
+    init(_ text: String.LocalizationValue) { self.text = String(localized: text) }
+    /// A title that is already localized.
+    init(verbatim text: String) { self.text = text }
     var body: some View {
         Text(text.uppercased())
             .font(.system(size: 10.5, weight: .semibold))

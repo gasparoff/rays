@@ -28,7 +28,7 @@
                          (stop-helper)
                          (System/exit 0)))
   (.setDaemon true) (.setName "LightSystem-parent-watch") (.start))
-(.setDeviceName player "Light System")
+(.setDeviceName player "RAYS")
 (.addDeviceAnnouncementListener finder
   (reify DeviceAnnouncementListener
     (deviceFound [_ d]

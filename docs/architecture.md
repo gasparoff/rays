@@ -15,7 +15,7 @@ MIDI controllers ─► MIDIRouter ──┘                                    
   are sent on the wire, so what you see is what the fixtures receive.
 - **Engine never blocks.** UI receives only the latest frame (`LatestMailbox`); network and MIDI
   run on their own queues.
-- **Data is plain JSON** in `~/Library/Application Support/Light System/`, written atomically.
+- **Data is plain JSON** in `~/Library/Application Support/RAYS/`, written atomically.
 
 ## Modules
 
@@ -94,7 +94,7 @@ one grid. `MIDIClockParser` / `MIDIClockTempoSource` (RaysTempo) decode 24 ppqn 
 ### Controllers
 
 Layouts are data: `Controllers/*.json` is bundled into `Resources/Controllers`, and
-`Application Support/Light System/Controllers/*.json` is loaded on top (same id = user file wins).
+`Application Support/RAYS/Controllers/*.json` is loaded on top (same id = user file wins).
 Invalid files appear in Setup like invalid fixture profiles.
 
 `MIDIService` connects K2 inputs (built-in `XoneK2` profiles), inputs whose name matches a loaded

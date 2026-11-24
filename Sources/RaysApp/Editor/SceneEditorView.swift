@@ -484,7 +484,7 @@ struct SceneSettingsView: View {
     private func group<Content: View>(_ title: String, trailing: AnyView? = nil, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                SectionLabel(title)
+                SectionLabel(verbatim: title)
                 Spacer()
                 if let trailing { trailing }
             }

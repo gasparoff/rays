@@ -17,6 +17,7 @@ struct AdvancedSetup: View {
     var body: some View {
         let t = live.snapshot.tempo
         VStack(alignment: .leading, spacing: 18) {
+            LanguageSetup()
             Panel {
                 VStack(alignment: .leading, spacing: 8) {
                     SectionLabel("Ableton Link")

@@ -6,6 +6,12 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Interface language in Setup › Advanced › Language: follow macOS, or pick English or Italian. It applies after a restart, with a Restart now button. New translations in `Localization/` appear there without code changes.
+
+### Fixed
+- Section titles (Shortcuts, Tempo, Scenes…) are now translated like the rest of the interface.
+
 ## [0.2.0] - 2026-11-24
 
 Signed and notarized app, composable Live window, user guide.

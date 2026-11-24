@@ -128,11 +128,11 @@ struct TrackInspector: View {
                     }
                     .frame(maxWidth: .infinity, minHeight: 30)
                     .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous).fill(
+                        RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).fill(
                             selected ? Theme.lavender.opacity(0.2) : Color.white.opacity(0.04))
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(
+                        RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).strokeBorder(
                             selected ? Theme.lavender.opacity(0.85) : Theme.stroke, lineWidth: selected ? 1.5 : 1)
                     )
                     .foregroundStyle(selected ? Theme.text : Theme.secondary)
@@ -226,8 +226,8 @@ private struct InspectorHeader: View {
         Button(action: action) {
             Image(systemName: symbol).font(.system(size: 13, weight: .medium))
                 .frame(width: 34, height: 34)
-                .background(RoundedRectangle(cornerRadius: 9).fill(Color.white.opacity(0.05)))
-                .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(Theme.stroke))
+                .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Color.white.opacity(0.05)))
+                .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(Theme.stroke))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

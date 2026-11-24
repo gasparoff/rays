@@ -298,12 +298,12 @@ private struct EditorBlackoutButton: View {
                 Text(on ? String(localized: "Blackout on") : "Blackout").font(.system(size: 13.5, weight: .semibold))
                 Text("Esc").font(.system(size: 10.5, weight: .semibold, design: .monospaced))
                     .padding(.horizontal, 5).padding(.vertical, 1)
-                    .background(RoundedRectangle(cornerRadius: 4).fill(Color.white.opacity(on ? 0.0 : 0.08)))
+                    .background(RoundedRectangle(cornerRadius: Theme.Radius.chip).fill(Color.white.opacity(on ? 0.0 : 0.08)))
                     .opacity(on ? 0 : 1)
             }
             .padding(.horizontal, 14).frame(height: 34)
-            .background(RoundedRectangle(cornerRadius: 9).fill(on ? Theme.bad.opacity(0.85) : Theme.bad.opacity(0.14)))
-            .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(Theme.bad.opacity(0.6)))
+            .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(on ? Theme.bad.opacity(0.85) : Theme.bad.opacity(0.14)))
+            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(Theme.bad.opacity(0.6)))
             .foregroundStyle(on ? Color.black : Theme.bad)
             .contentShape(Rectangle())
         }
@@ -496,8 +496,8 @@ struct SceneSettingsView: View {
             content()
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.03)))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.stroke))
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Color.white.opacity(0.03)))
+        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(Theme.stroke))
     }
 
     private func note(_ text: String) -> some View {
@@ -512,10 +512,10 @@ private struct ColorWell: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
                 .fill(color)
                 .frame(height: 40)
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Color.white.opacity(0.12)))
+                .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).strokeBorder(Color.white.opacity(0.12)))
                 .overlay(alignment: .bottomTrailing) {
                     ColorPicker("Color \(String(describing: index + 1))", selection: $color, supportsOpacity: false)
                         .labelsHidden()
@@ -537,21 +537,21 @@ private struct BaseCard: View {
     var body: some View {
         Button(action: action) {
             ZStack(alignment: .bottomLeading) {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
                     .fill(
                         LinearGradient(
                             colors: CustomScene.defaultColors(for: scene).map { $0.swiftUIColor.opacity(0.55) },
                             startPoint: .topLeading, endPoint: .bottomTrailing))
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
                     .fill(LinearGradient(colors: [.clear, .black.opacity(0.65)], startPoint: .top, endPoint: .bottom))
                 Text(scene.title).font(.system(size: 12.5, weight: .semibold, design: .rounded)).padding(8)
             }
             .frame(height: 44)
             .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
                     .strokeBorder(selected ? Theme.text.opacity(0.9) : Theme.stroke, lineWidth: selected ? 2 : 1)
             )
-            .contentShape(RoundedRectangle(cornerRadius: 10))
+            .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.control))
         }
         .buttonStyle(.plain)
         .foregroundStyle(Theme.text)

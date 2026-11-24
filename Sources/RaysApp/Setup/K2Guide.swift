@@ -55,7 +55,7 @@ struct K2Guide: View {
                             .frame(maxWidth: .infinity)
                     }
                     .padding(.horizontal, 8).frame(height: 34)
-                    .background(RoundedRectangle(cornerRadius: 6).fill(padColor(assigned)))
+                    .background(RoundedRectangle(cornerRadius: Theme.Radius.chip).fill(padColor(assigned)))
                     .accessibilityElement(children: .combine)
                 }
             }
@@ -81,7 +81,7 @@ struct K2Guide: View {
             )
             .font(.system(size: 11)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
         }
-        .padding(12).background(RoundedRectangle(cornerRadius: 12).fill(Color.black.opacity(0.18)))
+        .padding(12).background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Color.black.opacity(0.18)))
     }
 
     private func padColor(_ action: ControlAction?) -> Color {
@@ -96,6 +96,6 @@ struct K2Guide: View {
             Text(name(action)).font(.system(size: 11, weight: .medium)).lineLimit(1).minimumScaleFactor(0.85)
         }
         .frame(maxWidth: .infinity).frame(height: 42)
-        .background(RoundedRectangle(cornerRadius: 6).fill(padColor(action)))
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.chip).fill(padColor(action)))
     }
 }

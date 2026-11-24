@@ -73,8 +73,8 @@ struct CommandPalette: View {
                     .padding(.horizontal, 16).padding(.vertical, 8)
             }
             .frame(width: 540)
-            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.panelRaised))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.white.opacity(0.14)))
+            .background(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous).fill(Theme.panelRaised))
+            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous).strokeBorder(Color.white.opacity(0.14)))
             .shadow(color: .black.opacity(0.6), radius: 30, y: 12)
             .padding(.top, 96)
         }
@@ -105,12 +105,12 @@ struct CommandPalette: View {
                     .font(.system(size: 10.5, weight: .semibold, design: .monospaced))
                     .foregroundStyle(Theme.secondary)
                     .padding(.horizontal, 6).padding(.vertical, 2)
-                    .background(RoundedRectangle(cornerRadius: 5).fill(Color.white.opacity(0.06)))
+                    .background(RoundedRectangle(cornerRadius: Theme.Radius.chip).fill(Color.white.opacity(0.06)))
             }
         }
         .padding(.horizontal, 10)
         .frame(height: 34)
-        .background(RoundedRectangle(cornerRadius: 8).fill(selected ? Theme.lavender.opacity(0.16) : .clear))
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(selected ? Theme.lavender.opacity(0.16) : .clear))
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)

@@ -65,7 +65,7 @@ struct HitTab: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.03)))
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Color.white.opacity(0.03)))
     }
 
     private var levels: some View {
@@ -85,7 +85,7 @@ struct HitTab: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.03)))
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Color.white.opacity(0.03)))
     }
 }
 
@@ -104,9 +104,12 @@ private struct PresetCard: View {
             }
             .padding(.horizontal, 8).padding(.vertical, 8)
             .frame(maxWidth: .infinity)
-            .background(RoundedRectangle(cornerRadius: 10).fill(selected ? Theme.lavender.opacity(0.2) : Color.white.opacity(0.04)))
+            .background(
+                RoundedRectangle(cornerRadius: Theme.Radius.control).fill(
+                    selected ? Theme.lavender.opacity(0.2) : Color.white.opacity(0.04))
+            )
             .overlay(
-                RoundedRectangle(cornerRadius: 10).strokeBorder(
+                RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(
                     selected ? Theme.lavender.opacity(0.9) : Theme.stroke, lineWidth: selected ? 1.5 : 1)
             )
             .foregroundStyle(selected ? Theme.text : Theme.secondary)
@@ -216,8 +219,8 @@ private struct EnvelopeEditor: View {
                 }
             }
         }
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.black.opacity(0.35)))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.stroke))
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Color.black.opacity(0.35)))
+        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(Theme.stroke))
         .help(
             String(
                 localized:

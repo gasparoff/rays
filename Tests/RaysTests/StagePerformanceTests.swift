@@ -28,18 +28,21 @@ final class LatestMailboxTests: XCTestCase {
         let consumer = DispatchQueue(label: "test.consumer")
         let gate = DispatchSemaphore(value: 0)
         consumer.async { gate.wait() }
-        var delivered: [UInt64] = []
+        let delivered = Locked<[UInt64]>([])
         for frame in 1...300 {
             var snap = EngineSnapshot()
             snap.framesSent = UInt64(frame)
-            snap.fixtures = [FixtureVisual(id: "c", label: "Centro", profileID: "varytec-tri380-25ch", role: .center,
-                                           universe: 0, address: 1, rgb: Array(repeating: LightColor(1, 0, 0), count: 6),
-                                           cob: [0, 0, 0], status: .live)]
-            box.post(snap, on: consumer) { delivered.append($0.framesSent) }
+            snap.fixtures = [
+                FixtureVisual(
+                    id: "c", label: "Centro", profileID: "varytec-tri380-25ch", role: .center,
+                    universe: 0, address: 1, rgb: Array(repeating: LightColor(1, 0, 0), count: 6),
+                    cob: [0, 0, 0], status: .live)
+            ]
+            box.post(snap, on: consumer) { newest in delivered.withValue { $0.append(newest.framesSent) } }
         }
         gate.signal()
         consumer.sync {}
-        XCTAssertEqual(delivered, [300])
+        XCTAssertEqual(delivered.current, [300])
     }
 
     func testConcurrentProducerNeverLosesTheFinalValueOrStacksWakeUps() {

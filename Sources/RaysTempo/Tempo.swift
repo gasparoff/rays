@@ -32,6 +32,9 @@ public struct TempoSnapshot: Equatable, Sendable {
 }
 
 /// Anything that provides tempo and beat position to the engine (Ableton Link, internal clock, MIDI clock).
+///
+/// The engine calls a source on its serial queue while the app calls it on the main thread (tap,
+/// downbeat), so the built-in sources are thread-safe and `Sendable`.
 public protocol TempoSource: AnyObject {
     func capture() -> TempoSnapshot
     /// Explicit user tempo change (tap / manual). Never called automatically.
@@ -41,6 +44,10 @@ public protocol TempoSource: AnyObject {
 
 /// A local phase correction for the lighting grid. The source keeps ownership of BPM and timing;
 /// aligning the lights never commits a phase change to the shared Link session or console.
+///
+/// `@unchecked Sendable`: `offset` is only used under `lock`. The wrapped `source` must be
+/// thread-safe itself (every built-in source and the app's Link source are); `capture` and
+/// `setDownbeat` also call it under `lock`, so an offset is never applied to a stale capture.
 public final class DownbeatTempoSource: TempoSource, @unchecked Sendable {
     private let source: TempoSource
     private let lock = NSLock()
@@ -80,6 +87,10 @@ public enum TempoRange {
 }
 
 /// Local free-running clock used when Link is unavailable, and in tests.
+///
+/// `@unchecked Sendable`: `bpm`, `anchorBeat` and `anchorTime` are only used under `lock`, and
+/// `now` is only called under `lock` (after `init`), so a non-`Sendable` test clock is never
+/// called from two threads at once.
 public final class LocalTempoClock: TempoSource, @unchecked Sendable {
     private let lock = NSLock()
     private let now: () -> TimeInterval

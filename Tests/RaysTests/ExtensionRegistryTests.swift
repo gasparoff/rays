@@ -23,15 +23,17 @@ final class ExtensionRegistryTests: XCTestCase {
     }
 
     func testEngineUsesTheDriverFromTheRegistry() {
-        var made = 0
+        let made = Locked(0)
         var registry = OutputDriverRegistry()
-        registry.register(.init(id: "probe", name: "Probe") { transport, interfaces in
-            made += 1
-            return ArtNetController(transport: transport, interfaces: interfaces)
-        })
-        _ = LightEngine(tempo: LocalTempoClock(), transport: FakeTransport(), interfaces: { [] },
-                        runsTimer: false, outputDrivers: registry, outputDriverID: "probe")
-        XCTAssertEqual(made, 1)
+        registry.register(
+            .init(id: "probe", name: "Probe") { transport, interfaces in
+                made.withValue { $0 += 1 }
+                return ArtNetController(transport: transport, interfaces: interfaces)
+            })
+        _ = LightEngine(
+            tempo: LocalTempoClock(), transport: FakeTransport(), interfaces: { [] },
+            runsTimer: false, outputDrivers: registry, outputDriverID: "probe")
+        XCTAssertEqual(made.current, 1)
     }
 
     func testTempoRegistryBuildsTheInternalClockAndRegisteredSources() {

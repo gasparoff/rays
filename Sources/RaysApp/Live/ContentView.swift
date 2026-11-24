@@ -779,9 +779,9 @@ struct ControlBar: View {
                 master: model.prefs.master, energy: model.prefs.energy,
                 show: model.showSettings, faderSetup: model.faderSetup,
                 faders: faders.layout.visible(in: model.faderSetup), blackout: s.blackout, armed: s.armed,
-                outputRequested: s.outputRequested, live: s.isLive, readiness: s.readiness, stopped: s.stopped),
+                outputRequested: s.outputRequested, live: s.isLive, readiness: s.readiness),
             onMaster: model.setMaster, onWhite: model.setWhiteLevel, onEnergy: model.setEnergy,
             onLevel: { model.setLevel(group: $0, $1) }, onOutput: model.toggleOutput,
-            onBuild: model.setBuildDropHeld, onFlash: model.engine.setAccent, onStop: model.stopShow, onPlay: model.play)
+            onBuild: model.setBuildDropHeld, onFlash: model.engine.setAccent)
     }
 }

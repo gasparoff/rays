@@ -193,9 +193,14 @@ struct TopBlackoutButton: View {
             }
             .frame(width: 132, height: 40)
             .foregroundStyle(blackout ? Color.black : Theme.bad)
-            .background(RoundedRectangle(cornerRadius: 11, style: .continuous).fill(Theme.bad.opacity(blackout ? 0.9 : 0.13)))
-            .overlay(RoundedRectangle(cornerRadius: 11, style: .continuous).strokeBorder(Theme.bad.opacity(blackout ? 1 : 0.55)))
-            .contentShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+            .background(
+                RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).fill(Theme.bad.opacity(blackout ? 0.9 : 0.13))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).strokeBorder(
+                    Theme.bad.opacity(blackout ? 1 : 0.55))
+            )
+            .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(blackout ? String(localized: "Blackout on, press to resume") : "Blackout")
@@ -209,7 +214,7 @@ struct BlackoutFrame: View {
 
     var body: some View {
         if live.snapshot.blackout {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
                 .strokeBorder(Theme.bad, lineWidth: 3)
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
@@ -233,8 +238,8 @@ struct StatusPill: View {
         }
         .padding(.horizontal, 12).padding(.vertical, 7)
         .frame(maxWidth: 240, alignment: .leading)
-        .background(Capsule().fill(Theme.panel))
-        .overlay(Capsule().strokeBorder(Theme.stroke))
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).fill(Theme.panel))
+        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).strokeBorder(Theme.stroke))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(title): \(value)")
     }
@@ -339,9 +344,9 @@ struct TempoReadout: View {
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(Theme.secondary)
                         .frame(width: 28, height: 28)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.05)))
-                        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.stroke))
-                        .contentShape(RoundedRectangle(cornerRadius: 8))
+                        .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Color.white.opacity(0.05)))
+                        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(Theme.stroke))
+                        .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.control))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Restart from the scene's first beat")
@@ -386,19 +391,22 @@ struct StagePanel: View {
         let s = live.snapshot
         let selected = s.fixtures.filter { selection.contains($0.id) }
         ZStack(alignment: .topLeading) {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous)
                 .fill(LinearGradient(colors: [Color(white: 0.03), Color(white: 0.055)], startPoint: .top, endPoint: .bottom))
             LiveStageView(state: model.live, library: model.library, selection: selection) { id, extend in
                 select(id, extend: extend)
             }
             .padding(.horizontal, 12)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous))
             HStack(spacing: 8) {
                 let isLive = s.armed && s.sending
                 Text(isLive ? String(localized: "LIVE") : String(localized: "PREVIEW"))
                     .font(.system(size: 10.5, weight: .bold)).tracking(1.4)
                     .padding(.horizontal, 8).padding(.vertical, 4)
-                    .background(Capsule().fill(isLive ? Theme.good.opacity(0.2) : Theme.lavender.opacity(0.18)))
+                    .background(
+                        RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).fill(
+                            isLive ? Theme.good.opacity(0.2) : Theme.lavender.opacity(0.18))
+                    )
                     .foregroundStyle(isLive ? Theme.good : Theme.lavender)
                 Text(stageCaption(s)).font(.system(size: 12)).foregroundStyle(Theme.secondary)
                 if selected.isEmpty && !s.isDemo {
@@ -421,7 +429,7 @@ struct StagePanel: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             }
         }
-        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.stroke))
+        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous).strokeBorder(Theme.stroke))
         .onChange(of: s.fixtures.map(\.id)) { _, ids in selection.formIntersection(ids) }
     }
 
@@ -477,8 +485,8 @@ struct LightInspector: View {
             .accessibilityLabel("Deselect the lights")
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.panelRaised.opacity(0.94)))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.lavender.opacity(0.45)))
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous).fill(Theme.panelRaised.opacity(0.94)))
+        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous).strokeBorder(Theme.lavender.opacity(0.45)))
         .shadow(color: .black.opacity(0.5), radius: 14, y: 6)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Selected lights")
@@ -521,7 +529,7 @@ struct SceneGrid: View {
                                 .foregroundStyle(model.sceneBank == bank ? Theme.text : Theme.secondary)
                                 .padding(.horizontal, 12).padding(.vertical, 5)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 7)
+                                    RoundedRectangle(cornerRadius: Theme.Radius.control)
                                         .fill(model.sceneBank == bank ? Theme.lavender.opacity(0.22) : .clear))
                         }
                         .buttonStyle(.plain)
@@ -530,8 +538,8 @@ struct SceneGrid: View {
                     }
                 }
                 .padding(3)
-                .background(RoundedRectangle(cornerRadius: 10).fill(Theme.panel))
-                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.stroke))
+                .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Theme.panel))
+                .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(Theme.stroke))
                 .help(
                     "Choose a bank, then a scene. Switching banks keeps the current scene playing and doesn't change the BPM. Keys 1–6 and the Xone pads follow the selected bank."
                 )
@@ -597,12 +605,12 @@ struct SceneCard: View {
         ZStack(alignment: .topTrailing) {
             Button(action: action) {
                 ZStack(alignment: .bottomLeading) {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous)
                         .fill(
                             LinearGradient(
                                 colors: (modified?.palette ?? scene.palette).map { $0.swiftUIColor.opacity(0.55) },
                                 startPoint: .topLeading, endPoint: .bottomTrailing))
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous)
                         .fill(LinearGradient(colors: [.clear, .black.opacity(0.65)], startPoint: .top, endPoint: .bottom))
                     VStack(alignment: .leading, spacing: 3) {
                         HStack {
@@ -611,7 +619,7 @@ struct SceneCard: View {
                             Text("\(shortcut)").font(.system(size: 11, weight: .semibold, design: .monospaced))
                                 .foregroundStyle(Theme.text.opacity(0.6))
                                 .padding(.horizontal, 6).padding(.vertical, 2)
-                                .background(RoundedRectangle(cornerRadius: 5).fill(.black.opacity(0.35)))
+                                .background(RoundedRectangle(cornerRadius: Theme.Radius.chip).fill(.black.opacity(0.35)))
                         }
                         Text(
                             pending
@@ -623,12 +631,12 @@ struct SceneCard: View {
                     .padding(12)
                 }
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous)
                         .strokeBorder(
                             selected ? Theme.text.opacity(0.9) : (pending ? Theme.amber : Theme.stroke),
                             lineWidth: selected || pending ? 2 : 1)
                 )
-                .contentShape(RoundedRectangle(cornerRadius: 16))
+                .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.panel))
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Scene \(String(describing: modified?.name ?? scene.title))")

@@ -37,7 +37,7 @@ struct ProfileGuide: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .padding(.horizontal, 8).frame(height: 30)
-                    .background(RoundedRectangle(cornerRadius: 6).fill(Theme.panelRaised))
+                    .background(RoundedRectangle(cornerRadius: Theme.Radius.chip).fill(Theme.panelRaised))
                     .accessibilityElement(children: .combine)
                 }
             }
@@ -47,6 +47,6 @@ struct ProfileGuide: View {
             Text("Community layout, not verified on this controller. Learned controls take priority.")
                 .font(.system(size: 11)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
         }
-        .padding(12).background(RoundedRectangle(cornerRadius: 12).fill(Color.black.opacity(0.18)))
+        .padding(12).background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Color.black.opacity(0.18)))
     }
 }

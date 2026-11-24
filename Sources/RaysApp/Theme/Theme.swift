@@ -16,6 +16,16 @@ enum Theme {
     static let warn = Color(red: 0.96, green: 0.77, blue: 0.48)
     static let bad = Color(red: 0.96, green: 0.48, blue: 0.45)
     static let idle = Color.white.opacity(0.35)
+
+    /// The only corner radii of the app, kept small and shared so every surface looks the same.
+    enum Radius {
+        /// Panels, the stage, popovers and the window frame.
+        static let panel: CGFloat = 10
+        /// Buttons, cards, fields, toolbars and badges.
+        static let control: CGFloat = 6
+        /// Small chips, keycaps and swatches.
+        static let chip: CGFloat = 4
+    }
 }
 
 extension LightColor {
@@ -31,8 +41,8 @@ struct Panel<Content: View>: View {
     var body: some View {
         content
             .padding(padding)
-            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.panel))
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Theme.stroke))
+            .background(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous).fill(Theme.panel))
+            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous).strokeBorder(Theme.stroke))
     }
 }
 

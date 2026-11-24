@@ -172,8 +172,8 @@ struct NodeRow: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Theme.panel))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(selected ? Theme.good.opacity(0.6) : Theme.stroke))
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Theme.panel))
+        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(selected ? Theme.good.opacity(0.6) : Theme.stroke))
     }
 }
 
@@ -184,6 +184,7 @@ struct Tag: View {
     var body: some View {
         Text(text.uppercased()).font(.system(size: 9, weight: .bold)).tracking(0.8)
             .padding(.horizontal, 6).padding(.vertical, 2)
-            .background(Capsule().fill(color.opacity(0.18))).foregroundStyle(color)
+            .background(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).fill(color.opacity(0.18))).foregroundStyle(
+                color)
     }
 }

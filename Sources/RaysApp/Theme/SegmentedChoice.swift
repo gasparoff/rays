@@ -16,7 +16,9 @@ struct SegmentedChoice<Value: Hashable>: View {
         HStack(spacing: 2) {
             ForEach(options, id: \.self) { option in
                 let selected = option == selection
-                Button { selection = option } label: {
+                Button {
+                    selection = option
+                } label: {
                     Text(label(option))
                         .font(.system(size: 12, weight: selected ? .semibold : .regular))
                         .frame(maxWidth: .infinity, minHeight: 20)
@@ -24,15 +26,17 @@ struct SegmentedChoice<Value: Hashable>: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(selected ? Theme.text : Theme.secondary)
-                .background(RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    .fill(selected ? Color.white.opacity(0.16) : .clear))
+                .background(
+                    RoundedRectangle(cornerRadius: Theme.Radius.chip, style: .continuous)
+                        .fill(selected ? Color.white.opacity(0.16) : .clear)
+                )
                 .accessibilityLabel(label(option))
                 .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
             }
         }
         .padding(2)
-        .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Color.white.opacity(0.06)))
-        .overlay(RoundedRectangle(cornerRadius: 7, style: .continuous).strokeBorder(Theme.stroke))
+        .background(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).fill(Color.white.opacity(0.06)))
+        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).strokeBorder(Theme.stroke))
         .opacity(isEnabled ? 1 : 0.45)
         .accessibilityElement(children: .contain)
     }

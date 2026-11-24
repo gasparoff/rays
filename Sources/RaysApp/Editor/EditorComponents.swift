@@ -95,8 +95,8 @@ struct EditorCard<Content: View>: View {
         content
             .padding(padding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.panel))
-            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.stroke))
+            .background(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous).fill(Theme.panel))
+            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous).strokeBorder(Theme.stroke))
     }
 }
 
@@ -130,9 +130,13 @@ struct ChipButton: View {
             .padding(.horizontal, 10).padding(.vertical, 6)
             .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous).fill(selected ? tint.opacity(0.22) : Color.white.opacity(0.05))
+                RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).fill(
+                    selected ? tint.opacity(0.22) : Color.white.opacity(0.05))
             )
-            .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(selected ? tint.opacity(0.85) : Theme.stroke))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous).strokeBorder(
+                    selected ? tint.opacity(0.85) : Theme.stroke)
+            )
             .foregroundStyle(selected ? Theme.text : Theme.secondary)
             .contentShape(Rectangle())
         }
@@ -167,9 +171,11 @@ struct ColorChoiceChip: View {
             }
             .padding(.horizontal, 8).padding(.vertical, 6)
             .frame(maxWidth: .infinity)
-            .background(RoundedRectangle(cornerRadius: 8).fill(selected ? Color.white.opacity(0.12) : Color.white.opacity(0.04)))
+            .background(
+                RoundedRectangle(cornerRadius: Theme.Radius.control).fill(selected ? Color.white.opacity(0.12) : Color.white.opacity(0.04))
+            )
             .overlay(
-                RoundedRectangle(cornerRadius: 8).strokeBorder(
+                RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(
                     selected ? Theme.text.opacity(0.8) : Theme.stroke, lineWidth: selected ? 1.5 : 1)
             )
             .foregroundStyle(selected ? Theme.text : Theme.secondary)
@@ -237,8 +243,10 @@ struct NumberStepper: View {
                 .font(.system(size: 13, weight: .medium).monospacedDigit())
                 .frame(width: 52)
                 .padding(.vertical, 4)
-                .background(RoundedRectangle(cornerRadius: 6).fill(Color.black.opacity(0.35)))
-                .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(focused ? Theme.lavender.opacity(0.8) : Theme.stroke))
+                .background(RoundedRectangle(cornerRadius: Theme.Radius.chip).fill(Color.black.opacity(0.35)))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Theme.Radius.chip).strokeBorder(focused ? Theme.lavender.opacity(0.8) : Theme.stroke)
+                )
                 .focused($focused)
                 .onSubmit(commit)
                 .onChange(of: focused) { _, isFocused in if isFocused { editingScope = scope } else { commit() } }
@@ -343,8 +351,8 @@ struct SummaryRow: View {
                 Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.tertiary)
             }
             .padding(.horizontal, 12).padding(.vertical, 10)
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.035)))
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.stroke))
+            .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Color.white.opacity(0.035)))
+            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.control).strokeBorder(Theme.stroke))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

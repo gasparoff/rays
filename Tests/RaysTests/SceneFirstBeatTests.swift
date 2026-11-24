@@ -7,8 +7,11 @@ final class SceneFirstBeatTests: XCTestCase {
     func testRestartsWholeLongProgramAtEveryMovementRate() throws {
         for rate in [0.25, 0.5, 1, 2] {
             var scene = ClubSceneBank.scene(for: .ambra)
-            scene.program = SceneProgram(tracks: [ProgramTrack(stepsPerBeat: 1, lengthBeats: 16,
-                steps: [1] + Array(repeating: 0, count: 15), target: .all, attack: 0.06, hold: 0.1, release: 0.2)])
+            scene.program = SceneProgram(tracks: [
+                ProgramTrack(
+                    stepsPerBeat: 1, lengthBeats: 16,
+                    steps: [1] + Array(repeating: 0, count: 15), target: .all, attack: 0.06, hold: 0.1, release: 0.2)
+            ])
             var seq = SceneSequencer(scene: .ambra, rate: rate)
             seq.setLook(SceneLook(scene))
             seq.advance(beat: 119, bpm: 120, now: 0, gridTrusted: true)
@@ -29,7 +32,8 @@ final class SceneFirstBeatTests: XCTestCase {
         seq.setLook(look)
         seq.restartCurrentScene(at: 123.7)
         XCTAssertNil(seq.currentSceneLook?.program)
-        XCTAssertEqual(seq.render(beat: 123.7, energy: 0.5, now: 0),
+        XCTAssertEqual(
+            seq.render(beat: 123.7, energy: 0.5, now: 0),
             look.render(.chase, SceneContext(beat: 0, phrase: 0, energy: 0.5)))
     }
 
@@ -42,6 +46,19 @@ final class SceneFirstBeatTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(seq.patternBeat(beat: 117)), 1)
         XCTAssertTrue(seq.isRateLocked)
         XCTAssertEqual(seq.targetScene, .respiro)
+    }
+
+    func testStopNowIsDarkAtOnceAndARequestStartsAgain() {
+        var seq = SceneSequencer(scene: .pulse)
+        seq.request(.chase, beat: 10.2, now: 0, gridTrusted: true)
+        seq.stopNow()
+        XCTAssertTrue(seq.isStopped)
+        XCTAssertNil(seq.pendingScene, "nothing queued survives")
+        XCTAssertNil(seq.targetScene)
+        XCTAssertNil(seq.patternBeat(beat: 10.2), "no fade: dark from the first frame")
+        seq.request(.pulse, beat: 20.2, now: 1, gridTrusted: true)
+        XCTAssertEqual(seq.pendingScene, .pulse)
+        XCTAssertFalse(seq.isStopped)
     }
 
     func testStopAndPendingLaunchKeepTheirMeaning() {
@@ -58,32 +75,32 @@ final class SceneFirstBeatTests: XCTestCase {
     }
 
     func testEngineReconcilesGridJumpAndStartsSceneWithoutChangingOutputOrSource() throws {
-        for pressTime in [61.875, 60.75] { // small correction and a −1.5 beat jump
-        let clock = ManualClock()
-        let source = LocalTempoClock(bpm: 120, now: { clock.now })
-        let grid = DownbeatTempoSource(source: source)
-        let transport = FakeTransport()
-        let engine = LightEngine(tempo: grid, transport: transport, clock: { clock.now }, runsTimer: false)
-        engine.setScene(.ambra, look: ClubSceneBank.scene(for: .ambra), immediate: true)
-        engine.setBlackout(true)
-        var snap = EngineSnapshot()
-        engine.onSnapshot = { snap = $0 }
-        clock.now = pressTime
-        engine.stepForTesting()
-        let before = source.capture()
-        let origin = try XCTUnwrap(grid.setDownbeat())
-        engine.restartScene(at: origin)
-        engine.stepForTesting()
-        XCTAssertEqual(source.capture(), before)
-        XCTAssertEqual(snap.tempo.phase, 0, accuracy: 1e-9)
-        let lead = LightEngine.outputLatency * 120 / 60
-        XCTAssertEqual(try XCTUnwrap(snap.patternBeat), lead, accuracy: 1e-9)
-        clock.now += 0.5
-        engine.stepForTesting()
-        XCTAssertEqual(try XCTUnwrap(snap.patternBeat), 1 + lead, accuracy: 1e-9)
-        XCTAssertTrue(snap.blackout)
-        XCTAssertFalse(snap.armed)
-        XCTAssertTrue(transport.dmxPackets.isEmpty)
+        for pressTime in [61.875, 60.75] {  // small correction and a −1.5 beat jump
+            let clock = ManualClock()
+            let source = LocalTempoClock(bpm: 120, now: { clock.now })
+            let grid = DownbeatTempoSource(source: source)
+            let transport = FakeTransport()
+            let engine = LightEngine(tempo: grid, transport: transport, clock: { clock.now }, runsTimer: false)
+            engine.setScene(.ambra, look: ClubSceneBank.scene(for: .ambra), immediate: true)
+            engine.setBlackout(true)
+            var snap = EngineSnapshot()
+            engine.onSnapshot = { snap = $0 }
+            clock.now = pressTime
+            engine.stepForTesting()
+            let before = source.capture()
+            let origin = try XCTUnwrap(grid.setDownbeat())
+            engine.restartScene(at: origin)
+            engine.stepForTesting()
+            XCTAssertEqual(source.capture(), before)
+            XCTAssertEqual(snap.tempo.phase, 0, accuracy: 1e-9)
+            let lead = LightEngine.outputLatency * 120 / 60
+            XCTAssertEqual(try XCTUnwrap(snap.patternBeat), lead, accuracy: 1e-9)
+            clock.now += 0.5
+            engine.stepForTesting()
+            XCTAssertEqual(try XCTUnwrap(snap.patternBeat), 1 + lead, accuracy: 1e-9)
+            XCTAssertTrue(snap.blackout)
+            XCTAssertFalse(snap.armed)
+            XCTAssertTrue(transport.dmxPackets.isEmpty)
         }
     }
     func testLargeAlignmentKeepsNextSceneQueuedOnCorrectedGrid() throws {
@@ -95,17 +112,17 @@ final class SceneFirstBeatTests: XCTestCase {
         engine.setExternalBeatGrid(true)
         var snap = EngineSnapshot()
         engine.onSnapshot = { snap = $0 }
-        clock.now = 60.75 // source beat 121.5
+        clock.now = 60.75  // source beat 121.5
         engine.stepForTesting()
         engine.setScene(.chase)
         engine.sync {}
-        let origin = try XCTUnwrap(grid.setDownbeat()) // corrected beat 120
+        let origin = try XCTUnwrap(grid.setDownbeat())  // corrected beat 120
         engine.restartScene(at: origin)
         engine.stepForTesting()
         XCTAssertEqual(snap.scene, .ambra)
         XCTAssertEqual(snap.pendingScene, .chase)
         XCTAssertEqual(try XCTUnwrap(snap.patternBeat), 0.08, accuracy: 1e-9)
-        clock.now += 0.5 // corrected beat 121: pending launch still happens on the next beat
+        clock.now += 0.5  // corrected beat 121: pending launch still happens on the next beat
         engine.stepForTesting()
         XCTAssertEqual(snap.scene, .chase)
         XCTAssertNil(snap.pendingScene)

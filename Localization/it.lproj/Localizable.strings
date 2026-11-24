@@ -281,7 +281,10 @@
 "Every quarter, in the center" = "Tutti i quarti, al centro";
 "excluded" = "escluso";
 "fade" = "sfuma";
-"Fades to dark in one beat. Select a scene to start again." = "Sfuma al buio in un battito. Seleziona una scena per ripartire.";
+"Fades to dark in one beat. Press Play or a scene to start again." = "Sfuma al buio in un battito. Premi Play o una scena per ripartire.";
+"Starts the selected scene on the beat. A scene pad starts that scene." = "Avvia la scena selezionata a tempo. Un pad avvia quella scena.";
+"Play" = "Play";
+"start" = "avvia";
 "Fill: %@, %@" = "Riempi: %@, %@";
 "Fills the draft: check it on the lights, confirm and save." = "Riempie la bozza: verifica sulle luci, conferma e salva.";
 "Fix the errors before saving." = "Correggi gli errori prima di salvare.";

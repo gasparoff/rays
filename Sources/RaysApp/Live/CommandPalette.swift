@@ -144,8 +144,12 @@ struct CommandPalette: View {
             PaletteCommand(
                 id: "output", title: outputOn ? String(localized: "Turn lights off") : String(localized: "Turn lights on"),
                 shortcut: "Space", symbol: "lightbulb", run: { model.toggleOutput() }))
-        list.append(
-            PaletteCommand(id: "stop", title: String(localized: "Stop and fade out"), symbol: "stop.fill", run: { model.stopShow() }))
+        if snapshot.stopped {
+            list.append(PaletteCommand(id: "play", title: String(localized: "Play"), symbol: "play.fill", run: { model.play() }))
+        } else {
+            list.append(
+                PaletteCommand(id: "stop", title: String(localized: "Stop and fade out"), symbol: "stop.fill", run: { model.stopShow() }))
+        }
         list.append(
             PaletteCommand(
                 id: "firstBeat", title: String(localized: "Restart from the scene's first beat"), shortcut: "R",

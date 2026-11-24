@@ -763,9 +763,9 @@ struct ControlBar: View {
             state: PerformanceControlState(
                 master: model.prefs.master, energy: model.prefs.energy,
                 show: model.showSettings, blackout: s.blackout, armed: s.armed, outputRequested: s.outputRequested,
-                live: s.isLive, readiness: s.readiness),
+                live: s.isLive, readiness: s.readiness, stopped: s.stopped),
             onMaster: model.setMaster, onWhite: model.setWhiteLevel, onEnergy: model.setEnergy,
             onLevel: model.setLevel, onOutput: model.toggleOutput,
-            onBuild: model.setBuildDropHeld, onFlash: model.engine.setAccent, onStop: model.stopShow)
+            onBuild: model.setBuildDropHeld, onFlash: model.engine.setAccent, onStop: model.stopShow, onPlay: model.play)
     }
 }

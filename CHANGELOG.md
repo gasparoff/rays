@@ -18,6 +18,9 @@ project uses [Semantic Versioning](https://semver.org/).
 - Release workflow: pushing a `v*` tag publishes `RAYS.app` (Apple silicon) on GitHub Releases; CI also builds the app for every change.
 - Live window layout: press Layout to reorder, resize and hide panels on a 12-column grid, or pick a preset (Classic, Tempo on the right, Big stage, Minimal). The layout is saved; the performance panel with Blackout can't be hidden.
 
+### Release
+- Release builds can be signed with a Developer ID and notarized by Apple when the repository has the signing secrets ([docs/releasing.md](docs/releasing.md)).
+
 ### Changed
 - Core split into `RaysOutput`, `RaysTempo`, `RaysCore`, `RaysControl`, `RaysEngine` modules; the app lives in `Sources/RaysApp`.
 - `Scripts/build-app.sh` builds without the Beat Link helper (Pro DJ Link then unavailable) instead of failing; the bundled license notice now covers public distribution.

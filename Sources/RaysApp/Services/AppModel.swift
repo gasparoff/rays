@@ -30,7 +30,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var library: ProfileLibrary
     @Published private(set) var prefs: Preferences
     @Published private(set) var storageErrors: [String] = []
-    /// Controller layouts from Resources/Controllers and Application Support/Light System/Controllers
+    /// Controller layouts from Resources/Controllers and Application Support/RAYS/Controllers
     /// (user files override bundled ones by id). The Xone:K2 itself is still routed by `XoneK2`.
     private(set) var controllerProfiles: [ControllerProfile] = []
     /// True when no patch.json exists yet: the TRI 180 test preset is shown, unconfirmed and unsaved.

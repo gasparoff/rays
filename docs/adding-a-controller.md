@@ -88,7 +88,7 @@ swift test --filter CommunityControllersTests
 The test decodes every file in `Controllers/` and fails with a readable message on: unknown
 actions, channel outside 1…16, a continuous action on a note, a control bound twice, a button on
 an endless encoder, LED addresses above 127, or a duplicate id. To try a layout without
-rebuilding, copy it to `~/Library/Application Support/Light System/Controllers/`: invalid files
+rebuilding, copy it to `~/Library/Application Support/RAYS/Controllers/`: invalid files
 are listed in Setup.
 
 ## 4. Document it

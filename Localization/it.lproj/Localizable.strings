@@ -323,7 +323,7 @@
 "late" = "ritarda";
 "Late %@" = "Ritardo %@";
 "Layout" = "Disposizione";
-"Layouts live in Controllers/ inside the app and in Application Support/Light System/Controllers." = "I layout si trovano in Controllers/ dentro l’app e in Application Support/Light System/Controllers.";
+"Layouts live in Controllers/ inside the app and in Application Support/RAYS/Controllers." = "I layout si trovano in Controllers/ dentro l’app e in Application Support/RAYS/Controllers.";
 "Learn" = "Impara";
 "Learn only · %@" = "Solo Impara · %@";
 "Leave the editor?" = "Uscire dall’editor?";

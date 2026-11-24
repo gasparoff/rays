@@ -22,12 +22,17 @@ struct OutputDriverSetup: View {
         Panel {
             VStack(alignment: .leading, spacing: 10) {
                 SectionLabel("DMX output")
-                Picker("Protocol", selection: Binding(get: { output.driverID }, set: { id in update { $0.driverID = id } })) {
-                    Text("Art-Net").tag(ArtNetController.driverID)
-                    Text("sACN (E1.31)").tag(SACNDriver.driverID)
-                    Text("DMX USB Pro").tag(DMXUSBProDriver.driverID)
+                SegmentedChoice(
+                    options: [ArtNetController.driverID, SACNDriver.driverID, DMXUSBProDriver.driverID],
+                    selection: Binding(get: { output.driverID }, set: { id in update { $0.driverID = id } })
+                ) { id in
+                    switch id {
+                    case SACNDriver.driverID: return "sACN (E1.31)"
+                    case DMXUSBProDriver.driverID: return "DMX USB Pro"
+                    default: return "Art-Net"
+                    }
                 }
-                .pickerStyle(.segmented).frame(width: 380)
+                .frame(width: 380)
                 .help("Changing protocol turns the output off: turn it back on when you're ready.")
                 switch output.driverID {
                 case SACNDriver.driverID: sacn
@@ -48,11 +53,11 @@ struct OutputDriverSetup: View {
     }
 
     @ViewBuilder private var sacn: some View {
-        Picker("Sending", selection: Binding(get: { output.sacn.mode }, set: { m in update { $0.sacn.mode = m } })) {
-            Text("Multicast").tag(SACNDriver.Mode.multicast)
-            Text("Unicast").tag(SACNDriver.Mode.unicast)
-        }
-        .pickerStyle(.segmented).frame(width: 240)
+        SegmentedChoice(
+            options: [SACNDriver.Mode.multicast, .unicast],
+            selection: Binding(get: { output.sacn.mode }, set: { m in update { $0.sacn.mode = m } })
+        ) { $0 == .multicast ? String(localized: "Multicast") : String(localized: "Unicast") }
+        .frame(width: 240)
         if output.sacn.mode == .unicast {
             HStack {
                 TextField("Receiver IP", text: $ipText).textFieldStyle(.roundedBorder).frame(width: 200)

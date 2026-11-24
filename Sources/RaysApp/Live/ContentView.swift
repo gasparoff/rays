@@ -39,7 +39,9 @@ struct ContentView: View {
             SetupView(initialDraft: model.patch)
                 .interactiveDismissDisabled()
                 .environmentObject(model)
-                .environmentObject(model.live)
+                // Setup reads only status (network, readiness, tests): the change-only snapshot keeps
+                // its forms from re-rendering 30 times a second.
+                .environmentObject(model.controls)
                 .environmentObject(model.cable)
                 .environmentObject(model.midi)
                 .environmentObject(model.xdj)

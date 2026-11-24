@@ -17,25 +17,13 @@ struct PatchEditor: View {
     @State private var count = 1
     @State private var startAddress = 8
     @State private var universe: Int?
-    @State private var saveMessage: String?
     @State private var showCustom = false
+    @State private var showPresets = false
 
     private var library: ProfileLibrary { draft.library(base: model.library) }
 
-    /// Verified manufacturer profiles first, generic ones after.
-    private var orderedProfiles: [FixtureProfile] {
-        // Verified first, then built-in and generic profiles, then community/OFL profiles by brand.
-        let all = library.profiles
-        let builtIn = Set(ProfileLibrary.builtIn.map(\.id))
-        let rest = all.filter { !$0.isVerified }
-        let first = rest.filter { builtIn.contains($0.id) || $0.isGeneric }
-        let others = rest.filter { !builtIn.contains($0.id) && !$0.isGeneric }.sorted {
-            ($0.manufacturer.lowercased(), $0.name.lowercased(), $0.footprint) < (
-                $1.manufacturer.lowercased(), $1.name.lowercased(), $1.footprint
-            )
-        }
-        return all.filter(\.isVerified) + first + others
-    }
+    /// Sorted once per library change, not on every keystroke in the fixture list.
+    @State private var orderedProfiles: [FixtureProfile] = []
 
     /// Universe the ENTTEC in use actually outputs (both ODE ports are on 1 here).
     private var nodeUniverse: Int {
@@ -44,23 +32,96 @@ struct PatchEditor: View {
 
     var body: some View {
         let issues = draft.validate(library: model.library)
-        let dirty = draft != model.patch
         let nodeUniverses = Set(live.snapshot.network.target?.universes.map { Int($0.rawValue) } ?? [])
         VStack(alignment: .leading, spacing: 18) {
+            if model.usingDefaultPatch {
+                Label("Test preset loaded at startup: confirm and save to use it.", systemImage: "exclamationmark.circle")
+                    .font(small).foregroundStyle(Theme.warn)
+            }
+
             Panel {
+                VStack(alignment: .leading, spacing: 10) {
+                    SectionLabel("Add lights")
+                    HStack(spacing: 14) {
+                        Picker("Profile", selection: $profileID) {
+                            ForEach(orderedProfiles) { p in
+                                Text("\(p.manufacturer) \(p.displayName)" + (p.isVerified ? " ✓" : "")).tag(p.id)
+                            }
+                        }
+                        .frame(width: 330)
+                        Stepper("Quantity \(String(describing: count))", value: $count, in: 1...48)
+                        HStack(spacing: 6) {
+                            Text("Address")
+                            TextField("1–512", value: $startAddress, format: .number)
+                                .textFieldStyle(.roundedBorder).frame(width: 60)
+                        }
+                        UniversePicker(
+                            selection: Binding(get: { universe ?? nodeUniverse }, set: { universe = $0 }),
+                            nodeUniverses: nodeUniverses
+                        )
+                        .frame(width: 210)
+                    }
+                    HStack {
+                        if let p = library.profile(id: profileID) {
+                            Text(
+                                "\(String(describing: p.footprint)) channels each · addresses \(String(describing: startAddress))–\(String(describing: startAddress + p.footprint * count - 1))"
+                            )
+                            .font(note).foregroundStyle(Theme.tertiary).lineLimit(1)
+                        }
+                        Spacer()
+                        Button("Add") {
+                            if let p = library.profile(id: profileID), (1...512).contains(startAddress) {
+                                draft.addGroup(profile: p, count: count, startAddress: startAddress, universe: universe ?? nodeUniverse)
+                                startAddress = min(512, startAddress + p.footprint * count)
+                            }
+                        }
+                        .buttonStyle(.borderedProminent).tint(Theme.lavender.opacity(0.6))
+                    }
+                    DisclosureGroup("Custom profile", isExpanded: $showCustom) {
+                        CustomProfileEditor { profile in
+                            draft.customProfiles.append(profile)
+                            profileID = profile.id
+                        }
+                        .padding(.top, 8)
+                    }
+                    .font(small)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    SectionLabel("Lights (\(String(describing: draft.fixtures.count)))")
+                    Spacer()
+                    if !draft.fixtures.isEmpty {
+                        Button("Clear", role: .destructive) { draft.fixtures.removeAll() }
+                    }
+                }
+                if draft.fixtures.isEmpty {
+                    Text("No lights yet: add them above or load a ready-made rig below.")
+                        .font(.system(size: 12.5)).foregroundStyle(Theme.secondary)
+                } else {
+                    FixtureHeader()
+                }
+                ForEach($draft.fixtures) { $f in
+                    FixtureRow(fixture: $f, profile: library.profile(id: f.profileID), nodeUniverses: nodeUniverses) {
+                        draft.fixtures.removeAll { $0.id == f.id }
+                    }
+                }
+                ForEach(issues, id: \.message) { i in
+                    Label(i.message, systemImage: "xmark.octagon").font(.system(size: 12.5)).foregroundStyle(Theme.bad)
+                }
+            }
+
+            DisclosureGroup("Ready-made rigs", isExpanded: $showPresets) {
                 VStack(alignment: .leading, spacing: 12) {
-                    SectionLabel("Quick presets")
                     PresetRow(title: VarytecRig.tri180TestTitle, lines: [VarytecRig.tri180TestInstruction]) {
                         draft = VarytecRig.tri180Test(universe: nodeUniverse)
                     }
                     PresetRow(title: VarytecRig.fullRigTitle, lines: VarytecRig.fullRigInstructions) {
                         draft = VarytecRig.referenceRig(universe: nodeUniverse)
                     }
-                    if model.usingDefaultPatch {
-                        Text("Test preset loaded at startup: confirm and save to use it.")
-                            .font(note).foregroundStyle(Theme.warn)
-                    }
                 }
+                .padding(.top, 8)
             }
 
             Panel {
@@ -82,113 +143,72 @@ struct PatchEditor: View {
                     .font(note).foregroundStyle(Theme.tertiary)
                 }
             }
+        }
+        .onAppear {
+            orderedProfiles = library.pickerOrder
+            // A new rig starts from the presets; an existing one from its list.
+            if draft.fixtures.isEmpty { showPresets = true }
+        }
+        .onChange(of: draft.customProfiles.map(\.id)) { _, _ in orderedProfiles = library.pickerOrder }
+        .onChange(of: model.library.profiles.map(\.id)) { _, _ in orderedProfiles = library.pickerOrder }
+    }
+}
 
-            VStack(alignment: .leading, spacing: 10) {
-                SectionLabel("Add lights")
-                HStack(spacing: 14) {
-                    Picker("Profile", selection: $profileID) {
-                        ForEach(orderedProfiles) { p in
-                            Text("\(p.manufacturer) \(p.displayName)" + (p.isVerified ? " ✓" : "")).tag(p.id)
-                        }
-                    }
-                    .frame(width: 330)
-                    Stepper("Quantity \(String(describing: count))", value: $count, in: 1...48)
-                    HStack(spacing: 6) {
-                        Text("Address")
-                        TextField("1–512", value: $startAddress, format: .number)
-                            .textFieldStyle(.roundedBorder).frame(width: 60)
-                    }
-                    UniversePicker(
-                        selection: Binding(get: { universe ?? nodeUniverse }, set: { universe = $0 }),
-                        nodeUniverses: nodeUniverses
-                    )
-                    .frame(width: 210)
-                }
-                HStack {
-                    if let p = library.profile(id: profileID) {
-                        Text(
-                            "\(String(describing: p.footprint)) channels each · addresses \(String(describing: startAddress))–\(String(describing: startAddress + p.footprint * count - 1))"
-                        )
-                        .font(note).foregroundStyle(Theme.tertiary).lineLimit(1)
-                    }
-                    Spacer()
-                    Button("Add") {
-                        if let p = library.profile(id: profileID), (1...512).contains(startAddress) {
-                            draft.addGroup(profile: p, count: count, startAddress: startAddress, universe: universe ?? nodeUniverse)
-                            startAddress = min(512, startAddress + p.footprint * count)
-                        }
-                    }
-                    .buttonStyle(.borderedProminent).tint(Theme.lavender.opacity(0.6))
-                }
-            }
+/// Confirm and save, pinned under the Lights tab so it is always in view.
+struct PatchSaveBar: View {
+    @EnvironmentObject private var model: AppModel
+    @Binding var draft: Patch
+    @State private var saveMessage: String?
 
-            DisclosureGroup("Custom profile", isExpanded: $showCustom) {
-                CustomProfileEditor { profile in
-                    draft.customProfiles.append(profile)
-                    profileID = profile.id
-                }
-                .padding(.top, 8)
+    var body: some View {
+        let issues = draft.validate(library: model.library)
+        let dirty = draft != model.patch
+        HStack(spacing: 12) {
+            Toggle(
+                isOn: Binding(
+                    get: { draft.isConfirmed(library: model.library) },
+                    set: { draft.setConfirmed($0, library: model.library) })
+            ) {
+                Text("The lights are set like this (Mode DMX, CH Mode, Address)").font(.system(size: 13, weight: .semibold))
             }
-
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    SectionLabel("Lights (\(String(describing: draft.fixtures.count)))")
-                    Spacer()
-                    if !draft.fixtures.isEmpty {
-                        Button("Clear", role: .destructive) { draft.fixtures.removeAll() }
-                    }
-                }
-                if draft.fixtures.isEmpty {
-                    Text("No lights: choose a preset above.").font(.system(size: 12.5)).foregroundStyle(Theme.secondary)
-                }
-                ForEach($draft.fixtures) { $f in
-                    FixtureRow(fixture: $f, profile: library.profile(id: f.profileID), nodeUniverses: nodeUniverses) {
-                        draft.fixtures.removeAll { $0.id == f.id }
-                    }
-                }
+            .toggleStyle(.checkbox)
+            .disabled(draft.fixtures.isEmpty || !issues.isEmpty)
+            .help(
+                String(
+                    localized: "Every change cancels the confirmation. At startup the output stays off: turn it on with “Turn lights on”."))
+            Spacer()
+            if let saveMessage {
+                Text(saveMessage).font(small).foregroundStyle(Theme.secondary)
+            } else if dirty || model.usingDefaultPatch {
+                Text("Not saved").font(small).foregroundStyle(Theme.warn)
             }
-
-            if !issues.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(issues, id: \.message) { i in
-                        Label(i.message, systemImage: "xmark.octagon").font(.system(size: 12.5)).foregroundStyle(Theme.bad)
-                    }
-                }
+            Button("Discard changes") {
+                draft = model.patch; saveMessage = nil
+            }.disabled(!dirty)
+            Button("Save") {
+                do {
+                    try model.savePatch(draft); saveMessage = String(localized: "Saved.")
+                } catch { saveMessage = error.localizedDescription }
             }
-
-            Panel {
-                VStack(alignment: .leading, spacing: 10) {
-                    Toggle(
-                        isOn: Binding(
-                            get: { draft.isConfirmed(library: model.library) },
-                            set: { draft.setConfirmed($0, library: model.library) })
-                    ) {
-                        Text("The lights are set like this (Mode DMX, CH Mode, Address)").font(.system(size: 13.5, weight: .semibold))
-                    }
-                    .toggleStyle(.checkbox)
-                    .disabled(draft.fixtures.isEmpty || !issues.isEmpty)
-                    Text("Every change cancels the confirmation. At startup the output stays off: turn it on with “Turn lights on”.")
-                        .font(note).foregroundStyle(Theme.tertiary)
-                    HStack {
-                        if let saveMessage {
-                            Text(saveMessage).font(small).foregroundStyle(Theme.secondary)
-                        } else if dirty || model.usingDefaultPatch {
-                            Text("Not saved").font(small).foregroundStyle(Theme.warn)
-                        }
-                        Spacer()
-                        Button("Discard changes") {
-                            draft = model.patch; saveMessage = nil
-                        }.disabled(!dirty)
-                        Button("Save") {
-                            do { try model.savePatch(draft); saveMessage = "Salvato." } catch { saveMessage = error.localizedDescription }
-                        }
-                        .buttonStyle(.borderedProminent).tint(Theme.good.opacity(0.7))
-                        .disabled(!issues.isEmpty || !(dirty || model.usingDefaultPatch))
-                    }
-                }
-            }
+            .buttonStyle(.borderedProminent).tint(Theme.good.opacity(0.7))
+            .keyboardShortcut("s", modifiers: .command)
+            .disabled(!issues.isEmpty || !(dirty || model.usingDefaultPatch))
         }
         .onChange(of: draft) { _, _ in saveMessage = nil }
+    }
+}
+
+/// Column titles over the fixture rows; widths match `FixtureRow`.
+private struct FixtureHeader: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            Text("Name").frame(width: 160, alignment: .leading)
+            Text("Model").frame(width: 230, alignment: .leading)
+            Text("Universe").frame(width: 200, alignment: .leading)
+            Text("Address")
+            Spacer()
+        }
+        .font(.system(size: 10.5, weight: .semibold)).foregroundStyle(Theme.tertiary)
     }
 }
 

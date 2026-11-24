@@ -7,6 +7,25 @@ project uses [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Live window layout: press Layout to reorder, resize and hide panels on a 12-column grid, or pick a preset (Classic, Tempo on the right, Big stage, Minimal). The layout is saved; the performance panel can't be hidden.
+- Blackout always in the top bar, with a red frame around the window while it is on.
+- Command search (⌘K): type a few letters of a scene or an action (blackout, lights, banks, layouts, Setup) and press Return.
+- Countdown ring on a queued scene button: it fills until the scene starts on its beat or downbeat.
+
+### Changed
+- Saved files now live in `~/Library/Application Support/RAYS`. An existing `Light System` folder is moved there on first launch and a link is left at the old path, so nothing is lost and older builds still find it.
+- RAYS appears as "RAYS" on the Pro DJ Link network and in macOS MIDI, instead of the old project name.
+
+### Fixed
+- A damaged `midi.json` or `preferences.json` is copied aside and reported in Setup instead of being overwritten by the next save.
+- Save errors are shown in the app instead of being ignored.
+- DMX USB Pro output no longer blocks the 30 Hz engine while a frame is written.
+
+## [0.1.0] - 2026-11-23
+
+First public release.
+
+### Added
 - First open-source release under the MIT license.
 - Output drivers: Art-Net (default), sACN / E1.31, ENTTEC DMX USB Pro and compatibles. Chosen in Setup.
 - MIDI Clock as a beat source, next to Ableton Link and Pro DJ Link.
@@ -16,9 +35,6 @@ project uses [Semantic Versioning](https://semver.org/).
 - English user interface, with Italian as the first translation (`Localization/`). Profile names and notes stay as published by the manufacturer.
 - Contributor docs, issue and PR templates, CI on macOS.
 - Release workflow: pushing a `v*` tag publishes `RAYS.app` (Apple silicon) on GitHub Releases; CI also builds the app for every change.
-- Live window layout: press Layout to reorder, resize and hide panels on a 12-column grid, or pick a preset (Classic, Tempo on the right, Big stage, Minimal). The layout is saved; the performance panel can't be hidden.
-- Blackout always in the top bar, with a red frame around the window while it is on.
-- Command search (⌘K): type a few letters of a scene or an action (blackout, lights, banks, layouts, Setup) and press Return.
 
 ### Changed
 - Core split into `RaysOutput`, `RaysTempo`, `RaysCore`, `RaysControl`, `RaysEngine` modules; the app lives in `Sources/RaysApp`.
@@ -36,7 +52,11 @@ project uses [Semantic Versioning](https://semver.org/).
 - GitHub Actions are pinned to commit SHAs (Dependabot keeps them current) and checkouts don't keep the token.
 - `SECURITY.md` explains scope and how to verify a release; `docs/security.md` describes the security model.
 
-## [1.5.5] - 2026-10-31
+## Before 0.1.0
 
-Last private build before open-sourcing: House and Club 130–138 scene banks, full-screen scene editor
+Private builds were numbered 1.x; the public project restarted at 0.1.0. The last one (1.5.5,
+2026-10-31) had: House and Club 130–138 scene banks, full-screen scene editor
 with shared rhythm grid, Xone:K2 Classic and Live v2 layouts, auto-reconnect, display-sleep protection.
+
+[Unreleased]: https://github.com/gasparoff/rays/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/gasparoff/rays/releases/tag/v0.1.0

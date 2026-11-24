@@ -53,7 +53,7 @@ public enum FixtureRole: String, Codable, CaseIterable, Identifiable, Sendable {
 }
 
 /// Extensible fixture description. Verified manufacturer profiles can be added as JSON files
-/// in Application Support/Light System/Profiles or via `ProfileLibrary.builtIn`.
+/// in Application Support/RAYS/Profiles or via `ProfileLibrary.builtIn`.
 public struct FixtureProfile: Codable, Hashable, Identifiable, Sendable {
     public var id: String
     public var name: String

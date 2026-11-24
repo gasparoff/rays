@@ -181,7 +181,7 @@ public struct ControllerProfile: Codable, Equatable, Identifiable, Sendable {
 }
 
 /// Controller layouts loaded from the app bundle (`Resources/Controllers`) and from
-/// `Application Support/Light System/Controllers`.
+/// `Application Support/RAYS/Controllers`.
 public enum ControllerLibrary {
     /// Loads every `*.json` ControllerProfile (one object or an array per file) in `directory`;
     /// invalid files are reported, not fatal. Files are read in name order.

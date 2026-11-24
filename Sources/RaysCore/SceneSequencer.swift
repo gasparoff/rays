@@ -21,11 +21,11 @@ public struct SceneSequencer: Sendable {
     static let maxLayers = 4
 
     struct Layer: Equatable, Sendable {
-        var scene: SceneID?          // nil = black (Stop)
+        var scene: SceneID?  // nil = black (Stop)
         var rate: Double
-        var anchor: Double           // phrase downbeat b0 (Link beats)
-        var beatOrigin: Double? = nil // explicit “scene beat 1”; nil preserves historical grid timing
-        var fadeStart: Double        // Link beat at which the fade-in starts
+        var anchor: Double  // phrase downbeat b0 (Link beats)
+        var beatOrigin: Double? = nil  // explicit “scene beat 1”; nil preserves historical grid timing
+        var fadeStart: Double  // Link beat at which the fade-in starts
         var fadeBeats: Double
         var startTime: TimeInterval  // wall clock at activation
         var maxSeconds: TimeInterval
@@ -37,6 +37,7 @@ public struct SceneSequencer: Sendable {
     private var layers: [Layer]
     private var pendingLayer: Layer?
     private var pendingSince: TimeInterval = 0
+    private var pendingRequestBeat = 0.0
     private var lastBeat: Double?
     private var lastTime: TimeInterval?
     private var lastBPM = 120.0
@@ -66,6 +67,18 @@ public struct SceneSequencer: Sendable {
         return false
     }
     public var isStopped: Bool { pendingLayer == nil && layers.last?.scene == nil }
+    /// How far a queued launch is towards its start, from 0 (just pressed) to 1 (starting now):
+    /// beats on the grid, or the wall-clock limit `maxPendingSeconds` when that comes first.
+    /// nil when nothing is queued. Drives the countdown ring on the scene buttons.
+    public func pendingProgress(beat rawBeat: Double, now: TimeInterval) -> Double? {
+        guard let pending = pendingLayer else { return nil }
+        let beat = rawBeat.isFinite ? rawBeat : (lastBeat ?? pendingRequestBeat)
+        let span = pending.fadeStart - pendingRequestBeat
+        let byBeat = span > 1e-9 ? (beat - pendingRequestBeat) / span : 1
+        let byTime = (now - pendingSince) / Self.maxPendingSeconds
+        let p = max(byBeat, byTime)
+        return p.isFinite ? min(1, max(0, p)) : 1
+    }
     /// True while a fade to black from Stop is still running.
     public func isStopFading(beat: Double, now: TimeInterval) -> Bool {
         guard let last = layers.last, last.scene == nil, layers.count > 1 else { return false }
@@ -74,8 +87,11 @@ public struct SceneSequencer: Sendable {
 
     public init(scene: SceneID = .ambra, rate: Double = 1) {
         self.rate = Self.validRate(rate)
-        layers = [Layer(scene: scene, rate: self.rate, anchor: 0, fadeStart: -.infinity, fadeBeats: 0,
-                        startTime: -.infinity, maxSeconds: 0)]
+        layers = [
+            Layer(
+                scene: scene, rate: self.rate, anchor: 0, fadeStart: -.infinity, fadeBeats: 0,
+                startTime: -.infinity, maxSeconds: 0)
+        ]
     }
 
     static func validRate(_ r: Double) -> Double { r.isFinite && r > 0 ? min(max(r, 0.125), 4) : 1 }
@@ -91,17 +107,24 @@ public struct SceneSequencer: Sendable {
         return true
     }
 
-    public mutating func request(_ scene: SceneID, beat rawBeat: Double, now: TimeInterval, gridTrusted: Bool, rateOverride: Double? = nil, forceRestart: Bool = false) {
+    public mutating func request(
+        _ scene: SceneID, beat rawBeat: Double, now: TimeInterval, gridTrusted: Bool, rateOverride: Double? = nil,
+        forceRestart: Bool = false
+    ) {
         _ = startLayer(scene, beat: rawBeat, now: now, gridTrusted: gridTrusted, rateOverride: rateOverride, forceRestart: forceRestart)
     }
 
     /// Changing bank is a new launch even when two banks share the same slot.
     /// Live edits within the bank still update the current look without restarting it.
-    public mutating func request(_ scene: SceneID, look newLook: SceneLook?, beat rawBeat: Double, now: TimeInterval, gridTrusted: Bool,
-                                 rateOverride: Double? = nil, forceRestart: Bool = false) {
+    public mutating func request(
+        _ scene: SceneID, look newLook: SceneLook?, beat rawBeat: Double, now: TimeInterval, gridTrusted: Bool,
+        rateOverride: Double? = nil, forceRestart: Bool = false
+    ) {
         let changedBank = (look?.source.presetBank ?? .house) != (newLook?.source.presetBank ?? .house)
         look = newLook
-        if !startLayer(scene, beat: rawBeat, now: now, gridTrusted: gridTrusted, rateOverride: rateOverride, forceRestart: forceRestart || changedBank) {
+        if !startLayer(
+            scene, beat: rawBeat, now: now, gridTrusted: gridTrusted, rateOverride: rateOverride, forceRestart: forceRestart || changedBank)
+        {
             setLook(newLook)
         }
     }
@@ -115,11 +138,13 @@ public struct SceneSequencer: Sendable {
     }
 
     /// Returns true when a new (pending or active) layer was created.
-    private mutating func startLayer(_ scene: SceneID, beat rawBeat: Double, now: TimeInterval, gridTrusted: Bool, rateOverride: Double?, forceRestart: Bool) -> Bool {
+    private mutating func startLayer(
+        _ scene: SceneID, beat rawBeat: Double, now: TimeInterval, gridTrusted: Bool, rateOverride: Double?, forceRestart: Bool
+    ) -> Bool {
         let beat = sanitize(rawBeat)
         if !forceRestart && pendingLayer?.scene == scene { return false }
         if !forceRestart, pendingLayer != nil, targetScene == scene {
-            pendingLayer = nil      // pressing the running scene again cancels a pending change
+            pendingLayer = nil  // pressing the running scene again cancels a pending change
             return false
         }
         // Re-pressing a running phrase scene re-arms its phrase on the next downbeat.
@@ -128,6 +153,7 @@ public struct SceneSequencer: Sendable {
         if layer.fadeStart > beat + 1e-9 {
             pendingLayer = layer
             pendingSince = now
+            pendingRequestBeat = beat
         } else {
             pendingLayer = nil
             push(layer)
@@ -140,8 +166,10 @@ public struct SceneSequencer: Sendable {
         let beat = sanitize(rawBeat)
         pendingLayer = nil
         guard !isStopped else { return }
-        push(Layer(scene: nil, rate: rate, anchor: beat, fadeStart: beat, fadeBeats: 1, startTime: now,
-                   maxSeconds: gridTrusted ? Self.maxFadeSeconds : 0.5))
+        push(
+            Layer(
+                scene: nil, rate: rate, anchor: beat, fadeStart: beat, fadeBeats: 1, startTime: now,
+                maxSeconds: gridTrusted ? Self.maxFadeSeconds : 0.5))
     }
 
     /// Explicit user alignment: restart the running scene's complete cycle (not just a bar).
@@ -191,7 +219,9 @@ public struct SceneSequencer: Sendable {
                 push(pending)
             } else if now - pendingSince > Self.maxPendingSeconds {
                 pendingLayer = nil
-                var late = makeLayer(pending.scene ?? .ambra, beat: beat, now: now, gridTrusted: false, rateOverride: pending.lockedRate ? pending.rate : nil)
+                var late = makeLayer(
+                    pending.scene ?? .ambra, beat: beat, now: now, gridTrusted: false, rateOverride: pending.lockedRate ? pending.rate : nil
+                )
                 late.look = pending.look
                 push(late)
             }
@@ -206,11 +236,12 @@ public struct SceneSequencer: Sendable {
         let beat = rawBeat.isFinite ? rawBeat : (lastBeat ?? 0)
         var out: RigFrame?
         for layer in layers {
-            let frame = layer.scene.map { scene -> RigFrame in
-                let ctx = context(layer, beat: beat, energy: energy)
-                guard let look = layer.look else { return Choreography.render(scene, ctx) }
-                return look.render(scene, ctx)
-            } ?? .black
+            let frame =
+                layer.scene.map { scene -> RigFrame in
+                    let ctx = context(layer, beat: beat, energy: energy)
+                    guard let look = layer.look else { return Choreography.render(scene, ctx) }
+                    return look.render(scene, ctx)
+                } ?? .black
             if let base = out {
                 let t = Choreography.s(progress(layer, beat: beat, now: now))
                 out = base.mixed(with: frame, t)
@@ -248,8 +279,9 @@ public struct SceneSequencer: Sendable {
                 fadeStart = anchor - tr.fadeBeats
             }
         }
-        return Layer(scene: scene, rate: Self.validRate(rateOverride ?? rate), anchor: anchor, fadeStart: fadeStart, fadeBeats: tr.fadeBeats,
-                     startTime: now, maxSeconds: Self.maxFadeSeconds, lockedRate: rateOverride != nil, look: look)
+        return Layer(
+            scene: scene, rate: Self.validRate(rateOverride ?? rate), anchor: anchor, fadeStart: fadeStart, fadeBeats: tr.fadeBeats,
+            startTime: now, maxSeconds: Self.maxFadeSeconds, lockedRate: rateOverride != nil, look: look)
     }
 
     private mutating func push(_ layer: Layer) {
@@ -265,8 +297,10 @@ public struct SceneSequencer: Sendable {
             if let origin = layers[i].beatOrigin { layers[i].beatOrigin = origin + bars }
         }
         if let pending = pendingLayer, let scene = pending.scene {
-            pendingLayer = makeLayer(scene, beat: beat, now: now, gridTrusted: gridTrusted, rateOverride: pending.lockedRate ? pending.rate : nil)
+            pendingLayer = makeLayer(
+                scene, beat: beat, now: now, gridTrusted: gridTrusted, rateOverride: pending.lockedRate ? pending.rate : nil)
             pendingLayer?.look = pending.look
+            pendingRequestBeat = beat
             if pendingLayer!.fadeStart <= beat {
                 push(pendingLayer!)
                 pendingLayer = nil
@@ -283,8 +317,9 @@ public struct SceneSequencer: Sendable {
     }
 
     private func context(_ layer: Layer, beat: Double, energy: Double) -> SceneContext {
-        SceneContext(beat: (beat - (layer.beatOrigin ?? 0)) * layer.rate, phrase: (beat - layer.anchor) * layer.rate, energy: energy,
-                     minAttack: 0.06 * layer.rate)
+        SceneContext(
+            beat: (beat - (layer.beatOrigin ?? 0)) * layer.rate, phrase: (beat - layer.anchor) * layer.rate, energy: energy,
+            minAttack: 0.06 * layer.rate)
     }
 
     private func sanitize(_ beat: Double) -> Double { beat.isFinite ? beat : (lastBeat ?? 0) }

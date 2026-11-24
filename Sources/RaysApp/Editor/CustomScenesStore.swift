@@ -2,7 +2,7 @@ import Foundation
 import RaysCore
 import RaysEngine
 
-/// User-created scenes, persisted atomically in Application Support/Light System/custom-scenes.json.
+/// User-created scenes, persisted atomically in Application Support/RAYS/custom-scenes.json.
 ///
 /// If the file exists but cannot be read (corrupt or written by a newer version), it is never
 /// overwritten automatically: edits stay in memory, `error` explains the problem and

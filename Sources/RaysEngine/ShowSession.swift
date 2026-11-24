@@ -170,9 +170,7 @@ public final class ShowSession {
             engine.setSubdivision(clean.subdivision, immediate: immediate)
         }
         var nextShow = showSettings
-        nextShow.levelLeft = clean.leftLevel
-        nextShow.levelCenter = clean.centerLevel
-        nextShow.levelRight = clean.rightLevel
+        nextShow.masters.merge(clean.masters) { $1 }
         if nextShow != showSettings { showSettings = nextShow }
         engine.setShowSettings(nextShow)
         previewedCustom = clean
@@ -220,9 +218,7 @@ public final class ShowSession {
         if let modified {
             prefs.energy = modified.energy
             engine.setEnergy(modified.energy)
-            showSettings.levelLeft = modified.leftLevel
-            showSettings.levelCenter = modified.centerLevel
-            showSettings.levelRight = modified.rightLevel
+            showSettings.masters.merge(modified.masters) { $1 }
             engine.setShowSettings(showSettings)
             defaults.set(modified.id.uuidString, forKey: DefaultsKey.customScene)
         } else {
@@ -241,8 +237,7 @@ public final class ShowSession {
             ?? CustomScene(
                 name: slot.title, presetSlot: slot, base: slot, energy: prefs.energy,
                 subdivision: slot == .aurora || slot == .respiro ? .one : prefs.subdivision,
-                leftLevel: showSettings.levelLeft, centerLevel: showSettings.levelCenter,
-                rightLevel: showSettings.levelRight)
+                masters: showSettings.masters)
     }
 
     /// A personal (House) copy of a pad's look, with a new id.
@@ -280,8 +275,7 @@ public final class ShowSession {
             ?? CustomScene(
                 name: playing.scene.title, presetSlot: playing.scene,
                 presetBank: .house, base: playing.scene, energy: prefs.energy,
-                subdivision: prefs.subdivision, leftLevel: showSettings.levelLeft,
-                centerLevel: showSettings.levelCenter, rightLevel: showSettings.levelRight)
+                subdivision: prefs.subdivision, masters: showSettings.masters)
     }
 
     /// Checkpoints the show so Cancel (or quitting) restores it exactly. False if already editing.
@@ -349,6 +343,15 @@ public final class ShowSession {
         if !handlingMIDI { onResetTakeover?(Self.takeoverAction(for: role)) }
         showSettings.setLevel(role, value)
         engine.setLevel(role, value)
+        scheduleSave()
+    }
+
+    /// Master of any rig group. The classic groups go through `setLevel(_:_:)` (their own MIDI
+    /// takeover); another group updates the show levels and the engine.
+    public func setLevel(group id: RigGroupID, _ value: Double) {
+        if let role = FixtureRole(groupID: id) { return setLevel(role, value) }
+        showSettings.setLevel(group: id, value)
+        engine.setShowSettings(showSettings)
         scheduleSave()
     }
 
@@ -505,7 +508,7 @@ public final class ShowSession {
         case let .scene(s): selectScene(s)
         case let .master(v): setMaster(v)
         case let .energy(v): setEnergy(v)
-        case let .level(role, value): setLevel(role, value)
+        case let .level(group, value): setLevel(group: group, value)
         case let .accentLevel(value): setAccentLevel(value)
         case let .accent(on): engine.setAccent(on)
         case let .buildHold(on): setBuildDropHeld(on)

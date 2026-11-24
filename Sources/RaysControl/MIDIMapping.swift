@@ -109,6 +109,9 @@ public enum ControlAction: String, Codable, CaseIterable, Identifiable, Sendable
         }
     }
 
+    /// The rig group whose master this action drives (the classic groups for the three level faders).
+    public var group: RigGroupID? { role?.groupID }
+
     public var rate: Subdivision? {
         switch self {
         case .rateQuarter: return .four
@@ -148,7 +151,8 @@ public enum MIDICommand: Equatable, Sendable {
     case scene(SceneID)
     case master(Double)
     case energy(Double)
-    case level(FixtureRole, Double)
+    /// Master of a rig group (ADR 0005); the classic faders send `.left`, `.center` and `.right`.
+    case level(RigGroupID, Double)
     case accentLevel(Double)
     case accent(Bool)
     case buildHold(Bool)
@@ -161,7 +165,7 @@ public enum MIDICommand: Equatable, Sendable {
     case cancelPending
 
     static func continuous(_ action: ControlAction, _ v: Double) -> MIDICommand? {
-        if let role = action.role { return .level(role, v) }
+        if let group = action.group { return .level(group, v) }
         switch action {
         case .master: return .master(v)
         case .energy: return .energy(v)

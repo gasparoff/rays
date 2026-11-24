@@ -6,6 +6,10 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Performance faders follow the rig: one level fader per group of lights in the patch, named after the group, and Warm light only when a light has a white channel. The classic three-position rig keeps today's six faders.
+- Customize faders: right-click the faders, or use the slider button in Layout mode, to hide faders or change their order. Master brightness always stays; hidden faders keep their level.
+
 ## [0.2.0] - 2026-11-24
 
 Signed and notarized app, composable Live window, user guide.

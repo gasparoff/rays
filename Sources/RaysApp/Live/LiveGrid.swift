@@ -147,6 +147,7 @@ private struct LayoutEditChrome: ViewModifier {
 
 private struct PanelTools: View {
     @EnvironmentObject private var store: LiveLayoutStore
+    @EnvironmentObject private var faders: LiveFaderStore
     let panel: LivePanel
 
     var body: some View {
@@ -169,6 +170,16 @@ private struct PanelTools: View {
             }
             tool("plus", label: String(localized: "Make \(panel.title) wider"), enabled: layout.canResize(panel, step: 1)) {
                 $0.resize(panel, step: 1)
+            }
+            if panel == .performance {
+                Button {
+                    faders.showingSettings = true
+                } label: {
+                    Image(systemName: "slider.horizontal.3").frame(width: 26, height: 24).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(String(localized: "Customize faders…"))
+                .accessibilityLabel(String(localized: "Customize faders…"))
             }
             if panel.canHide {
                 tool("eye.slash", label: String(localized: "Hide \(panel.title)"), enabled: true) { $0.hide(panel) }

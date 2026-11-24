@@ -26,8 +26,10 @@ final class AppModel: ObservableObject {
     /// Show decisions (scenes, banks, presets, editor checkpoint, levels, saving). This model forwards
     /// UI events to it and republishes its state.
     let session: ShowSession
-    @Published private(set) var patch: Patch
-    @Published private(set) var library: ProfileLibrary
+    @Published private(set) var patch: Patch { didSet { updateFaderSetup() } }
+    @Published private(set) var library: ProfileLibrary { didSet { updateFaderSetup() } }
+    /// Faders the patch offers on the performance panel, rebuilt only when the patch or library changes.
+    @Published private(set) var faderSetup = LiveFaderSetup.classic
     @Published private(set) var prefs: Preferences
     @Published private(set) var storageErrors: [String] = []
     /// Controller layouts from Resources/Controllers and Application Support/RAYS/Controllers
@@ -100,6 +102,7 @@ final class AppModel: ObservableObject {
         if let error = ShowSession.applyAutomaticSetupIfNeeded(&p, defaults: .standard, store: store) { errors.append(error) }
         library = lib
         patch = loadedPatch
+        faderSetup = LiveFaderSetup(patch: loadedPatch, library: lib)
         prefs = p
         storageErrors = errors
         controllerProfiles = controllers
@@ -350,6 +353,11 @@ final class AppModel: ObservableObject {
         session.patchDidChange()
     }
 
+    private func updateFaderSetup() {
+        let setup = LiveFaderSetup(patch: patch, library: library)
+        if setup != faderSetup { faderSetup = setup }
+    }
+
     private func rememberAutoSelectedNode(_ id: String?) { session.rememberAutoSelectedNode(id) }
 
     // MARK: Saved scenes and performance controls
@@ -367,6 +375,8 @@ final class AppModel: ObservableObject {
     func copyPreset(_ slot: SceneID) { beginSceneEditing(session.presetCopyDraft(slot)) }
 
     func setLevel(_ role: FixtureRole, _ value: Double) { session.setLevel(role, value) }
+
+    func setLevel(group id: RigGroupID, _ value: Double) { session.setLevel(group: id, value) }
 
     func setWhiteLevel(_ value: Double) { session.setWhiteLevel(value) }
 

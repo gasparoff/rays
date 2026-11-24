@@ -147,7 +147,8 @@ final class ShowSessionTests: XCTestCase {
         XCTAssertEqual(DefaultsKey.internalBPM, "LightSystem.internalBPM")
         XCTAssertEqual(DefaultsKey.sceneBank, "LightSystem.sceneBank")
         XCTAssertEqual(DefaultsKey.directCableOwnedInterface, "LightSystem.directCableOwnedInterface")
-        XCTAssertEqual(Set(DefaultsKey.all).count, 5)
+        XCTAssertEqual(DefaultsKey.liveLayout, "LightSystem.liveLayout")
+        XCTAssertEqual(Set(DefaultsKey.all).count, 6)
         XCTAssertEqual(AppNotificationName.sceneEditorCommitNumbers, "LightSystem.sceneEditor.commitNumbers")
     }
 

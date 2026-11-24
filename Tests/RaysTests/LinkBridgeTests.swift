@@ -19,9 +19,15 @@ final class LinkBridgeTests: XCTestCase {
         ls_link_set_tempo(link, 97.5)
         XCTAssertEqual(ls_link_capture(link, 4).tempo, 97.5, accuracy: 0.0001)
         ls_link_set_tempo(link, 5000)
-        // Generous deadline: under `swift test --parallel` the runner can be busy for a while.
-        let deadline = Date().addingTimeInterval(2)
-        while abs(ls_link_capture(link, 4).tempo - 999) > 0.0001 && Date() < deadline { Thread.sleep(forTimeInterval: 0.002) }
+        // This is the real Link session, not a fake clock, so the test polls instead of assuming the
+        // value is visible at once. The deadline is only an upper bound for a hung session: the loop
+        // exits as soon as the clamped tempo shows up (normally on the first read). It is generous
+        // because `swift test --parallel --enable-code-coverage` on a shared CI runner can stall a
+        // thread for seconds. It uses the monotonic uptime clock, which wall-clock changes can't move.
+        let deadline = ProcessInfo.processInfo.systemUptime + 10
+        while abs(ls_link_capture(link, 4).tempo - 999) > 0.0001 && ProcessInfo.processInfo.systemUptime < deadline {
+            Thread.sleep(forTimeInterval: 0.002)
+        }
         XCTAssertEqual(ls_link_capture(link, 4).tempo, 999, accuracy: 0.0001, "tempo clamped to Link range")
     }
 
@@ -29,17 +35,18 @@ final class LinkBridgeTests: XCTestCase {
     func testFollowBeatAlignsTempoAndPhase() throws {
         let link = try XCTUnwrap(ls_link_create(120))
         defer { ls_link_destroy(link) }
-        let before = Date()
+        let before = ProcessInfo.processInfo.systemUptime
         ls_link_follow_beat(link, 128, 2)
         let state = ls_link_capture(link, 4)
-        // The phase keeps moving between the two calls: allow for the time actually elapsed,
-        // so a busy test runner can't turn scheduling delay into a failure.
-        let elapsedBeats = Date().timeIntervalSince(before) * 128 / 60
+        // The phase keeps moving between the two calls: allow for the time actually elapsed
+        // (monotonic clock), so a busy test runner can't turn scheduling delay into a failure.
+        let elapsedBeats = (ProcessInfo.processInfo.systemUptime - before) * 128 / 60
         XCTAssertEqual(state.tempo, 128, accuracy: 0.0001)
         XCTAssertEqual(state.phase, 2, accuracy: 0.05 + elapsedBeats)
         ls_link_follow_beat(link, 128, 7)  // invalid beat-in-bar is ignored
         XCTAssertEqual(ls_link_capture(link, 4).tempo, 128, accuracy: 0.0001)
     }
+
     func testInvalidExternalTempoCannotPoisonTimeline() throws {
         let link = try XCTUnwrap(ls_link_create(.nan))
         defer { ls_link_destroy(link) }
@@ -49,5 +56,4 @@ final class LinkBridgeTests: XCTestCase {
         XCTAssertEqual(ls_link_capture(link, 4).tempo, 120, accuracy: 0.001)
         XCTAssertTrue(ls_link_capture(link, 4).phase.isFinite)
     }
-
 }

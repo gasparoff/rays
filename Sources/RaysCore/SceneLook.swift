@@ -30,13 +30,14 @@ public struct SceneLook: Equatable, Sendable {
 
     public var id: UUID { source.id }
 
-    /// Base choreography, recoloured, then the program tracks; warm white amount applied last.
-    /// Without a program this equals `CustomScene.applyingLook(to: Choreography.render(...))`.
+    /// Base choreography, recoloured and fitted to the rig (`SpatialRig.fitting`), then the program tracks;
+    /// warm white amount applied last. The frame has the rig's groups. On the classic rig and without a
+    /// program this equals `CustomScene.applyingLook(to: Choreography.render(...))`.
     public func render(_ scene: SceneID, _ ctx: SceneContext) -> RigFrame {
-        guard let program else { return apply(to: Choreography.render(scene, ctx)) }
+        guard let program else { return finish(rig.fitting(recolored(Choreography.render(scene, ctx)))) }
         var frame: RigFrame
         if program.baseLevel > 0 {
-            frame = recolored(Choreography.render(scene, ctx))
+            frame = rig.fitting(recolored(Choreography.render(scene, ctx)))
             if program.baseLevel < 1 { frame = frame.scaled(program.baseLevel) }
         } else {
             frame = rig.black

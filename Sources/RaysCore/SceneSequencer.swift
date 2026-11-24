@@ -232,16 +232,23 @@ public struct SceneSequencer: Sendable {
         }
     }
 
+    /// The frame on the classic rig.
     public func render(beat rawBeat: Double, energy: Double, now: TimeInterval) -> RigFrame {
+        render(beat: rawBeat, energy: energy, now: now, rig: .classic)
+    }
+
+    /// The frame on `rig` (ADR 0005): every layer is fitted to the rig's groups before the crossfade, so
+    /// layers always mix group by group. On the classic rig a classic frame is used as it is.
+    public func render(beat rawBeat: Double, energy: Double, now: TimeInterval, rig: SpatialRig) -> RigFrame {
         let beat = rawBeat.isFinite ? rawBeat : (lastBeat ?? 0)
         var out: RigFrame?
         for layer in layers {
             let frame =
                 layer.scene.map { scene -> RigFrame in
                     let ctx = context(layer, beat: beat, energy: energy)
-                    guard let look = layer.look else { return Choreography.render(scene, ctx) }
-                    return look.render(scene, ctx)
-                } ?? .black
+                    guard let look = layer.look else { return rig.fitting(Choreography.render(scene, ctx)) }
+                    return rig.fitting(look.render(scene, ctx))
+                } ?? rig.black
             if let base = out {
                 let t = Choreography.s(progress(layer, beat: beat, now: now))
                 out = base.mixed(with: frame, t)
@@ -249,7 +256,22 @@ public struct SceneSequencer: Sendable {
                 out = frame
             }
         }
-        return (out ?? .black).sanitized
+        return (out ?? rig.black).sanitized
+    }
+
+    /// Compiles every look again for `rig` after a patch or layout change (never per frame). Looks already
+    /// compiled for it are kept as they are.
+    public mutating func retarget(_ rig: SpatialRig) {
+        func moved(_ look: SceneLook?) -> SceneLook? {
+            guard let look, look.rig != rig else { return look }
+            return SceneLook(look.source, rig: rig)
+        }
+        look = moved(look)
+        for i in layers.indices { layers[i].look = moved(layers[i].look) }
+        if var pending = pendingLayer {
+            pending.look = moved(pending.look)
+            pendingLayer = pending
+        }
     }
 
     /// Pattern time (scene beats, as the program tracks see it) of the running scene; nil after Stop.

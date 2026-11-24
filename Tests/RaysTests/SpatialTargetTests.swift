@@ -406,15 +406,16 @@ final class SpatialTargetTests: XCTestCase {
         XCTAssertEqual(lit(f), ["g1", "g2"], "hit 2 on g2, and the steady left half on g1")
     }
 
-    func testAClassicFrameUnderAnotherRigOnlyReceivesTheGroupsItHas() {
+    func testTheBaseChoreographyIsFittedToAnotherRig() {
         let groups = [RigGroup(id: .right, name: "R", position: StagePoint(x: 0.1, y: 0)), RigGroup(id: RigGroupID("new"), name: "N")]
         let sizes = RigFrame(groups: groups.map { GroupFrame(id: $0.id, light: .black(rgb: 1, cob: 1)) })
         let r = SpatialRig(layout: RigLayout(groups: groups), sizes: sizes)
         var s = scene([steady(.all)])
         s.program?.baseLevel = 1
         let f = SceneLook(s, rig: r).render(.ambra, SceneContext(beat: 0, energy: 1))
-        XCTAssertEqual(f.groups.map(\.id), [.left, .center, .right], "the base choreography keeps its frame")
+        XCTAssertEqual(f.groups.map(\.id), [.right, RigGroupID("new")], "the base choreography follows the rig (ADR 0005 step 6)")
         XCTAssertEqual(f.right.rgb.map(\.peak), [1])
+        XCTAssertEqual(f[group: RigGroupID("new")]?.rgb.map(\.peak), [1])
         XCTAssertTrue(f.isFinite)
     }
 }

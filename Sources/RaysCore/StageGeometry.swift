@@ -11,12 +11,15 @@ public struct StageFixtureSpec: Equatable, Sendable {
     public var cobs: Int
     /// Triangles only: the TRI 380 mirror (larger, three COB spokes) instead of the TRI 180.
     public var large: Bool
+    /// Position on the stage canvas (`FixtureVisual.position`); nil keeps the classic row.
+    public var position: StagePoint?
 
-    public init(appearance: FixtureAppearance, zones: Int, cobs: Int, large: Bool = false) {
+    public init(appearance: FixtureAppearance, zones: Int, cobs: Int, large: Bool = false, position: StagePoint? = nil) {
         self.appearance = appearance
         self.zones = max(0, zones)
         self.cobs = max(0, cobs)
         self.large = large
+        self.position = position
     }
 
     public init(profile: FixtureProfile) {
@@ -137,6 +140,10 @@ public struct StageLayout: Equatable, Sendable {
     }
 
     /// One fixture per spec, left to right on a common floor, each in its own slot of the width.
+    ///
+    /// When every spec has a `position`, fixtures stand at their stage positions instead: x spans the
+    /// row's extent (first to last slot centre) from the leftmost to the rightmost position, and y moves
+    /// the floor line up for the back of the stage (y 0) and down for the front (y 1), around the row's floor.
     public init(size: CGSize, specs: [StageFixtureSpec]) {
         self.size = size
         self.specs = specs
@@ -144,9 +151,20 @@ public struct StageLayout: Equatable, Sendable {
         floor = size.height * 0.79
         let floor = self.floor
         let slot = min(size.width / CGFloat(count) * 0.82, size.height * 0.79)
+        let points = specs.compactMap(\.position)
+        let placed = !specs.isEmpty && points.count == specs.count
+        let minX = points.map(\.x).min() ?? 0, maxX = points.map(\.x).max() ?? 0
+        let margin = 1 / CGFloat(count * 2)
         fixtures = specs.enumerated().map { index, spec in
-            let x = size.width * CGFloat(index * 2 + 1) / CGFloat(count * 2)
-            return StageLayout.fixture(spec, x: x, floor: floor, slot: slot, maxHeight: size.height * 0.72)
+            guard placed, let p = spec.position else {
+                let x = size.width * CGFloat(index * 2 + 1) / CGFloat(count * 2)
+                return StageLayout.fixture(spec, x: x, floor: floor, slot: slot, maxHeight: size.height * 0.72)
+            }
+            let t = maxX - minX > 1e-9 && p.x.isFinite ? CGFloat((p.x - minX) / (maxX - minX)) : 0.5
+            let depth = p.y.isFinite ? CGFloat(min(1, max(0, p.y))) : 0.5
+            let x = size.width * (margin + t * (1 - 2 * margin))
+            let line = floor + (depth - 0.5) * size.height * 0.16
+            return StageLayout.fixture(spec, x: x, floor: line, slot: slot, maxHeight: size.height * 0.72)
         }
     }
 

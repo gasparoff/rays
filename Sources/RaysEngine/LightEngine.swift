@@ -63,15 +63,18 @@ public final class LightEngine: @unchecked Sendable {
     }
     /// `levels.masters` and `overrides` by group position, rebuilt when either changes, so the frame
     /// reads arrays instead of looking group ids up.
-    private var mix = GroupMix(ids: LightEngine.frameGroups, masters: ShowSettings().masters)
+    private var mix = GroupMix(ids: RigFrame.black.groups.map(\.id), masters: ShowSettings().masters)
     private var lastSocketAttempt: TimeInterval = -.infinity
     private var patch = Patch.empty
     private var patchIssues: [PatchIssue] = []
     private var patchConfirmed = false
-    /// Default-rig fixtures missing from the real patch; composed into a buffer that is never sent.
-    private var shadow = VarytecRig.referenceRig()
-    /// Patch-derived data for the frame, rebuilt only when the patch or library changes.
+    /// Patch-derived data for the frame (rig, groups, preview-only lights), rebuilt only when the patch
+    /// or library changes.
     private var cache = PatchCache()
+    /// Guards only `lookRig`, so looks can be compiled for the current rig off the engine queue.
+    private let rigLock = NSLock()
+    /// Copy of `cache.rig.spatial`, written on `queue` when the patch changes and read from any thread.
+    private var lookRig = SpatialRig.classic
     /// Network part of the snapshot, refreshed at a low rate or when something changed.
     private var network = NetworkStatus()
     private var networkRefreshedAt: TimeInterval = -.infinity
@@ -195,8 +198,9 @@ public final class LightEngine: @unchecked Sendable {
     /// the grid even in the same slot. Edits within a bank update its running look without restarting.
     /// The look (program included) is compiled here, off the 30 Hz path.
     public func setScene(_ s: SceneID, look scene: CustomScene?, immediate: Bool = false) {
-        let look = scene.map(SceneLook.init)
+        let compiled = scene.map(compiledLook)
         queue.async {
+            let look = self.current(compiled)
             if immediate {
                 self.sequencer = SceneSequencer(scene: s, rate: self.params.subdivision.rate)
                 self.sequencer.setLook(look)
@@ -233,11 +237,11 @@ public final class LightEngine: @unchecked Sendable {
     /// Dedicated DJ gesture follows real Link beats even if the other scenes
     /// have been slowed down. The user's movement-rate setting is preserved.
     public func setBuildDropGesture(_ held: Bool, look: CustomScene? = nil) {
-        let compiled = look.map(SceneLook.init)
+        let compiled = look.map(compiledLook)
         queue.async {
             let t = self.tempo.capture()
             self.sequencer.request(
-                held ? .aurora : .respiro, look: compiled, beat: self.musicalBeat(t), now: self.clock(),
+                held ? .aurora : .respiro, look: self.current(compiled), beat: self.musicalBeat(t), now: self.clock(),
                 gridTrusted: self.gridTrusted(t), rateOverride: 1, forceRestart: true)
         }
     }
@@ -281,16 +285,17 @@ public final class LightEngine: @unchecked Sendable {
 
     /// Changes the look of the running scene (live editing). Stop stays black; fading-out scenes keep theirs.
     public func setCustomScene(_ scene: CustomScene?) {
-        let look = scene.map(SceneLook.init)
-        queue.async { self.sequencer.setLook(look) }
+        let look = scene.map(compiledLook)
+        queue.async { self.sequencer.setLook(self.current(look)) }
     }
 
     /// Live edit of the running custom scene: updates its look, or launches `s` with it if the show is
     /// stopped. Decided on the engine queue from the sequencer itself: a UI snapshot that still says
     /// "stopped" just after a launch must never request the scene again (that re-arms a phrase scene).
     public func setCustomScene(_ scene: CustomScene, relaunchingIfStoppedAs s: SceneID) {
-        let look = SceneLook(scene)
+        let compiled = compiledLook(scene)
         queue.async {
+            let look = self.current(compiled)
             guard self.sequencer.isStopped else { self.sequencer.setLook(look); return }
             let t = self.tempo.capture()
             self.sequencer.request(s, look: look, beat: self.musicalBeat(t), now: self.clock(), gridTrusted: self.gridTrusted(t))
@@ -424,10 +429,6 @@ public final class LightEngine: @unchecked Sendable {
             self.patch = newPatch
             self.patchIssues = newPatch.validate(library: self.baseLibrary)
             self.patchConfirmed = newPatch.isConfirmed(library: self.baseLibrary)
-            let present: Set<FixtureRole> = self.showsRealPatch ? Set(newPatch.roles(library: self.baseLibrary)) : []
-            var rig = VarytecRig.referenceRig(universe: 1)
-            rig.fixtures.removeAll { present.contains($0.role ?? .center) }
-            self.shadow = rig
             self.rebuildPatchCacheLocked()
             self.networkDirty = true
         }
@@ -571,23 +572,22 @@ public final class LightEngine: @unchecked Sendable {
         return min(1, k)
     }
 
+    /// Every group lit, or one segment / COB of every multi-segment / multi-COB group (the classic centre).
     private func diagnosticFrame(_ c: LightColor, _ target: DiagnosticTarget) -> RigFrame {
         let rgb = LightColor(c.r, c.g, c.b)
-        switch target {
-        case .all:
-            func role(_ n: Int, _ k: Int) -> RoleFrame {
-                RoleFrame(rgb: Array(repeating: rgb, count: n), cob: Array(repeating: c.w, count: k))
+        var f = cache.rig.black
+        for g in f.groups.indices {
+            let rgbCount = f.groups[g].light.rgb.count, cobCount = f.groups[g].light.cob.count
+            switch target {
+            case .all:
+                f.groups[g].light = RoleFrame(rgb: Array(repeating: rgb, count: rgbCount), cob: Array(repeating: c.w, count: cobCount))
+            case .segment(let i):
+                if rgbCount > 1, (0..<rgbCount).contains(i) { f.groups[g].light.rgb[i] = rgb }
+            case .cob(let k):
+                if cobCount > 1, (0..<cobCount).contains(k) { f.groups[g].light.cob[k] = c.w }
             }
-            return RigFrame(left: role(1, 1), center: role(RigFrame.centerSegments, RigFrame.centerCOBs), right: role(1, 1))
-        case .segment(let i):
-            var f = RigFrame.black
-            if f.center.rgb.indices.contains(i) { f.center.rgb[i] = rgb }
-            return f
-        case .cob(let k):
-            var f = RigFrame.black
-            if f.center.cob.indices.contains(k) { f.center.cob[k] = c.w }
-            return f
         }
+        return f
     }
 
     /// Scene/diagnostic frame for this tick, accent applied (blackout is applied by the composer).
@@ -601,11 +601,11 @@ public final class LightEngine: @unchecked Sendable {
         previewBlendActive = false
         if let test = gate.diagnostic { return diagnosticFrame(test.color, test.target) }
         // Custom looks and program tracks are rendered inside the sequencer layers (fades, Stop).
-        var rig = sequencer.render(beat: beat, energy: smoothedEnergy, now: now)
+        var rig = sequencer.render(beat: beat, energy: smoothedEnergy, now: now, rig: cache.rig.spatial)
         let accent = accentEnvelope(now: now) * levels.accentLevel
         if accent > 0 {
             // Deliberately above Stop: a blinder hit out of a stopped, dark room is a classic move.
-            for role in FixtureRole.allCases { rig[role].cob = rig[role].cob.map { max($0, accent) } }
+            for g in rig.groups.indices { rig.groups[g].light.cob = rig.groups[g].light.cob.map { max($0, accent) } }
         }
         if let from = restoreFrom {
             scaleByGroupMasters(&rig)
@@ -617,11 +617,20 @@ public final class LightEngine: @unchecked Sendable {
         return rig
     }
 
-    /// Group order of every frame the engine renders (the classic layout until frames follow the patch layout).
-    static let frameGroups = RigFrame.black.groups.map(\.id)
-
+    /// Masters and overrides resolved against the group order of the frames (`cache.rig`).
     private func rebuildMixLocked() {
-        mix = GroupMix(ids: Self.frameGroups, masters: levels.masters, overrides: overrides)
+        mix = GroupMix(ids: cache.rig.spatial.groups.map(\.id), masters: levels.masters, overrides: overrides)
+    }
+
+    /// A look compiled for the current rig; callable from any thread.
+    private func compiledLook(_ scene: CustomScene) -> SceneLook {
+        SceneLook(scene, rig: rigLock.withLock { lookRig })
+    }
+
+    /// On `queue`: a look compiled just before a layout change is compiled again for the current rig.
+    private func current(_ look: SceneLook?) -> SceneLook? {
+        guard let look, look.rig != cache.rig.spatial else { return look }
+        return SceneLook(look.source, rig: cache.rig.spatial)
     }
 
     /// Multiplies each group of `frame` by its master (preview restore blend).
@@ -631,19 +640,32 @@ public final class LightEngine: @unchecked Sendable {
         }
     }
 
-    /// `groups[i]` is fixture i's position in `mix` (see `PatchCache`). The diagnostic ignores group
-    /// masters and overrides; during the restore blend the frames already carry the group masters.
+    /// `groups[i]` is fixture i's group index in the frame and in `mix`, `ids[i]` its id (see `PatchCache`).
+    /// The diagnostic ignores group masters and overrides; during the restore blend the frames already
+    /// carry the group masters.
     private func compose(
-        _ p: Patch, roles: [FixtureRole], groups: [Int], rig: RigFrame, diagnostic: Bool
+        _ p: Patch, groups: [Int], ids: [RigGroupID], rig: RigFrame, diagnostic: Bool
     ) -> [PortAddress: [UInt8]] {
         // Apply white brightness after crossfades too, so zero always silences COBs immediately.
-        let lv = roles.map { role in
-            FixtureLevels(rgb: rig[role].rgb, cob: rig[role].cob.map { $0 * levels.whiteLevel })
+        let lv = groups.indices.map { i -> FixtureLevels in
+            let light = Self.light(of: rig, at: groups[i], id: ids[i])
+            return FixtureLevels(rgb: light.rgb, cob: light.cob.map { $0 * levels.whiteLevel })
         }
         let scales = groups.map { i in
             diagnostic ? master : mix.scale(group: i, master: master, groupMaster: !previewBlendActive)
         }
         return DMXComposer.compose(patch: p, library: baseLibrary, levels: lv, scales: scales, blackout: gate.blackout)
+    }
+
+    private static let noLight = RoleFrame(rgb: [], cob: [])
+
+    /// The light of group `id`, expected at index `g` (the frame follows the rig); a frame in another
+    /// order is matched by id, and a group the frame lacks is dark.
+    @inline(__always)
+    private static func light(of frame: RigFrame, at g: Int, id: RigGroupID) -> RoleFrame {
+        if g >= 0, g < frame.groups.count, frame.groups[g].id == id { return frame.groups[g].light }
+        if let j = frame.index(of: id) { return frame.groups[j].light }
+        return noLight
     }
 
     private func tick() {
@@ -667,13 +689,13 @@ public final class LightEngine: @unchecked Sendable {
             // Stop transmitting until validation passes again, but retain the user's request.
             sendBlackFramesLocked(to: Self.blackFrameTarget(readiness, target))
         }
-        let real = showsRealPatch ? compose(patch, roles: cache.roles, groups: cache.groups, rig: rig, diagnostic: diagnostic) : [:]
+        let real = showsRealPatch ? compose(patch, groups: cache.groups, ids: cache.groupIDs, rig: rig, diagnostic: diagnostic) : [:]
         if gate.armed, let target {
             sending = output.sendDMX(real, to: target)
             if sending { framesSent &+= 1 }
         }
         let shadowFrames = compose(
-            shadow, roles: cache.shadowRoles, groups: cache.shadowGroups, rig: rig, diagnostic: diagnostic)
+            cache.shadow, groups: cache.shadowGroups, ids: cache.shadowIDs, rig: rig, diagnostic: diagnostic)
         let visuals = visualsLocked(real: real, shadow: shadowFrames, live: gate.armed && sending)
         publish(
             snapshotLocked(
@@ -691,43 +713,74 @@ public final class LightEngine: @unchecked Sendable {
             var profile: FixtureProfile?
             var port: PortAddress?
             var role: FixtureRole
+            /// Group index in the layout: the display order.
+            var group: Int
+            var groupID: RigGroupID
+            var position: StagePoint
             var universe: Int
             var address: Int
         }
-        var roles: [FixtureRole] = []
-        var shadowRoles: [FixtureRole] = []
-        /// Each fixture's group position in `frameGroups` (-1 for none), for the per-group arrays of `mix`.
+        /// Groups, frame sizes and fixture positions of the patch (ADR 0005).
+        var rig = PatchRig.classic
+        /// Each real fixture's group index in the frame and in `mix`, and its group id.
         var groups: [Int] = []
+        var groupIDs: [RigGroupID] = []
+        /// Preview-only lights of the groups the real patch leaves empty; composed into a buffer that is never sent.
+        var shadow = Patch.empty
         var shadowGroups: [Int] = []
+        var shadowIDs: [RigGroupID] = []
         var universes: [PortAddress] = []
-        /// Real fixtures (when the patch is shown), then shadow fixtures, sorted left, center, right.
+        /// The layout differs from the classic preset at its classic positions.
+        var freeLayout = false
+        /// Real fixtures (when the patch is shown), then preview-only ones, sorted by group in layout order.
         var slots: [Slot] = []
     }
 
     private func rebuildPatchCacheLocked() {
+        let shown = showsRealPatch
+        let rig = PatchRig(patch: patch, library: baseLibrary)
+        let shadow = rig.shadow(occupied: shown)
         var c = PatchCache()
-        c.roles = patch.roles(library: baseLibrary)
-        c.shadowRoles = shadow.roles(library: baseLibrary)
-        c.groups = c.roles.map { Self.frameGroups.firstIndex(of: $0.groupID) ?? -1 }
-        c.shadowGroups = c.shadowRoles.map { Self.frameGroups.firstIndex(of: $0.groupID) ?? -1 }
+        c.rig = rig
+        c.groups = rig.fixtureGroups
+        c.groupIDs = rig.fixtureGroups.map { rig.layout.groups[$0].id }
+        c.shadow = shadow.patch
+        c.shadowGroups = shadow.groups
+        c.shadowIDs = shadow.groups.map { rig.layout.groups[$0].id }
         c.universes = patch.universes
-        func slots(_ p: Patch, roles: [FixtureRole], previewOnly: Bool) -> [PatchCache.Slot] {
+        c.freeLayout = !rig.isClassic || rig.layout.groups.map(\.position) != RigLayout.classic.groups.map(\.position)
+        func slots(_ p: Patch, groups: [Int], positions: [StagePoint]?, previewOnly: Bool) -> [PatchCache.Slot] {
             let lib = p.library(base: baseLibrary)
             return p.fixtures.enumerated().map { i, f in
-                PatchCache.Slot(
-                    previewOnly: previewOnly, id: previewOnly ? "preview-\(roles[i].rawValue)" : f.id.uuidString,
+                let group = rig.layout.groups[groups[i]]
+                return PatchCache.Slot(
+                    previewOnly: previewOnly, id: previewOnly ? "preview-\(group.id.rawValue)" : f.id.uuidString,
                     label: f.label, profileID: f.profileID, profile: lib.profile(id: f.profileID),
-                    port: PortAddress(f.universe), role: roles[i], universe: f.universe, address: f.address)
+                    port: PortAddress(f.universe), role: Self.role(of: group), group: groups[i], groupID: group.id,
+                    position: positions?[i] ?? group.position, universe: f.universe, address: f.address)
             }
         }
         let all =
-            (showsRealPatch ? slots(patch, roles: c.roles, previewOnly: false) : [])
-            + slots(shadow, roles: c.shadowRoles, previewOnly: true)
-        let order: [FixtureRole: Int] = [.left: 0, .center: 1, .right: 2]
-        c.slots = all.enumerated().sorted {
-            (order[$0.element.role]!, $0.offset) < (order[$1.element.role]!, $1.offset)
-        }.map(\.element)
+            (shown ? slots(patch, groups: c.groups, positions: rig.fixturePositions, previewOnly: false) : [])
+            + slots(shadow.patch, groups: shadow.groups, positions: nil, previewOnly: true)
+        c.slots = all.enumerated().sorted { ($0.element.group, $0.offset) < ($1.element.group, $1.offset) }.map(\.element)
+        let moved = rig.spatial != cache.rig.spatial
         cache = c
+        if moved {
+            // Looks are compiled for one rig: compile the playing ones again, off the 30 Hz path.
+            sequencer.retarget(rig.spatial)
+            previewState?.sequencer.retarget(rig.spatial)
+            restoreFrom = nil
+            rigLock.withLock { lookRig = rig.spatial }
+        }
+        rebuildMixLocked()
+    }
+
+    /// The classic role of a group: its own for a classic id, otherwise the third of the stage it stands in.
+    static func role(of group: RigGroup) -> FixtureRole {
+        if let role = FixtureRole(groupID: group.id) { return role }
+        let x = group.position.x
+        return x < 1.0 / 3 ? .left : (x > 2.0 / 3 ? .right : .center)
     }
 
     /// Preview fixtures decoded from the composed bytes: `real` for patched ones, `shadow` for the rest.
@@ -744,7 +797,8 @@ public final class LightEngine: @unchecked Sendable {
                 FixtureVisual(
                     id: slot.id, label: slot.label, profileID: slot.profileID, role: slot.role, universe: slot.universe,
                     address: slot.address, rgb: levels.rgb, cob: levels.cob,
-                    status: slot.previewOnly ? .previewOnly : (live ? .live : .off)))
+                    status: slot.previewOnly ? .previewOnly : (live ? .live : .off), group: slot.groupID,
+                    position: slot.position, appearance: slot.profile?.appearance))
         }
         return visuals
     }
@@ -790,6 +844,7 @@ public final class LightEngine: @unchecked Sendable {
         s.gridTrusted = gridTrusted(t)
         s.readiness = readiness
         s.fixtures = visuals
+        s.freeLayout = cache.freeLayout
         s.network = networkLocked(now: now, target: target)
         return s
     }

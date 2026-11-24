@@ -21,6 +21,7 @@
 "%@ doesn't answer ArtPoll." = "%@ non risponde all’ArtPoll.";
 "%@ found · choose" = "%@ trovati · scegli";
 "%@ hits" = "%@ colpi";
+"%@ lights" = "%@ luci";
 "%@ percent" = "%@ per cento";
 "%@ responds." = "%@ risponde.";
 "%@ stays unchanged underneath (100%%); you start from a kick in the center." = "%@ resta identica sotto (100%%); parti da una cassa al centro.";
@@ -51,6 +52,9 @@
 "Actions for %@" = "Azioni per %@";
 "Big stage" = "Palco grande";
 "Blackout" = "Blackout";
+"Click a light to control it · ⇧ for more" = "Clicca una luce per comandarla · ⇧ per sceglierne più di una";
+"Deselect the lights" = "Deseleziona le luci";
+"Deselect" = "Deseleziona";
 "Done" = "Fine";
 "Drag onto another panel to move it there" = "Trascinalo su un altro pannello per spostarlo lì";
 "Drag to move %@" = "Trascina per spostare %@";
@@ -71,15 +75,18 @@
 "Performance" = "Performance";
 "Play %@" = "Avvia %@";
 "Presets" = "Preset";
+"Preview only · not in the patch" = "Solo anteprima · non nel patch";
 "Resume from blackout" = "Esci dal blackout";
 "Scene bank: %@" = "Banco scene: %@";
 "Search scenes and actions · ⌘K" = "Cerca scene e azioni · ⌘K";
 "Search scenes and actions" = "Cerca scene e azioni";
+"Selected lights" = "Luci selezionate";
 "Show %@" = "Mostra %@";
 "Show panel: %@" = "Mostra pannello: %@";
 "Stage" = "Palco";
 "Stop and fade out" = "Ferma e sfuma";
 "Tempo on the right" = "Tempo a destra";
+"Universe %@ · DMX %@" = "Universo %@ · DMX %@";
 "active" = "attiva";
 "Adapter" = "Adattatore";
 "Add" = "Aggiungi";

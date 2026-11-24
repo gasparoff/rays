@@ -12,6 +12,7 @@ project uses [Semantic Versioning](https://semver.org/).
 - Blackout always in the top bar, with a red frame around the window while it is on.
 - Command search (⌘K): type a few letters of a scene or an action (blackout, lights, banks, layouts, Setup) and press Return.
 - Countdown ring on a queued scene button: it fills until the scene starts on its beat or downbeat.
+- Click a light in the stage preview (Shift for more) to select it: a bar shows where it is patched and the brightness of its position.
 
 ### Changed
 - Saved files now live in `~/Library/Application Support/RAYS`. An existing `Light System` folder is moved there on first launch and a link is left at the old path, so nothing is lost and older builds still find it.

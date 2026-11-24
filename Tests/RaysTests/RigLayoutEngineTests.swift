@@ -351,6 +351,8 @@ final class RigLayoutEngineTests: XCTestCase {
                     }
                 }
             }
+            // The node answers polls again (seconds of show have passed), so output is still going.
+            engine.sync { transport.receive?(Fixture.pollReply(), .init(192, 168, 1, 50)) }
             let before = engine.sync { transport.dmxPackets.count }
             engine.setBlackout(true)
             clock.now += 1 / 30

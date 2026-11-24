@@ -52,9 +52,11 @@ struct FaderSettings: View {
         let faders = layout.all(in: setup)
         VStack(alignment: .leading, spacing: 10) {
             Text("Faders").font(.system(size: 13, weight: .semibold))
-            Text("One fader per group of lights, from the patch. Warm light appears when a light has a white channel. Hidden faders keep their level.")
-                .font(.system(size: 11)).foregroundStyle(Theme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            Text(
+                "One fader per group of lights, from the patch. Warm light appears when a light has a white channel. Hidden faders keep their level."
+            )
+            .font(.system(size: 11)).foregroundStyle(Theme.secondary)
+            .fixedSize(horizontal: false, vertical: true)
             VStack(spacing: 2) {
                 ForEach(faders) { fader in
                     row(fader, layout: layout)

@@ -6,6 +6,7 @@ import RaysEngine
 struct ContentView: View {
     @EnvironmentObject private var model: AppModel
     @StateObject private var layoutStore = LiveLayoutStore()
+    @StateObject private var palette = CommandPaletteState()
 
     var body: some View {
         WindowTransitionFrame(state: model.editorWindow) {
@@ -24,6 +25,12 @@ struct ContentView: View {
                         dashboard(compact: geometry.size.height < 980)
                     }
                 }
+                .overlay { BlackoutFrame() }
+                .overlay {
+                    if palette.isOpen { CommandPalette().environmentObject(model.customScenes) }
+                }
+                .environmentObject(layoutStore)
+                .environmentObject(palette)
             }
         }
         .background(Theme.background.ignoresSafeArea())
@@ -67,6 +74,7 @@ struct ContentView: View {
 struct TopBar: View {
     @EnvironmentObject private var model: AppModel
     @EnvironmentObject private var layout: LiveLayoutStore
+    @EnvironmentObject private var palette: CommandPaletteState
     @EnvironmentObject private var live: LiveState
     @EnvironmentObject private var cable: DirectCableNetwork
     @EnvironmentObject private var xdj: XDJBeatListener
@@ -114,6 +122,17 @@ struct TopBar: View {
             .buttonStyle(.bordered)
             .controlSize(.large)
             .accessibilityHint("Opens the setup for the DMX interface, lights and Link")
+            Button {
+                palette.isOpen.toggle()
+            } label: {
+                Image(systemName: "magnifyingglass")
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .keyboardShortcut("k", modifiers: .command)
+            .help("Search scenes and actions · ⌘K")
+            .accessibilityLabel("Search scenes and actions")
+            TopBlackoutButton(blackout: s.blackout, action: model.toggleBlackout)
         }
     }
 
@@ -158,6 +177,44 @@ struct TopBar: View {
     private func dmxColor(_ s: EngineSnapshot) -> Color {
         if s.armed { return s.sending ? Theme.good : Theme.bad }
         return s.readiness == .ready ? Theme.warn : Theme.idle
+    }
+}
+
+/// Always in the top bar, whatever the layout: Esc engages it from anywhere, B or a click resumes.
+struct TopBlackoutButton: View {
+    let blackout: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 1) {
+                Text("BLACKOUT").font(.system(size: 12.5, weight: .bold)).tracking(1.4)
+                Text(blackout ? String(localized: "B · resume") : "Esc").font(.system(size: 10, weight: .medium))
+            }
+            .frame(width: 132, height: 40)
+            .foregroundStyle(blackout ? Color.black : Theme.bad)
+            .background(RoundedRectangle(cornerRadius: 11, style: .continuous).fill(Theme.bad.opacity(blackout ? 0.9 : 0.13)))
+            .overlay(RoundedRectangle(cornerRadius: 11, style: .continuous).strokeBorder(Theme.bad.opacity(blackout ? 1 : 0.55)))
+            .contentShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(blackout ? String(localized: "Blackout on, press to resume") : "Blackout")
+        .help("Esc always triggers blackout. B or click to resume.")
+    }
+}
+
+/// A red frame around the whole window while blackout is on, visible from across the booth.
+struct BlackoutFrame: View {
+    @EnvironmentObject private var live: LiveState
+
+    var body: some View {
+        if live.snapshot.blackout {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(Theme.bad, lineWidth: 3)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
     }
 }
 
@@ -527,7 +584,7 @@ struct ControlBar: View {
                 show: model.showSettings, blackout: s.blackout, armed: s.armed, outputRequested: s.outputRequested,
                 live: s.isLive, readiness: s.readiness),
             onMaster: model.setMaster, onWhite: model.setWhiteLevel, onEnergy: model.setEnergy,
-            onLevel: model.setLevel, onBlackout: model.toggleBlackout, onOutput: model.toggleOutput,
+            onLevel: model.setLevel, onOutput: model.toggleOutput,
             onBuild: model.setBuildDropHeld, onFlash: model.engine.setAccent, onStop: model.stopShow)
     }
 }

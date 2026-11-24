@@ -35,7 +35,6 @@ struct PerformanceControls: View {
     let onWhite: (Double) -> Void
     let onEnergy: (Double) -> Void
     let onLevel: (FixtureRole, Double) -> Void
-    let onBlackout: () -> Void
     let onOutput: () -> Void
     let onBuild: (Bool) -> Void
     let onFlash: (Bool) -> Void
@@ -92,24 +91,8 @@ struct PerformanceControls: View {
                     .accessibilityElement(children: .combine)
                     .help(state.readiness.message)
 
-                    HStack(spacing: 8) {
-                        Button(action: onBlackout) {
-                            VStack(spacing: 2) {
-                                Text("BLACKOUT").font(.system(size: 12, weight: .bold)).tracking(1.2)
-                                Text(state.blackout ? String(localized: "B · resume") : "Esc").font(.system(size: 10))
-                            }
-                            .frame(maxWidth: .infinity).frame(height: 44)
-                            .foregroundStyle(state.blackout ? Color.black : Theme.bad)
-                            .background(RoundedRectangle(cornerRadius: 10).fill(Theme.bad.opacity(state.blackout ? 0.85 : 0.13)))
-                            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.bad.opacity(0.5)))
-                            .contentShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(state.blackout ? String(localized: "Blackout on, press to resume") : "Blackout")
-                        .help("Esc always triggers blackout. B or click to resume.")
-                        OutputButton(
-                            armed: state.armed, outputRequested: state.outputRequested, readiness: state.readiness, action: onOutput)
-                    }
+                    OutputButton(
+                        armed: state.armed, outputRequested: state.outputRequested, readiness: state.readiness, action: onOutput)
                     HStack(spacing: 8) {
                         HoldControl(
                             title: "Build → Drop", subtitle: String(localized: "hold · release"), color: Theme.lavender, onHold: onBuild

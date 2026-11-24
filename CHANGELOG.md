@@ -6,6 +6,12 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Your own scene banks: the **+** beside the bank picker adds one that starts from the House or Club scenes; right-click it to rename or delete it. Keys 1–6, the Xone pads and the Build → Drop gesture play the bank you pick; each pad is edited, restored and copied like the built-in ones.
+
+### Changed
+- House pads now have the same scene model as Club pads: they open in the editor with their name and colors, and Restore original brings back both. An untouched House pad still plays exactly as before. Existing scenes and edits are kept; `custom-scenes.json` gains a `banks` key only once you add a bank.
+
 ## [0.2.0] - 2026-11-24
 
 Signed and notarized app, composable Live window, user guide.

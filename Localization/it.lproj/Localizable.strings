@@ -719,3 +719,20 @@
 "%@ could not be read. RAYS kept a copy as %@ and started with defaults." = "Impossibile leggere %@. RAYS ne ha tenuto una copia come %@ e si è avviato con i valori predefiniti.";
 "%@ could not be read and RAYS started with defaults." = "Impossibile leggere %@: RAYS si è avviato con i valori predefiniti.";
 "RAYS is open source under the MIT license: github.com/gasparoff/rays. The app includes the Ableton Link SDK (© Ableton AG, GNU GPL v2 or later) and standalone ASIO (Boost Software License 1.0), so the app as a whole is distributed under the GPL v2 or later, with its complete source at the address above. Pro DJ Link runs Beat Link (Deep Symmetry, Eclipse Public License 2.0) as a separate process. The license texts are in the app's Resources/Licenses folder." = "RAYS è open source con licenza MIT: github.com/gasparoff/rays. L’app include l’SDK Ableton Link (© Ableton AG, GNU GPL v2 o successiva) e ASIO standalone (Boost Software License 1.0), quindi l’app nel suo insieme è distribuita con licenza GPL v2 o successiva, con il codice sorgente completo all’indirizzo sopra. Pro DJ Link usa Beat Link (Deep Symmetry, Eclipse Public License 2.0) come processo separato. I testi delle licenze sono nella cartella Resources/Licenses dell’app.";
+
+/* User scene banks */
+"My bank" = "Il mio banco";
+"New bank" = "Nuovo banco";
+"Rename bank" = "Rinomina banco";
+"Rename bank…" = "Rinomina banco…";
+"Delete bank…" = "Elimina banco…";
+"Create" = "Crea";
+"Rename" = "Rinomina";
+"Start from %@" = "Parti da %@";
+"Preset of “%@” · key %@" = "Preset di “%@” · tasto %@";
+"the “%@” bank" = "banco “%@”";
+"New bank: its six pads start from the House or Club scenes and you edit them as you like." = "Nuovo banco: i suoi sei pad partono dalle scene House o Club e li modifichi come vuoi.";
+"Keys 1–6 and the Xone pads play its six scenes. Edit each pad with the pencil." = "I tasti 1–6 e i pad della Xone suonano le sue sei scene. Modifica ogni pad con la matita.";
+"The scenes of the bank stay as they are." = "Le scene del banco restano come sono.";
+"Delete the bank “%@”?" = "Eliminare il banco “%@”?";
+"Its six pads and their edits will be removed. Your personal scenes stay." = "I suoi sei pad e le loro modifiche verranno rimossi. Le tue scene personali restano.";

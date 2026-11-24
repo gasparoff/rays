@@ -1,12 +1,5 @@
 import Foundation
 
-/// Independent performance banks share the same six keyboard and MIDI slots.
-public enum SceneBank: String, Codable, CaseIterable, Identifiable, Sendable {
-    case house, club
-    public var id: String { rawValue }
-    public var title: String { self == .house ? "House" : "Club 130–138" }
-}
-
 // Custom scenes: a base choreography (SceneID) with three user colours, energy, motion length,
 // warm-white (COB) level and L/C/R balance. The engine still computes the base choreography;
 // `recolor` maps every produced colour onto the user's palette, preserving peak, black and the
@@ -314,10 +307,11 @@ public struct CustomPaletteMap: Sendable {
 
 /// On-disk document `custom-scenes.json`.
 ///
-/// Current schema (version 1): `{"version": 1, "scenes": [CustomScene, ...]}`.
+/// Current schema (version 1): `{"version": 1, "scenes": [CustomScene, ...], "banks": [SceneBankInfo, ...]}`.
 /// A bare JSON array of scenes is also accepted on read. Newer versions are refused, never rewritten.
-/// `program` is an additive optional key: files without it read exactly as before, and the envelope
-/// stays version 1 so earlier app builds can still open the file (they ignore the tracks).
+/// `program` and `banks` are additive optional keys: files without them read exactly as before, and the
+/// envelope stays version 1 so earlier app builds can still open the file (they ignore tracks and banks).
+/// `banks` is written only when the user has banks of their own, so their file is unchanged otherwise.
 public enum CustomSceneDocument {
     public static let currentVersion = 1
     public static let fileName = "custom-scenes.json"
@@ -341,30 +335,71 @@ public enum CustomSceneDocument {
     private struct Envelope: Codable {
         var version: Int
         var scenes: [CustomScene]
+        var banks: [SceneBankInfo]?
     }
 
     private struct VersionProbe: Decodable { var version: Int? }
 
-    public static func decode(_ data: Data) throws -> [CustomScene] {
+    /// Banks read one by one: an unreadable entry is skipped, never the whole file.
+    private struct BanksProbe: Decodable {
+        var banks: [SceneBankInfo]
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            var list = try c.nestedUnkeyedContainer(forKey: .banks)
+            var out: [SceneBankInfo] = []
+            while !list.isAtEnd {
+                if let bank = try? list.decode(SceneBankInfo.self) {
+                    out.append(bank)
+                } else if (try? list.decode(Skip.self)) == nil {
+                    break
+                }
+            }
+            banks = out
+        }
+
+        /// Consumes one element of any shape.
+        private struct Skip: Decodable {
+            init(from decoder: Decoder) throws {}
+        }
+        private enum CodingKeys: String, CodingKey { case banks }
+    }
+
+    public static func decode(_ data: Data) throws -> [CustomScene] { try decodeLibrary(data).scenes }
+
+    public static func decodeLibrary(_ data: Data) throws -> SceneLibrary {
         let decoder = JSONDecoder()
-        if let list = try? decoder.decode([CustomScene].self, from: data) { return dedupe(list) }
+        if let list = try? decoder.decode([CustomScene].self, from: data) { return SceneLibrary(scenes: dedupe(list)) }
         guard let probe = try? decoder.decode(VersionProbe.self, from: data) else {
             throw DocumentError.unreadable(String(localized: "invalid JSON"))
         }
         guard let version = probe.version else { throw DocumentError.unreadable(String(localized: "missing version")) }
         guard version <= currentVersion, version >= 1 else { throw DocumentError.unsupportedVersion(version) }
+        let scenes: [CustomScene]
         do {
-            return dedupe(try decoder.decode(Envelope.self, from: data).scenes)
+            scenes = try decoder.decode(Envelope.self, from: data).scenes
         } catch {
-            throw DocumentError.unreadable(String(localized: "invalid scene list"))
+            // The scenes matter more than the bank list: retry without it before giving up.
+            guard let bare = try? decoder.decode(ScenesOnly.self, from: data) else {
+                throw DocumentError.unreadable(String(localized: "invalid scene list"))
+            }
+            scenes = bare.scenes
         }
+        let banks = (try? decoder.decode(BanksProbe.self, from: data))?.banks ?? []
+        return SceneLibrary(scenes: dedupe(scenes), banks: banks)
     }
 
-    public static func encode(_ scenes: [CustomScene]) throws -> Data {
+    private struct ScenesOnly: Decodable { var scenes: [CustomScene] }
+
+    public static func encode(_ scenes: [CustomScene], banks: [SceneBankInfo] = []) throws -> Data {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        return try encoder.encode(Envelope(version: currentVersion, scenes: scenes.map(\.sanitized)))
+        let clean = SceneLibrary.cleanBanks(banks)
+        return try encoder.encode(
+            Envelope(version: currentVersion, scenes: scenes.map(\.sanitized), banks: clean.isEmpty ? nil : clean))
     }
+
+    public static func encode(_ library: SceneLibrary) throws -> Data { try encode(library.scenes, banks: library.banks) }
 
     /// Keeps the first scene for each id so lookups by id stay unambiguous.
     private static func dedupe(_ scenes: [CustomScene]) -> [CustomScene] {
@@ -384,18 +419,24 @@ public struct CustomSceneFile: Sendable {
     public var exists: Bool { FileManager.default.fileExists(atPath: url.path) }
 
     /// Empty list when the file does not exist; throws when it exists but cannot be used.
-    public func load() throws -> [CustomScene] {
-        guard exists else { return [] }
+    public func load() throws -> [CustomScene] { try loadLibrary().scenes }
+
+    /// Scenes and user banks. Empty when the file does not exist; throws when it exists but cannot be used.
+    public func loadLibrary() throws -> SceneLibrary {
+        guard exists else { return SceneLibrary() }
         let data: Data
         do { data = try Data(contentsOf: url) } catch {
             throw CustomSceneDocument.DocumentError.unreadable(error.localizedDescription)
         }
-        return try CustomSceneDocument.decode(data)
+        return try CustomSceneDocument.decodeLibrary(data)
     }
 
-    public func save(_ scenes: [CustomScene]) throws {
+    /// Writes `scenes` with no user banks.
+    public func save(_ scenes: [CustomScene]) throws { try save(SceneLibrary(scenes: scenes)) }
+
+    public func save(_ library: SceneLibrary) throws {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try CustomSceneDocument.encode(scenes).write(to: url, options: .atomic)
+        try CustomSceneDocument.encode(library).write(to: url, options: .atomic)
     }
 
     /// Moves the current file aside (e.g. `custom-scenes.backup-20261022-193000.json`) and returns its new URL.

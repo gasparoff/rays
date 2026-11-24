@@ -47,6 +47,11 @@ Foundation-only and fully covered by unit tests, and the app's stage preview wor
   must always win. Output must never turn on as a side effect of editing.
 - **Realtime path stays lean.** The engine runs at 30 Hz on a serial queue: no allocations in
   hot loops you can avoid, no blocking I/O, no UI work.
+- **No data races.** The library modules (everything except `RaysApp` and `LinkBridge`) build
+  with complete strict concurrency checking, and CI fails on any compiler warning from them.
+  Make new value types `Sendable` and closures that cross queues `@Sendable`. Use
+  `@unchecked Sendable` only for a class whose state is owned by one serial queue or guarded by
+  a lock, and say which in its doc comment.
 - Follow the existing style (Swift API Design Guidelines, 4-space indent). Code identifiers
   and comments in English. User-facing strings go through localization.
 

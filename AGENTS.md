@@ -30,6 +30,7 @@ The library modules build and test without hardware. Only `Scripts/build-app.sh`
 - Saved user files (patch, scenes, MIDI map, preferences) must keep decoding: add a compatibility test with an old JSON sample when you touch a `Codable` type.
 - Never enable fixture strobe, macro, program or sound-to-light channels by default. Blackout always wins.
 - The 30 Hz engine path must not block, allocate needlessly or touch UI.
+- Library modules build with strict concurrency; CI fails on any warning from them. No blanket `@unchecked Sendable` or `nonisolated(unsafe)`: document the owning queue or lock.
 - English for identifiers, comments, docs. User-facing strings are localizable.
 - Never commit build products, `Research/`, `Vendor/BeatLinkHelper/`, manuals or third-party images.
 - New third-party code or data: add it to `THIRD_PARTY_NOTICES.md` with its license.

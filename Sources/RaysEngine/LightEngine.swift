@@ -3,7 +3,12 @@ import RaysOutput
 import RaysTempo
 import RaysCore
 
-/// The 30 Hz lighting engine: tempo in, scenes and choreography, DMX out through an `OutputDriver`, snapshots to the UI. All state lives on its serial `queue`.
+/// The 30 Hz lighting engine: tempo in, scenes and choreography, DMX out through an `OutputDriver`, snapshots to the UI.
+///
+/// `@unchecked Sendable`: every mutable stored property is owned by the serial `queue`. Public
+/// methods only enqueue work on it (or `queue.sync` for shutdown and tests); the timer, the
+/// driver's receive callback and the driver itself run on it. The two callbacks below are the
+/// exception: they may be set from any thread and are guarded by `callbackLock`.
 public final class LightEngine: @unchecked Sendable {
     public static let frameRate = 30.0
     /// Light is rendered this far ahead of the Link beat to cover Art-Net + fixture processing.
@@ -15,8 +20,22 @@ public final class LightEngine: @unchecked Sendable {
     public static let accentRelease: TimeInterval = 0.08
 
     public let queue = DispatchQueue(label: "io.github.gasparoff.rays.engine", qos: .userInteractive)
-    public var onSnapshot: ((EngineSnapshot) -> Void)?
-    public var onPreferredNodeChanged: ((String?) -> Void)?
+    /// Receives every snapshot, on `queue`: hop to the main thread yourself (see `LatestMailbox`).
+    /// Safe to set from any thread, also while the engine runs.
+    public var onSnapshot: ((EngineSnapshot) -> Void)? {
+        get { callbackLock.withLock { snapshotHandler } }
+        set { callbackLock.withLock { snapshotHandler = newValue } }
+    }
+    /// The driver auto-selected a node; called on `queue`. Safe to set from any thread.
+    public var onPreferredNodeChanged: ((String?) -> Void)? {
+        get { callbackLock.withLock { preferredNodeHandler } }
+        set { callbackLock.withLock { preferredNodeHandler = newValue } }
+    }
+    /// Guards only the two handlers above, which the app sets from the main thread. Held just to
+    /// copy a reference, never while a handler runs.
+    private let callbackLock = NSLock()
+    private var snapshotHandler: ((EngineSnapshot) -> Void)?
+    private var preferredNodeHandler: ((String?) -> Void)?
 
     private let tempo: TempoSource
     private var output: OutputDriver

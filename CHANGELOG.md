@@ -15,6 +15,7 @@ project uses [Semantic Versioning](https://semver.org/).
 ### Changed
 - Saved files now live in `~/Library/Application Support/RAYS`. An existing `Light System` folder is moved there on first launch and a link is left at the old path, so nothing is lost and older builds still find it.
 - RAYS appears as "RAYS" on the Pro DJ Link network and in macOS MIDI, instead of the old project name.
+- Release builds can be signed with a Developer ID and notarized by Apple when the repository has the signing secrets ([docs/releasing.md](docs/releasing.md)).
 
 ### Fixed
 - A damaged `midi.json` or `preferences.json` is copied aside and reported in Setup instead of being overwritten by the next save.
@@ -35,9 +36,6 @@ First public release.
 - English user interface, with Italian as the first translation (`Localization/`). Profile names and notes stay as published by the manufacturer.
 - Contributor docs, issue and PR templates, CI on macOS.
 - Release workflow: pushing a `v*` tag publishes `RAYS.app` (Apple silicon) on GitHub Releases; CI also builds the app for every change.
-
-### Release
-- Release builds can be signed with a Developer ID and notarized by Apple when the repository has the signing secrets ([docs/releasing.md](docs/releasing.md)).
 
 ### Changed
 - Core split into `RaysOutput`, `RaysTempo`, `RaysCore`, `RaysControl`, `RaysEngine` modules; the app lives in `Sources/RaysApp`.

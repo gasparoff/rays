@@ -268,7 +268,10 @@ public struct SceneSequencer: Sendable {
         }
         look = moved(look)
         for i in layers.indices { layers[i].look = moved(layers[i].look) }
-        if pendingLayer != nil { pendingLayer?.look = moved(pendingLayer?.look) }
+        if var pending = pendingLayer {
+            pending.look = moved(pending.look)
+            pendingLayer = pending
+        }
     }
 
     /// Pattern time (scene beats, as the program tracks see it) of the running scene; nil after Stop.

@@ -22,6 +22,7 @@ final class RecordingShowEngine: ShowEngine {
     }
     func setBuildDropGesture(_ held: Bool, look: CustomScene?) { calls.append("buildDrop \(held) look=\(look?.name ?? "none")") }
     func stop() { calls.append("stop") }
+    func stopNow() { calls.append("stopNow") }
     func beginScenePreview() { calls.append("beginPreview") }
     func finishScenePreview(restore: Bool) { calls.append("finishPreview restore=\(restore)") }
     func setMaster(_ v: Double) { calls.append("master \(v)") }
@@ -716,6 +717,46 @@ final class ShowSessionTests: XCTestCase {
         gone.restoreLastCustomScene()
         XCTAssertNil(gone.activeCustomSceneID)
         XCTAssertTrue(engine.calls.isEmpty, "a deleted scene leaves the saved plain scene")
+    }
+
+    /// RAYS opens dark: the saved scene is loaded, then held until Play.
+    func testLaunchHoldsTheShowUntilPlay() {
+        let saved = CustomScene(name: "Saved", base: .pulse, energy: 0.8)
+        presets.scenes = [saved]
+        let defaults = makeDefaults()
+        defaults.set(saved.id.uuidString, forKey: DefaultsKey.customScene)
+        let session = makeSession(defaults: defaults)
+        session.restoreLastCustomScene()
+        session.holdUntilPlay()
+        XCTAssertEqual(engine.calls.last, "stopNow", "held after the saved look is loaded, so it stays dark")
+
+        engine.calls = []
+        session.snapshot = playing(.pulse, look: saved)
+        session.play()
+        XCTAssertTrue(engine.calls.isEmpty, "Play does nothing while a scene plays")
+
+        session.snapshot = EngineSnapshot()
+        session.snapshot.stopped = true
+        session.play()
+        XCTAssertEqual(engine.calls, ["scene pulse look=Saved immediate=false"], "the saved look starts on the beat")
+        XCTAssertEqual(session.activeCustomSceneID, saved.id)
+
+        engine.calls = []
+        session.snapshot.pendingScene = .pulse
+        session.play()
+        XCTAssertTrue(engine.calls.isEmpty, "a queued launch is not requested twice")
+    }
+
+    func testPlayStartsThePlainSavedSceneAfterStop() {
+        var prefs = Preferences()
+        prefs.scene = .chase
+        let session = makeSession(defaults: makeDefaults(bank: SceneBank.house.rawValue), prefs: prefs)
+        session.applyLaunchState()
+        session.holdUntilPlay()
+        engine.calls = []
+        session.snapshot.stopped = true
+        session.play()
+        XCTAssertEqual(engine.calls.first, "scene chase look=none immediate=false")
     }
 
     // MARK: Output target

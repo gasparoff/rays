@@ -246,6 +246,11 @@ public final class LightEngine: @unchecked Sendable {
         }
     }
 
+    /// Dark at once with no fade: the show waits for Play (used at launch).
+    public func stopNow() {
+        queue.async { self.sequencer.stopNow() }
+    }
+
     /// Fades to black over one beat and clears the scene until a scene is chosen again.
     public func stop() {
         queue.async {

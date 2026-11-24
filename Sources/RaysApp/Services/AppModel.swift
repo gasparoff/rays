@@ -155,6 +155,8 @@ final class AppModel: ObservableObject {
         midi.currentValue = { [weak self] action in self?.session.controlValue(action) ?? 0 }
         publishSession()
         session.restoreLastCustomScene()
+        // Nothing moves until Play: the saved scene is ready but dark.
+        session.holdUntilPlay()
     }
 
     /// Republishes the session's state, writing only values that changed.
@@ -381,6 +383,8 @@ final class AppModel: ObservableObject {
     // MARK: Saved scenes and performance controls
 
     func stopShow() { session.stopShow() }
+
+    func play() { session.play() }
 
     func cancelPendingLaunch() { session.cancelPendingLaunch() }
 

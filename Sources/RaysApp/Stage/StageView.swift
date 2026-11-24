@@ -17,6 +17,10 @@ import RaysEngine
 /// values, so a new frame invalidates pixels without invalidating the surrounding SwiftUI layout.
 struct LiveStageView: NSViewRepresentable {
     let state: LiveState
+    /// Fixture ids outlined as selected (direct control from the preview).
+    var selection: Set<String> = []
+    /// Click on a light (its id) or on the empty stage (nil); the flag is true with Shift held.
+    var onSelect: ((String?, Bool) -> Void)?
 
     func makeNSView(context: Context) -> StageRendererView {
         let view = StageRendererView()
@@ -29,7 +33,10 @@ struct LiveStageView: NSViewRepresentable {
         return view
     }
 
-    func updateNSView(_ view: StageRendererView, context: Context) {}
+    func updateNSView(_ view: StageRendererView, context: Context) {
+        view.selection = selection
+        view.onSelect = onSelect
+    }
 }
 
 final class StageRendererView: NSView {
@@ -81,6 +88,12 @@ final class StageRendererView: NSView {
     }
 
     private var cache: Cache?
+    var onSelect: ((String?, Bool) -> Void)? {
+        didSet { if (onSelect == nil) != (oldValue == nil) { window?.invalidateCursorRects(for: self) } }
+    }
+    var selection: Set<String> = [] {
+        didSet { if selection != oldValue { needsDisplay = true } }
+    }
     private var labels: [String: (text: NSAttributedString, size: CGSize)] = [:]
 
     override init(frame: NSRect) {
@@ -100,6 +113,19 @@ final class StageRendererView: NSView {
         needsDisplay = true
     }
 
+    override func mouseDown(with event: NSEvent) {
+        guard let onSelect else { return super.mouseDown(with: event) }
+        let point = convert(event.locationInWindow, from: nil)
+        let index = cache?.layout.fixtureIndex(at: point)
+        let id = index.flatMap { fixtures.indices.contains($0) ? fixtures[$0].id : nil }
+        onSelect(id, event.modifierFlags.contains(.shift))
+    }
+
+    override func resetCursorRects() {
+        guard onSelect != nil, let cache else { return }
+        for face in cache.faces { addCursorRect(face.boundingBox, cursor: .pointingHand) }
+    }
+
     override func viewDidChangeBackingProperties() {
         super.viewDidChangeBackingProperties()
         cache = nil
@@ -113,6 +139,7 @@ final class StageRendererView: NSView {
         let large = fixtures.map { StageLayout.isLarge(profileID: $0.profileID) }
         if cache?.layout.size != bounds.size || cache?.layout.large != large || cache?.scale != scale {
             cache = Self.makeCache(StageLayout(size: bounds.size, large: large), scale: scale)
+            window?.invalidateCursorRects(for: self)
         }
         guard let cache else { return }
 
@@ -122,6 +149,7 @@ final class StageRendererView: NSView {
         ctx.strokePath()
         for (index, fixture) in fixtures.enumerated() where index < cache.layout.fixtures.count {
             drawFixture(ctx, fixture, index: index, cache: cache)
+            if selection.contains(fixture.id) { drawSelection(ctx, index: index, cache: cache) }
             drawLabel(
                 fixture.status == .previewOnly ? String(localized: "\(String(describing: fixture.label)) · preview") : fixture.label,
                 at: cache.layout.fixtures[index].labelCenter)
@@ -185,6 +213,23 @@ final class StageRendererView: NSView {
             ctx.setLineWidth(geometry.stripCoreWidth)
             ctx.strokePath()
         }
+    }
+
+    /// Lavender band just outside the mirror frame (clipped so it never covers the facets).
+    private func drawSelection(_ ctx: CGContext, index: Int, cache: Cache) {
+        let face = cache.faces[index]
+        let outside = CGMutablePath()
+        outside.addRect(bounds)
+        outside.addPath(face)
+        ctx.saveGState()
+        ctx.addPath(outside)
+        ctx.clip(using: .evenOdd)
+        ctx.addPath(face)
+        ctx.setLineJoin(.round)
+        ctx.setStrokeColor(Self.rgb(0.74, 0.68, 0.96, 0.95))
+        ctx.setLineWidth(12)
+        ctx.strokePath()
+        ctx.restoreGState()
     }
 
     private func drawLabel(_ label: String, at center: CGPoint) {

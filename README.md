@@ -21,6 +21,7 @@
 </p>
 
 <p align="center">
+  <a href="../../releases/latest"><b>Download</b></a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#supported-hardware">Hardware</a> ·
   <a href="docs/manual.md">User guide</a> ·
@@ -65,6 +66,19 @@ lighting, native on the Mac and built around the DJ's clock.
 
 ## Quick start
 
+**Download, free.** Get `RAYS-<version>-macOS-arm64.zip` from the
+[latest release](../../releases/latest) (Apple silicon, macOS 14+), unzip it and move RAYS.app to
+Applications. No account, no sign-up, no licence key. From 0.2.0 the app is signed with a Developer ID
+and notarized by Apple, so it opens with a double click, and Pro DJ Link is built in: you don't need
+Beat Link Trigger or anything else.
+
+**No lights yet?** Launch the app anyway: the stage preview runs without any hardware, and the
+internal clock or Tap gives it a tempo.
+
+New to RAYS? The [user guide](docs/manual.md) goes from install to your first show.
+
+### Build from source
+
 Requirements: macOS 14+, Xcode 16 or a Swift 6 toolchain.
 
 ```sh
@@ -79,16 +93,6 @@ open dist/RAYS.app
 Building from source needs Beat Link Trigger installed only for Pro DJ Link: `make bootstrap` takes
 its runtime to make the helper. Without it the app builds and runs, with Ableton Link and MIDI Clock.
 Users of the released app never need it.
-
-New to RAYS? The [user guide](docs/manual.md) goes from install to your first show.
-
-**No lights yet?** Launch the app anyway: the stage preview runs without any hardware, and the
-internal clock or Tap gives it a tempo.
-
-**Just want the app?** Download `RAYS-<version>-macOS-arm64.zip` from the
-[latest release](../../releases/latest) (Apple silicon, macOS 14+), unzip it and move RAYS.app to
-Applications. From 0.2.0 the app is signed with a Developer ID and notarized by Apple, so it opens
-with a double click, and Pro DJ Link is built in: you don't need Beat Link Trigger or anything else.
 
 ## Supported hardware
 

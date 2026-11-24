@@ -55,20 +55,18 @@ enum AppLanguage {
     /// Only a built `RAYS.app` can reopen itself; a bare SwiftPM executable is restarted by hand.
     static var canRelaunch: Bool { Bundle.main.bundleURL.pathExtension == "app" }
 
-    /// Quits RAYS (blackout and shutdown as on any quit) and opens it again once this process has
-    /// exited: a copy opened earlier would meet the single-instance check and close itself.
+    /// Opens a new copy of RAYS, then quits this one (blackout and shutdown as on any quit). The
+    /// new copy is a separate LaunchServices instance told which process it replaces: it waits for
+    /// this one to exit before starting, instead of handing control back to it.
     static func relaunch() {
-        let waiter = Process()
-        waiter.executableURL = URL(fileURLWithPath: "/bin/sh")
-        waiter.arguments = [
-            "-c", "while /bin/kill -0 \"$1\" 2>/dev/null; do /bin/sleep 0.2; done; /usr/bin/open \"$2\"",
-            "rays-relaunch", String(ProcessInfo.processInfo.processIdentifier), Bundle.main.bundleURL.path,
-        ]
-        do {
-            try waiter.run()
-        } catch {
-            return  // Nothing changes: the note still asks for a restart, which the user can do by hand.
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.createsNewApplicationInstance = true
+        configuration.activates = true
+        configuration.arguments = Relaunch.arguments(replacing: ProcessInfo.processInfo.processIdentifier)
+        NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: configuration) { _, error in
+            // On failure nothing changes: the note still asks for a restart, which the user can do by hand.
+            guard error == nil else { return }
+            DispatchQueue.main.async { NSApp.terminate(nil) }
         }
-        NSApp.terminate(nil)
     }
 }

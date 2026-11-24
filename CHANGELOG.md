@@ -16,6 +16,7 @@ project uses [Semantic Versioning](https://semver.org/).
 - English user interface, with Italian as the first translation (`Localization/`). Profile names and notes stay as published by the manufacturer.
 - Contributor docs, issue and PR templates, CI on macOS.
 - Release workflow: pushing a `v*` tag publishes `RAYS.app` (Apple silicon) on GitHub Releases; CI also builds the app for every change.
+- Live window layout: press Layout to reorder, resize and hide panels on a 12-column grid, or pick a preset (Classic, Tempo on the right, Big stage, Minimal). The layout is saved; the performance panel with Blackout can't be hidden.
 
 ### Changed
 - Core split into `RaysOutput`, `RaysTempo`, `RaysCore`, `RaysControl`, `RaysEngine` modules; the app lives in `Sources/RaysApp`.

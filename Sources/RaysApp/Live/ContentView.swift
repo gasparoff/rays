@@ -5,6 +5,7 @@ import RaysEngine
 
 struct ContentView: View {
     @EnvironmentObject private var model: AppModel
+    @StateObject private var layoutStore = LiveLayoutStore()
 
     var body: some View {
         WindowTransitionFrame(state: model.editorWindow) {
@@ -42,18 +43,22 @@ struct ContentView: View {
 
     private func dashboard(compact: Bool, stageHeight: CGFloat? = nil) -> some View {
         VStack(spacing: compact ? 10 : 14) {
-            TopBar().environmentObject(model.controls)
-            HStack(alignment: .top, spacing: 14) {
-                TempoPanel(compact: compact).environmentObject(model.controls).frame(width: 280)
-                StagePanel().environmentObject(model.controls)
+            TopBar()
+            if layoutStore.editing { LayoutEditBar() }
+            LiveGrid(layout: layoutStore.layout, spacing: compact ? 10 : 14, stageHeight: stageHeight) { panel in
+                switch panel {
+                case .tempo: TempoPanel(compact: compact)
+                case .stage: StagePanel()
+                case .scenes: SceneGrid(store: model.customScenes)
+                case .customScenes: CustomSceneBar(store: model.customScenes)
+                case .performance: ControlBar()
+                }
             }
-            .frame(height: stageHeight)
-            .frame(maxHeight: .infinity)
-            SceneGrid(store: model.customScenes).environmentObject(model.controls)
-            CustomSceneBar(store: model.customScenes)
-            ControlBar().environmentObject(model.controls)
+            if !layoutStore.layout.contains(.stage) && stageHeight == nil { Spacer(minLength: 0) }
         }
         .padding(compact ? 14 : 18)
+        .environmentObject(model.controls)
+        .environmentObject(layoutStore)
     }
 }
 
@@ -61,6 +66,7 @@ struct ContentView: View {
 
 struct TopBar: View {
     @EnvironmentObject private var model: AppModel
+    @EnvironmentObject private var layout: LiveLayoutStore
     @EnvironmentObject private var live: LiveState
     @EnvironmentObject private var cable: DirectCableNetwork
     @EnvironmentObject private var xdj: XDJBeatListener
@@ -90,6 +96,16 @@ struct TopBar: View {
                 color: tempoColor(s.tempo))
             StatusPill(title: String(localized: "Lights"), value: dmxText(s), color: dmxColor(s))
                 .help(s.readiness.message)
+            Button {
+                layout.editing.toggle()
+            } label: {
+                Label("Layout", systemImage: "square.grid.2x2")
+                    .foregroundStyle(layout.editing ? Theme.lavender : Theme.text)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .help("Move, resize and hide the panels of this window")
+            .accessibilityValue(layout.editing ? String(localized: "on") : String(localized: "off"))
             Button {
                 model.showSetup = true
             } label: {

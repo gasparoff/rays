@@ -5,21 +5,28 @@ import Foundation
 /// Rendering is a pure function of the musical context.
 public struct SceneLook: Equatable, Sendable {
     public let source: CustomScene
+    /// Where the program's emitters sit on the stage; fixed for the life of the look.
+    public let rig: SpatialRig
     let remap: CustomPaletteMap
     let keepColors: Bool
     let warmth: Double
     let program: CompiledProgram?
 
-    public init(_ scene: CustomScene) {
+    /// The look on the classic rig.
+    public init(_ scene: CustomScene) { self.init(scene, rig: .classic) }
+
+    /// The look on `rig`: spatial targets are resolved here, once, never per frame.
+    public init(_ scene: CustomScene, rig: SpatialRig) {
         let clean = scene.sanitized
         source = clean
+        self.rig = rig
         remap = clean.paletteMap
         keepColors = clean.usesBaseColors
         warmth = clean.warmCOB(1)
-        program = clean.program.map { CompiledProgram($0, palette: clean.palette) }
+        program = clean.program.map { CompiledProgram($0, palette: clean.palette, rig: rig) }
     }
 
-    public static func == (a: SceneLook, b: SceneLook) -> Bool { a.source == b.source }
+    public static func == (a: SceneLook, b: SceneLook) -> Bool { a.source == b.source && a.rig == b.rig }
 
     public var id: UUID { source.id }
 
@@ -32,7 +39,7 @@ public struct SceneLook: Equatable, Sendable {
             frame = recolored(Choreography.render(scene, ctx))
             if program.baseLevel < 1 { frame = frame.scaled(program.baseLevel) }
         } else {
-            frame = .black
+            frame = rig.black
         }
         program.render(into: &frame, scene: scene, ctx)
         return finish(frame)
@@ -44,13 +51,13 @@ public struct SceneLook: Equatable, Sendable {
     private func recolored(_ frame: RigFrame) -> RigFrame {
         guard !keepColors else { return frame }
         var out = frame
-        for role in FixtureRole.allCases { out[role].rgb = frame[role].rgb.map(remap.apply) }
+        for i in out.groups.indices { out.groups[i].light.rgb = frame.groups[i].light.rgb.map(remap.apply) }
         return out
     }
 
     private func finish(_ frame: RigFrame) -> RigFrame {
         var out = frame
-        for role in FixtureRole.allCases { out[role].cob = frame[role].cob.map { clamp01($0) * warmth } }
+        for i in out.groups.indices { out.groups[i].light.cob = frame.groups[i].light.cob.map { clamp01($0) * warmth } }
         return out.sanitized
     }
 
@@ -65,7 +72,9 @@ public struct SceneLook: Equatable, Sendable {
 struct CompiledProgram: Sendable {
     /// One light emitter a track can drive.
     struct Unit: Sendable {
-        var role: FixtureRole
+        /// Index of the group in the rig (and in the frame, when the frame follows the rig's layout).
+        var group: Int
+        var id: RigGroupID
         var cob: Bool
         var index: Int
         /// Delay of this unit in beats (spread × position rank).
@@ -77,10 +86,13 @@ struct CompiledProgram: Sendable {
     }
 
     struct Hit: Sendable {
-        var time: Double     // within the cycle, beats
-        var level: Double    // 0…1
+        /// Within the cycle, beats.
+        var time: Double
+        /// 0…1.
+        var level: Double
         var soft: Bool
-        var rank: Int        // index among the active steps
+        /// Index among the active steps.
+        var rank: Int
     }
 
     struct Track: Sendable {
@@ -93,7 +105,8 @@ struct CompiledProgram: Sendable {
         var offset: Double
         var attack: Double, hold: Double, release: Double
         var floor: Double, peak: Double
-        var colors: [LightColor]   // one entry, or three for `.cycle`
+        /// One entry, or three for `.cycle`.
+        var colors: [LightColor]
         var add: Bool
         var softFollowsEnergy: Bool
         var rise: Double
@@ -102,34 +115,24 @@ struct CompiledProgram: Sendable {
     let baseLevel: Double
     let tracks: [Track]
 
-    /// Stage order left → right: TRI 180 left, centre U path (segments 5,4 left edge, 3,2 bottom, 1,0 right edge), TRI 180 right.
-    static let rgbX: [(FixtureRole, Int, Double)] = [(.left, 0, 0)] + (0..<6).map { (.center, 5 - $0, Double($0 + 1) / 7) } + [(.right, 0, 1)]
-    /// COB 2 sits bottom-left, 0 on the top spoke, 1 bottom-right.
-    static let cobX: [(FixtureRole, Int, Double)] = [(.left, 0, 0), (.center, 2, 2.0 / 7), (.center, 0, 0.5), (.center, 1, 5.0 / 7), (.right, 0, 1)]
-
-    init(_ program: SceneProgram, palette: [LightColor]) {
+    /// Emitter positions come from `rig` (`SpatialRig`), computed once per layout.
+    init(_ program: SceneProgram, palette: [LightColor], rig: SpatialRig) {
         let p = program.sanitized
         baseLevel = p.baseLevel
         let pal = palette.count >= 3 ? palette : palette + Array(repeating: LightColor(1, 1, 1), count: 3 - palette.count)
-        tracks = p.tracks.compactMap { Self.compile($0, palette: pal) }
+        tracks = p.tracks.compactMap { Self.compile($0, palette: pal, rig: rig) }
     }
 
-    private static func compile(_ t: ProgramTrack, palette: [LightColor]) -> Track? {
+    private static func compile(_ t: ProgramTrack, palette: [LightColor], rig: SpatialRig) -> Track? {
         guard t.enabled, !t.target.isEmpty else { return nil }
         let target = t.target
-        func selected(_ role: FixtureRole, _ index: Int, cob: Bool) -> Bool {
-            guard cob ? target.warm : target.color else { return false }
-            switch role {
-            case .left: return target.left
-            case .right: return target.right
-            case .center:
-                guard target.center else { return false }
-                return cob ? target.cobs[index] : target.segments[index]
-            }
+        let picked = rig.picks(target.selection)
+        func selected(_ e: StageEmitter) -> Bool {
+            guard e.cob ? target.warm : target.color, picked[e.group] else { return false }
+            return target.allows(rig.groups[e.group].id, index: e.index, cob: e.cob)
         }
-        var raw: [(FixtureRole, Int, Bool, Double)] = []
-        for (role, i, x) in rgbX where selected(role, i, cob: false) { raw.append((role, i, false, x)) }
-        for (role, i, x) in cobX where selected(role, i, cob: true) { raw.append((role, i, true, x)) }
+        // Left → right across the stage, RGB then COB.
+        let raw = rig.rgb.filter(selected) + rig.cob.filter(selected)
         guard !raw.isEmpty else { return nil }
 
         // Ordering key per direction; equal keys share a position (e.g. "from the centre": both sides together).
@@ -141,15 +144,19 @@ struct CompiledProgram: Sendable {
             }
         }
         var keys: [Double] = []
-        for k in raw.map({ key($0.3) }).sorted() where !keys.contains(where: { abs($0 - k) < 1e-6 }) { keys.append(k) }
+        for k in raw.map({ key($0.x) }).sorted() where !keys.contains(where: { abs($0 - k) < 1e-6 }) { keys.append(k) }
         let positions = keys.count
-        let units = raw.map { role, index, cob, x -> Unit in
-            let rank = keys.firstIndex { abs($0 - key(x)) < 1e-6 } ?? 0
+        let units = raw.map { e -> Unit in
+            let rank = keys.firstIndex { abs($0 - key(e.x)) < 1e-6 } ?? 0
             let half: Int
-            if positions == 1 { half = 2 }
-            else if positions % 2 == 1 && rank == positions / 2 { half = 2 }
-            else { half = rank < (positions + 1) / 2 ? 0 : 1 }
-            return Unit(role: role, cob: cob, index: index, delay: t.spread * Double(rank), half: half, slot: rank)
+            if positions == 1 || (positions % 2 == 1 && rank == positions / 2) {
+                half = 2
+            } else {
+                half = rank < (positions + 1) / 2 ? 0 : 1
+            }
+            return Unit(
+                group: e.group, id: rig.groups[e.group].id, cob: e.cob, index: e.index, delay: t.spread * Double(rank),
+                half: half, slot: rank)
         }
 
         let res = Double(t.stepsPerBeat)
@@ -164,11 +171,12 @@ struct CompiledProgram: Sendable {
         case .third: colors = [palette[2]]
         case .cycle: colors = Array(palette.prefix(3))
         }
-        return Track(units: units, hits: hits, cycle: Double(t.lengthBeats), slotCount: positions,
-                     bounce: t.direction == .bounce, motion: t.motion, offset: t.offset,
-                     attack: t.attack, hold: t.hold, release: max(0.02, t.release),
-                     floor: t.floor, peak: t.peak, colors: colors, add: t.blend == .add,
-                     softFollowsEnergy: t.softFollowsEnergy, rise: Double(t.riseBeats))
+        return Track(
+            units: units, hits: hits, cycle: Double(t.lengthBeats), slotCount: positions,
+            bounce: t.direction == .bounce, motion: t.motion, offset: t.offset,
+            attack: t.attack, hold: t.hold, release: max(0.02, t.release),
+            floor: t.floor, peak: t.peak, colors: colors, add: t.blend == .add,
+            softFollowsEnergy: t.softFollowsEnergy, rise: Double(t.riseBeats))
     }
 
     /// Envelope of one hit at relative time x (beats, 0 = the hit): attack ends on the hit, then hold and release.
@@ -199,11 +207,11 @@ struct CompiledProgram: Sendable {
                 let (level, colorIndex) = Self.level(track, unit, time: time, attack: a, energy: energy)
                 let value = (track.floor + (track.peak - track.floor) * level) * gain
                 guard value > 0 else { continue }
-                // Stored-property paths mutate in place (the role subscript would copy the arrays).
-                switch unit.role {
-                case .left: Self.blend(&frame.left, unit, value, track, colorIndex)
-                case .center: Self.blend(&frame.center, unit, value, track, colorIndex)
-                case .right: Self.blend(&frame.right, unit, value, track, colorIndex)
+                // Element paths mutate in place; a frame in another group order is matched by id.
+                if unit.group < frame.groups.count && frame.groups[unit.group].id == unit.id {
+                    Self.blend(&frame.groups[unit.group].light, unit, value, track, colorIndex)
+                } else if let g = frame.index(of: unit.id) {
+                    Self.blend(&frame.groups[g].light, unit, value, track, colorIndex)
                 }
             }
         }
@@ -218,7 +226,8 @@ struct CompiledProgram: Sendable {
             guard unit.index < role.rgb.count else { return }
             let c = Choreography.lit(track.colors[colorIndex], value)
             let old = role.rgb[unit.index]
-            role.rgb[unit.index] = track.add
+            role.rgb[unit.index] =
+                track.add
                 ? LightColor(min(1, old.r + c.r), min(1, old.g + c.g), min(1, old.b + c.b), old.w)
                 : LightColor(max(old.r, c.r), max(old.g, c.g), max(old.b, c.b), old.w)
         }

@@ -108,32 +108,154 @@ public enum TrackBlend: String, Codable, CaseIterable, Identifiable, Sendable {
 }
 
 /// Where a track sends its light. Colour (RGB) and warm white (COB) stay independent.
+///
+/// The groups come from `selection` (ADR 0005): a role tag, a half of the left → right ordering or
+/// explicit group ids, so a scene keeps working on any rig layout. `left/center/right` read and write the
+/// selection as it lands on the classic layout, and saved files keep those keys (see `encode(to:)`).
 public struct TrackTarget: Codable, Equatable, Hashable, Sendable {
-    public var left: Bool
-    public var center: Bool
-    public var right: Bool
+    /// Which rig groups a track reaches.
+    public enum Selection: Codable, Hashable, Sendable {
+        /// Every group.
+        case all
+        /// The groups carrying a role tag (`RigGroup.roles`), e.g. "center" or "side".
+        case role(String)
+        /// One half of the groups ranked by x; the middle position of an odd count is in neither half.
+        case half(Half)
+        /// Groups picked by id; ids the layout lacks reach nothing.
+        case groups([RigGroupID])
+
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            switch try c.decode(String.self, forKey: .kind) {
+            case "all": self = .all
+            case "role": self = try .role(c.decode(String.self, forKey: .role))
+            case "half": self = try .half(c.decode(Half.self, forKey: .half))
+            case "groups": self = try .groups(c.decode([RigGroupID].self, forKey: .groups))
+            default:
+                throw DecodingError.dataCorruptedError(forKey: .kind, in: c, debugDescription: "Unknown target kind")
+            }
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            var c = encoder.container(keyedBy: CodingKeys.self)
+            switch self {
+            case .all:
+                try c.encode("all", forKey: .kind)
+            case .role(let role):
+                try c.encode("role", forKey: .kind)
+                try c.encode(role, forKey: .role)
+            case .half(let half):
+                try c.encode("half", forKey: .kind)
+                try c.encode(half, forKey: .half)
+            case .groups(let ids):
+                try c.encode("groups", forKey: .kind)
+                try c.encode(ids, forKey: .groups)
+            }
+        }
+
+        private enum CodingKeys: String, CodingKey { case kind, role, half, groups }
+    }
+
+    public enum Half: String, Codable, CaseIterable, Sendable { case left, right }
+
+    /// Segment and COB selection inside one group; an index past the end counts as selected.
+    public struct Mask: Codable, Hashable, Sendable {
+        public var segments: [Bool]
+        public var cobs: [Bool]
+
+        public init(segments: [Bool] = [], cobs: [Bool] = []) {
+            self.segments = segments
+            self.cobs = cobs
+        }
+
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            segments = (try? c.decodeIfPresent([Bool].self, forKey: .segments)) ?? []
+            cobs = (try? c.decodeIfPresent([Bool].self, forKey: .cobs)) ?? []
+        }
+
+        private enum CodingKeys: String, CodingKey { case segments, cobs }
+    }
+
+    /// Role tags of the classic layout.
+    public static let centerRole = "center", sideRole = "side"
+    /// Longest mask kept per group.
+    public static let maxMaskLength = 512
+
+    public var selection: Selection
     /// RGB pixel groups.
     public var color: Bool
     /// Warm COB emitters.
     public var warm: Bool
-    /// Centre RGB segments 0…5 (see `RigFrame` geometry). Only used when `center` is on.
+    /// Segments 0…5 of the group "center" (see `RigFrame` geometry).
     public var segments: [Bool]
-    /// Centre COBs 0…2. Only used when `center` is on.
+    /// COBs 0…2 of the group "center".
     public var cobs: [Bool]
+    /// Masks of other groups by id; the group "center" always uses `segments` and `cobs`.
+    public var masks: [RigGroupID: Mask]
 
     public init(
         left: Bool = true, center: Bool = true, right: Bool = true, color: Bool = true, warm: Bool = false,
         segments: [Bool] = Array(repeating: true, count: RigFrame.centerSegments),
         cobs: [Bool] = Array(repeating: true, count: RigFrame.centerCOBs)
     ) {
-        self.left = left; self.center = center; self.right = right
+        self.init(
+            selection: Self.selection(left: left, center: center, right: right), color: color, warm: warm,
+            segments: segments, cobs: cobs)
+    }
+
+    public init(
+        selection: Selection, color: Bool = true, warm: Bool = false,
+        segments: [Bool] = Array(repeating: true, count: RigFrame.centerSegments),
+        cobs: [Bool] = Array(repeating: true, count: RigFrame.centerCOBs), masks: [RigGroupID: Mask] = [:]
+    ) {
+        self.selection = selection
         self.color = color; self.warm = warm
         self.segments = segments; self.cobs = cobs
+        self.masks = masks
     }
 
     public static let all = TrackTarget()
     public static let centerOnly = TrackTarget(left: false, right: false)
     public static let sides = TrackTarget(center: false)
+
+    /// The selection the classic booleans stand for: the five zones become role and ordering targets
+    /// (centre, sides, all, left/right half); any other mix names the classic groups.
+    public static func selection(left: Bool, center: Bool, right: Bool) -> Selection {
+        switch (left, center, right) {
+        case (true, true, true): return .all
+        case (false, true, false): return .role(centerRole)
+        case (true, false, true): return .role(sideRole)
+        case (true, false, false): return .half(.left)
+        case (false, false, true): return .half(.right)
+        default:
+            return .groups([left ? RigGroupID.left : nil, center ? .center : nil, right ? .right : nil].compactMap { $0 })
+        }
+    }
+
+    /// The groups of the classic layout this target reaches.
+    private var classic: (left: Bool, center: Bool, right: Bool) {
+        let p = SpatialRig.classic.picks(selection)
+        guard p.count == 3 else { return (false, false, false) }
+        return (p[0], p[1], p[2])
+    }
+
+    /// Whether the target reaches the classic left group. Setting it rewrites the selection from the
+    /// classic booleans.
+    public var left: Bool {
+        get { classic.left }
+        set { selection = Self.selection(left: newValue, center: classic.center, right: classic.right) }
+    }
+
+    public var center: Bool {
+        get { classic.center }
+        set { selection = Self.selection(left: classic.left, center: newValue, right: classic.right) }
+    }
+
+    public var right: Bool {
+        get { classic.right }
+        set { selection = Self.selection(left: classic.left, center: classic.center, right: newValue) }
+    }
 
     /// Shortcut for common target selections.
     public enum Zone: String, CaseIterable, Identifiable, Sendable {
@@ -148,59 +270,118 @@ public struct TrackTarget: Codable, Equatable, Hashable, Sendable {
             case .right: return String(localized: "Right")
             }
         }
+
+        /// The role or ordering target of this zone.
+        public var selection: Selection {
+            switch self {
+            case .all: return .all
+            case .center: return .role(TrackTarget.centerRole)
+            case .sides: return .role(TrackTarget.sideRole)
+            case .left: return .half(.left)
+            case .right: return .half(.right)
+            }
+        }
     }
 
     /// The quick zone this target matches (nil when it is a custom mix).
-    public var zone: Zone? {
-        switch (left, center, right) {
-        case (true, true, true): return .all
-        case (false, true, false): return .center
-        case (true, false, true): return .sides
-        case (true, false, false): return .left
-        case (false, false, true): return .right
-        default: return nil
-        }
-    }
+    public var zone: Zone? { Zone.allCases.first { $0.selection == selection } }
 
-    public mutating func setZone(_ zone: Zone) {
-        switch zone {
-        case .all: (left, center, right) = (true, true, true)
-        case .center: (left, center, right) = (false, true, false)
-        case .sides: (left, center, right) = (true, false, true)
-        case .left: (left, center, right) = (true, false, false)
-        case .right: (left, center, right) = (false, false, true)
-        }
-    }
+    public mutating func setZone(_ zone: Zone) { selection = zone.selection }
 
     /// Every centre segment and COB selected.
     public var usesWholeCenter: Bool { segments.allSatisfy { $0 } && cobs.allSatisfy { $0 } }
 
+    /// True when the target lights nothing: no light type, or only groups whose masks are all off.
     public var isEmpty: Bool {
-        let anyRole = left || right || (center && (segments.contains(true) || cobs.contains(true)))
-        return !anyRole || !(color || warm)
+        guard color || warm else { return true }
+        switch selection {
+        case .all, .half: return false
+        case .role(let role): return role == Self.centerRole && !reaches(.center)
+        case .groups(let ids): return !ids.contains(where: reaches)
+        }
+    }
+
+    private func reaches(_ id: RigGroupID) -> Bool {
+        if id == .center { return segments.contains(true) || cobs.contains(true) }
+        guard let mask = masks[id] else { return true }
+        return mask.segments.contains(true) || mask.cobs.contains(true)
+    }
+
+    /// Whether segment (or COB) `index` of group `id` is selected by the masks.
+    public func allows(_ id: RigGroupID, index: Int, cob: Bool) -> Bool {
+        let list: [Bool]
+        if id == .center {
+            list = cob ? cobs : segments
+        } else if let mask = masks[id] {
+            list = cob ? mask.cobs : mask.segments
+        } else {
+            return true
+        }
+        return index < 0 || index >= list.count || list[index]
     }
 
     public var sanitized: TrackTarget {
         var t = self
+        var masks = self.masks
+        let centerMask = masks.removeValue(forKey: .center)
+        let segments = centerMask?.segments ?? self.segments
+        let cobs = centerMask?.cobs ?? self.cobs
         t.segments = (0..<RigFrame.centerSegments).map { $0 < segments.count ? segments[$0] : true }
         t.cobs = (0..<RigFrame.centerCOBs).map { $0 < cobs.count ? cobs[$0] : true }
+        t.masks = masks.mapValues {
+            Mask(segments: Array($0.segments.prefix(Self.maxMaskLength)), cobs: Array($0.cobs.prefix(Self.maxMaskLength)))
+        }
+        switch selection {
+        case .role("all"): t.selection = .all
+        case .groups(let ids):
+            var seen = Set<RigGroupID>()
+            t.selection = .groups(ids.filter { seen.insert($0).inserted })
+        default: break
+        }
         return t
     }
 
+    /// Reads the classic booleans and masks of every version; a newer `select` or `masks` key refines them
+    /// and is ignored when it cannot be read.
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = TrackTarget()
-        left = (try? c.decodeIfPresent(Bool.self, forKey: .left)) ?? d.left
-        center = (try? c.decodeIfPresent(Bool.self, forKey: .center)) ?? d.center
-        right = (try? c.decodeIfPresent(Bool.self, forKey: .right)) ?? d.right
+        let left = (try? c.decodeIfPresent(Bool.self, forKey: .left)) ?? true
+        let center = (try? c.decodeIfPresent(Bool.self, forKey: .center)) ?? true
+        let right = (try? c.decodeIfPresent(Bool.self, forKey: .right)) ?? true
+        selection = Self.selection(left: left, center: center, right: right)
+        if let coded = try? c.decodeIfPresent(Selection.self, forKey: .select) { selection = coded }
         color = (try? c.decodeIfPresent(Bool.self, forKey: .color)) ?? d.color
         warm = (try? c.decodeIfPresent(Bool.self, forKey: .warm)) ?? d.warm
         segments = (try? c.decodeIfPresent([Bool].self, forKey: .segments)) ?? d.segments
         cobs = (try? c.decodeIfPresent([Bool].self, forKey: .cobs)) ?? d.cobs
+        let named = (try? c.decodeIfPresent([String: Mask].self, forKey: .masks)) ?? [:]
+        masks = Dictionary(named.map { (RigGroupID($0.key), $0.value) }, uniquingKeysWith: { a, _ in a })
         self = sanitized
     }
 
-    private enum CodingKeys: String, CodingKey { case left, center, right, color, warm, segments, cobs }
+    /// Always writes the classic keys (the target as it lands on the classic layout), so older versions
+    /// keep reading the file. `select` is added only when those keys do not say the same thing, `masks`
+    /// only when there are any.
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        let flags = classic
+        try c.encode(flags.left, forKey: .left)
+        try c.encode(flags.center, forKey: .center)
+        try c.encode(flags.right, forKey: .right)
+        try c.encode(color, forKey: .color)
+        try c.encode(warm, forKey: .warm)
+        try c.encode(segments, forKey: .segments)
+        try c.encode(cobs, forKey: .cobs)
+        if selection != Self.selection(left: flags.left, center: flags.center, right: flags.right) {
+            try c.encode(selection, forKey: .select)
+        }
+        if !masks.isEmpty {
+            try c.encode(Dictionary(uniqueKeysWithValues: masks.map { ($0.key.rawValue, $0.value) }), forKey: .masks)
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey { case left, center, right, color, warm, segments, cobs, select, masks }
 }
 
 /// One track: a step pattern on the beat grid, a target, a spatial motion and a light envelope.

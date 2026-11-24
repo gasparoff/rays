@@ -16,6 +16,7 @@ project uses [Semantic Versioning](https://semver.org/).
 - House pads now have the same scene model as Club pads: they open in the editor with their name and colors, and Restore original brings back both. An untouched House pad still plays exactly as before. Existing scenes and edits are kept; `custom-scenes.json` gains a `banks` key only once you add a bank.
 
 ### Fixed
+- Restart now (language setting) reopens RAYS reliably: the new copy waits for the old one to quit instead of handing control back to it.
 - Section titles (Shortcuts, Tempo, Scenes…) are now translated like the rest of the interface.
 
 ## [0.2.0] - 2026-11-24

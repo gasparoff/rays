@@ -76,6 +76,9 @@ public struct MIDIClockParser: Sendable {
 
 /// TempoSource following an external MIDI clock. Feed it with `receive(_:at:)` from any
 /// thread. Between ticks the beat is extrapolated by at most one tick.
+///
+/// `@unchecked Sendable`: `parser` and `fallbackBPM` are only used under `lock`, and `now` is
+/// only called under `lock`, so CoreMIDI's thread and the engine queue never race.
 public final class MIDIClockTempoSource: TempoSource, @unchecked Sendable {
     public static let sourceID = "midiclock"
     private let lock = NSLock()

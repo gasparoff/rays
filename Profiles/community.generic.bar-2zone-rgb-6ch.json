@@ -6,6 +6,10 @@
   "isGeneric": true,
   "isVerified": false,
   "notes": "Generico: zona 1 R, G, B; zona 2 R, G, B (due segmenti RGB indipendenti). Copia e adatta questo file per la tua luce.",
+  "visual": {
+    "kind": "bar",
+    "zones": "horizontal"
+  },
   "channels": [
     {
       "kind": "red",

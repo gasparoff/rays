@@ -63,13 +63,36 @@ public struct FixtureProfile: Codable, Hashable, Identifiable, Sendable {
     public var isVerified: Bool
     public var notes: String
     public var channels: [ChannelDefinition]
+    /// Optional drawing appearance (`"visual"` key); nil = inferred from the channels, see `appearance`.
+    /// Not part of the patch fingerprint: it never changes which DMX channel means what.
+    public var visual: FixtureAppearance?
 
     public init(
         id: String, name: String, manufacturer: String = "Generico", mode: String = "", isGeneric: Bool = true,
-        isVerified: Bool = false, notes: String = "", channels: [ChannelDefinition]
+        isVerified: Bool = false, notes: String = "", channels: [ChannelDefinition], visual: FixtureAppearance? = nil
     ) {
         self.id = id; self.name = name; self.manufacturer = manufacturer; self.mode = mode
         self.isGeneric = isGeneric; self.isVerified = isVerified; self.notes = notes; self.channels = channels
+        self.visual = visual
+    }
+
+    /// Same required keys as before `visual` existed; a malformed `visual` is dropped instead of
+    /// failing the profile (and a patch that embeds it).
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        manufacturer = try c.decode(String.self, forKey: .manufacturer)
+        mode = try c.decode(String.self, forKey: .mode)
+        isGeneric = try c.decode(Bool.self, forKey: .isGeneric)
+        isVerified = try c.decode(Bool.self, forKey: .isVerified)
+        notes = try c.decode(String.self, forKey: .notes)
+        channels = try c.decode([ChannelDefinition].self, forKey: .channels)
+        visual = (try? c.decodeIfPresent(FixtureAppearance.self, forKey: .visual)) ?? nil
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, manufacturer, mode, isGeneric, isVerified, notes, channels, visual
     }
 
     public var footprint: Int { channels.count }
@@ -196,11 +219,34 @@ public struct PatchedFixture: Codable, Hashable, Identifiable, Sendable {
     public var address: Int
     /// Stage position for the choreography; nil = automatic (see `Patch.roles`).
     public var role: FixtureRole?
+    /// Rig group (ADR 0005); nil = the classic group of `role`. Not read by the renderer yet.
+    public var group: RigGroupID?
+    /// Position inside the group on the stage canvas; nil = automatic. Layout data only.
+    public var offset: StagePoint?
 
-    public init(id: UUID = UUID(), label: String, profileID: String, universe: Int, address: Int, role: FixtureRole? = nil) {
+    public init(
+        id: UUID = UUID(), label: String, profileID: String, universe: Int, address: Int, role: FixtureRole? = nil,
+        group: RigGroupID? = nil, offset: StagePoint? = nil
+    ) {
         self.id = id; self.label = label; self.profileID = profileID; self.universe = universe; self.address = address
-        self.role = role
+        self.role = role; self.group = group; self.offset = offset
     }
+
+    /// The keys saved before groups existed decode exactly as before; a malformed `group` or `offset`
+    /// is dropped instead of failing the patch.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        label = try c.decode(String.self, forKey: .label)
+        profileID = try c.decode(String.self, forKey: .profileID)
+        universe = try c.decode(Int.self, forKey: .universe)
+        address = try c.decode(Int.self, forKey: .address)
+        role = try c.decodeIfPresent(FixtureRole.self, forKey: .role)
+        group = (try? c.decodeIfPresent(RigGroupID.self, forKey: .group)) ?? nil
+        offset = (try? c.decodeIfPresent(StagePoint.self, forKey: .offset)) ?? nil
+    }
+
+    private enum CodingKeys: String, CodingKey { case id, label, profileID, universe, address, role, group, offset }
 }
 
 /// A problem that prevents a patch from being sent (overlap, missing profile…).
@@ -215,10 +261,28 @@ public struct Patch: Codable, Equatable, Sendable {
     public var customProfiles: [FixtureProfile]
     /// Fingerprint of the patch the user confirmed on the real lights. Any edit invalidates it.
     public var confirmedFingerprint: String?
+    /// Rig groups (ADR 0005); nil = `RigLayout.classic`, see `resolvedLayout`. Not read by the renderer yet.
+    public var layout: RigLayout?
 
-    public init(fixtures: [PatchedFixture] = [], customProfiles: [FixtureProfile] = [], confirmedFingerprint: String? = nil) {
+    public init(
+        fixtures: [PatchedFixture] = [], customProfiles: [FixtureProfile] = [], confirmedFingerprint: String? = nil,
+        layout: RigLayout? = nil
+    ) {
         self.fixtures = fixtures; self.customProfiles = customProfiles; self.confirmedFingerprint = confirmedFingerprint
+        self.layout = layout
     }
+
+    /// The keys saved before layouts existed decode exactly as before; a malformed `layout` is dropped
+    /// (the classic layout is used) instead of failing the patch.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        fixtures = try c.decode([PatchedFixture].self, forKey: .fixtures)
+        customProfiles = try c.decode([FixtureProfile].self, forKey: .customProfiles)
+        confirmedFingerprint = try c.decodeIfPresent(String.self, forKey: .confirmedFingerprint)
+        layout = (try? c.decodeIfPresent(RigLayout.self, forKey: .layout)) ?? nil
+    }
+
+    private enum CodingKeys: String, CodingKey { case fixtures, customProfiles, confirmedFingerprint, layout }
 
     public static let empty = Patch()
 
@@ -229,7 +293,7 @@ public struct Patch: Codable, Equatable, Sendable {
         let lib = library(base: base)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
-        // Same keys as PatchedFixture minus `role`, so fingerprints confirmed before roles existed stay valid.
+        // Same keys as PatchedFixture minus `role`, `group` and `offset`, so fingerprints confirmed before roles existed stay valid.
         struct CanonFixture: Encodable { var id: UUID; var label: String; var profileID: String; var universe: Int; var address: Int }
         struct Canon: Encodable { var fixtures: [CanonFixture]; var profiles: [FixtureProfile?] }
         let canon = Canon(
@@ -238,7 +302,8 @@ public struct Patch: Codable, Equatable, Sendable {
                     id: $0.id, label: $0.label, profileID: $0.profileID,
                     universe: $0.universe, address: $0.address)
             },
-            profiles: fixtures.map { lib.profile(id: $0.profileID) })
+            // Without `visual`: the drawing appearance never changes which DMX channel means what.
+            profiles: fixtures.map { lib.profile(id: $0.profileID)?.withoutVisual })
         let data = (try? encoder.encode(canon)) ?? Data()
         var hash: UInt64 = 0xcbf29ce484222325
         for byte in data { hash = (hash ^ UInt64(byte)) &* 0x100000001b3 }

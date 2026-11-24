@@ -753,3 +753,11 @@
 "RAYS will switch language after a restart." = "RAYS cambierà lingua dopo il riavvio.";
 "Restart now" = "Riavvia ora";
 "To add a language, see Localization/README.md on GitHub: a translation is one file and needs no code." = "Per aggiungere una lingua, vedi Localization/README.md su GitHub: una traduzione è un solo file e non richiede codice.";
+
+/* Performance faders */
+"Customize faders…" = "Personalizza fader…";
+"Faders" = "Fader";
+"One fader per group of lights, from the patch. Warm light appears when a light has a white channel. Hidden faders keep their level." = "Un fader per ogni gruppo di luci, dal patch. Luce calda compare quando una luce ha un canale bianco. I fader nascosti mantengono il loro livello.";
+"Restore default" = "Ripristina predefiniti";
+"Show or hide this fader" = "Mostra o nascondi questo fader";
+"Master brightness is always shown" = "La luminosità generale è sempre visibile";

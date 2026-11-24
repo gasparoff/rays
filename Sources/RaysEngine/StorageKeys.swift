@@ -15,8 +15,12 @@ public enum DefaultsKey {
     public static let directCableOwnedInterface = "LightSystem.directCableOwnedInterface"
     /// Arrangement of the Live window panels (`LiveLayout` as JSON).
     public static let liveLayout = "LightSystem.liveLayout"
+    /// Order and hidden faders of the performance panel (`LiveFaderLayout` as JSON).
+    public static let liveFaders = "LightSystem.liveFaders"
 
-    public static let all = [automaticSetup, customScene, internalBPM, sceneBank, directCableOwnedInterface, liveLayout]
+    public static let all = [
+        automaticSetup, customScene, internalBPM, sceneBank, directCableOwnedInterface, liveLayout, liveFaders,
+    ]
 }
 
 /// Names of in-process notifications, kept next to the defaults keys for the same reason.

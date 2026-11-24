@@ -143,9 +143,13 @@ Setup) and press Return.
 **Performance controls:**
 
 - **Master brightness**: everything, warm light included. At 0% no light comes out.
-- **Warm light**: intensity of the white COB, independent of the colors.
+- **Warm light**: intensity of the white COB, independent of the colors. Shown only when a patched light
+  has a white channel.
 - **Energy**: movement, contrast and accents of the choreography. It is not a second dimmer.
-- **Left / Center / Right levels**: dose each position.
+- **Group levels**: one fader per group of lights in the patch, with the group's name (Left / Center /
+  Right on the classic rig), to dose each position.
+- **Customize faders**: right-click the faders (or the slider button in Layout mode) to hide faders or
+  change their order. Master brightness always stays; a hidden fader keeps its level.
 - **Movement speed**: ¼×, ½×, 1× or 2× of the tempo.
 - **Flash (hold)**: a burst of warm light while you hold, two seconds at most.
 - **Build → Drop (hold)**: hold during the build, release on the drop. The drop lands on the beat.

@@ -6,6 +6,7 @@ import RaysEngine
 struct ContentView: View {
     @EnvironmentObject private var model: AppModel
     @StateObject private var layoutStore = LiveLayoutStore()
+    @StateObject private var faderStore = LiveFaderStore()
     @StateObject private var palette = CommandPaletteState()
 
     var body: some View {
@@ -30,6 +31,7 @@ struct ContentView: View {
                     if palette.isOpen { CommandPalette().environmentObject(model.customScenes) }
                 }
                 .environmentObject(layoutStore)
+                .environmentObject(faderStore)
                 .environmentObject(palette)
             }
         }
@@ -768,16 +770,18 @@ struct PendingCountdownRing: View {
 struct ControlBar: View {
     @EnvironmentObject private var model: AppModel
     @EnvironmentObject private var live: LiveState
+    @EnvironmentObject private var faders: LiveFaderStore
 
     var body: some View {
         let s = live.snapshot
         PerformanceControls(
             state: PerformanceControlState(
                 master: model.prefs.master, energy: model.prefs.energy,
-                show: model.showSettings, blackout: s.blackout, armed: s.armed, outputRequested: s.outputRequested,
-                live: s.isLive, readiness: s.readiness, stopped: s.stopped),
+                show: model.showSettings, faderSetup: model.faderSetup,
+                faders: faders.layout.visible(in: model.faderSetup), blackout: s.blackout, armed: s.armed,
+                outputRequested: s.outputRequested, live: s.isLive, readiness: s.readiness, stopped: s.stopped),
             onMaster: model.setMaster, onWhite: model.setWhiteLevel, onEnergy: model.setEnergy,
-            onLevel: model.setLevel, onOutput: model.toggleOutput,
+            onLevel: { model.setLevel(group: $0, $1) }, onOutput: model.toggleOutput,
             onBuild: model.setBuildDropHeld, onFlash: model.engine.setAccent, onStop: model.stopShow, onPlay: model.play)
     }
 }

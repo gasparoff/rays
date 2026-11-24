@@ -22,6 +22,9 @@ struct PerformanceControlState: Equatable {
     var master: Double
     var energy: Double
     var show: ShowSettings
+    /// The rig's faders and the ones shown, in order (`LiveFaderLayout.visible(in:)`).
+    var faderSetup: LiveFaderSetup
+    var faders: [LiveFader]
     var blackout: Bool
     var armed: Bool
     var outputRequested: Bool
@@ -29,14 +32,24 @@ struct PerformanceControlState: Equatable {
     var readiness: OutputReadiness
     /// No scene playing (at launch, or after Stop): the Stop button becomes Play.
     var stopped = false
+
+    func value(_ fader: LiveFader) -> Double {
+        switch fader {
+        case .master: return master
+        case .warmLight: return show.whiteLevel
+        case .energy: return energy
+        case .group(let id): return show.level(group: id)
+        }
+    }
 }
 
 struct PerformanceControls: View {
+    @EnvironmentObject private var faderStore: LiveFaderStore
     let state: PerformanceControlState
     let onMaster: (Double) -> Void
     let onWhite: (Double) -> Void
     let onEnergy: (Double) -> Void
-    let onLevel: (FixtureRole, Double) -> Void
+    let onLevel: (RigGroupID, Double) -> Void
     let onOutput: () -> Void
     let onBuild: (Bool) -> Void
     let onFlash: (Bool) -> Void
@@ -44,33 +57,30 @@ struct PerformanceControls: View {
     let onPlay: () -> Void
 
     var body: some View {
+        let columns = LiveFaderLayout.columns(for: state.faders.count)
+        let rows = stride(from: 0, to: state.faders.count, by: columns).map {
+            Array(state.faders[$0..<min($0 + columns, state.faders.count)])
+        }
         Panel(padding: 14) {
             HStack(spacing: 16) {
                 VStack(spacing: 18) {
-                    HStack(spacing: 18) {
-                        LabeledSlider(title: String(localized: "Master brightness"), value: Binding(get: { state.master }, set: onMaster))
-                            .help("Brightness of all the lights, warm light included. At 0% no light comes out.")
-                        LabeledSlider(title: String(localized: "Warm light"), value: Binding(get: { state.show.whiteLevel }, set: onWhite))
-                            .help(
-                                "Intensity of the COB white, independent of the RGB colors. Also affects Flash and Drop; it doesn't change the color temperature."
-                            )
-                        LabeledSlider(title: String(localized: "Energy"), value: Binding(get: { state.energy }, set: onEnergy))
-                            .help("From calm to charged: sets accents, contrast and movement. Brightness is set with Master brightness.")
-                    }
-                    HStack(spacing: 18) {
-                        ForEach(FixtureRole.allCases) { role in
-                            LabeledSlider(
-                                title: role.label,
-                                value: Binding(get: { state.show.level(role) }, set: { onLevel(role, $0) })
-                            )
-                            .help(
-                                "Brightness of the \(String(describing: role.label.lowercased())) light, combined with master brightness.")
+                    ForEach(rows, id: \.self) { row in
+                        HStack(spacing: 18) {
+                            ForEach(row) { fader($0) }
+                            ForEach(row.count..<columns, id: \.self) { _ in Color.clear.frame(maxWidth: .infinity, maxHeight: 1) }
                         }
                     }
                 }
                 .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
+                .contextMenu {
+                    Button(String(localized: "Customize faders…")) { faderStore.showingSettings = true }
+                }
+                .popover(isPresented: $faderStore.showingSettings, arrowEdge: .top) {
+                    FaderSettings(setup: state.faderSetup, value: state.value).environmentObject(faderStore)
+                }
 
-                Rectangle().fill(Theme.stroke).frame(width: 1, height: 112)
+                Rectangle().fill(Theme.stroke).frame(width: 1, height: max(112, CGFloat(rows.count) * 56))
 
                 VStack(spacing: 8) {
                     HStack(spacing: 6) {
@@ -134,6 +144,39 @@ struct PerformanceControls: View {
                 }
                 .frame(width: 326)
             }
+        }
+    }
+}
+
+extension PerformanceControls {
+    @ViewBuilder
+    fileprivate func fader(_ fader: LiveFader) -> some View {
+        let value = Binding(get: { state.value(fader) }, set: { (v: Double) in set(fader, v) })
+        switch fader {
+        case .master:
+            LabeledSlider(title: String(localized: "Master brightness"), value: value)
+                .help("Brightness of all the lights, warm light included. At 0% no light comes out.")
+        case .warmLight:
+            LabeledSlider(title: String(localized: "Warm light"), value: value)
+                .help(
+                    "Intensity of the COB white, independent of the RGB colors. Also affects Flash and Drop; it doesn't change the color temperature."
+                )
+        case .energy:
+            LabeledSlider(title: String(localized: "Energy"), value: value)
+                .help("From calm to charged: sets accents, contrast and movement. Brightness is set with Master brightness.")
+        case .group:
+            let title = fader.title(in: state.faderSetup)
+            LabeledSlider(title: title, value: value)
+                .help("Brightness of the \(String(describing: title.lowercased())) light, combined with master brightness.")
+        }
+    }
+
+    private func set(_ fader: LiveFader, _ v: Double) {
+        switch fader {
+        case .master: onMaster(v)
+        case .warmLight: onWhite(v)
+        case .energy: onEnergy(v)
+        case .group(let id): onLevel(id, v)
         }
     }
 }

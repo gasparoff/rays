@@ -128,7 +128,11 @@ The Live window holds everything you touch during a set.
 | 6 | Drop | Impact · long tail |
 
 Pick the bank above the scene buttons. Changing bank doesn't start a scene or change the tempo. A new
-scene starts on the beat, so changes always land in time.
+scene starts on the beat, so changes always land in time: a ring on the queued button fills until it
+starts.
+
+**Command search** (⌘K): type a few letters of a scene or an action (blackout, lights, banks, layouts,
+Setup) and press Return.
 
 **Performance controls:**
 
@@ -140,8 +144,8 @@ scene starts on the beat, so changes always land in time.
 - **Flash (hold)**: a burst of warm light while you hold, two seconds at most.
 - **Build → Drop (hold)**: hold during the build, release on the drop. The drop lands on the beat.
 - **Stop**: fades to dark in one beat. Select a scene to start again.
-- **Blackout** (**Esc** or **B**): every channel to zero, immediately. Esc always means blackout; B or a
-  click resumes. Blackout survives a relaunch.
+- **Blackout** (**Esc** or **B**, always in the top bar): every channel to zero, immediately, and a red
+  frame around the window. Esc always means blackout; B or a click resumes. Blackout survives a relaunch.
 
 Under the tempo, the **scene miniature** shows the running scene's tracks and where the playhead is.
 Click it to open that scene in the editor.
@@ -198,6 +202,7 @@ learning and plugging in a controller never turn the output on.
 | Space | Lights on/off |
 | 1–6 | Scenes of the visible bank |
 | R | Restart the scene from its first beat (align the downbeat) |
+| ⌘K | Command search |
 | ⌘S | Save in the editor |
 | ⌘. | Cancel the editor, close Setup |
 | ⌘Z / ⇧⌘Z | Undo / redo in the editor |

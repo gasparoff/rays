@@ -41,7 +41,7 @@ Foundation-only and fully covered by unit tests, and the app's stage preview wor
   didn't change.
 - **Every behavior change comes with a test** in `Tests/RaysTests`.
 - **Never break saved user data.** Scene, patch and MIDI files in
-  `~/Library/Application Support/Light System/` must keep loading. If you change a `Codable`
+  `~/Library/Application Support/RAYS/` must keep loading. If you change a `Codable`
   type, add a compatibility test with an old JSON sample.
 - **Safety first.** Never enable fixtures' internal strobe/macro channels by default. Blackout
   must always win. Output must never turn on as a side effect of editing.

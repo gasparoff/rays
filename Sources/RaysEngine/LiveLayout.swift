@@ -5,7 +5,8 @@ public enum LivePanel: String, Codable, CaseIterable, Identifiable, Sendable {
     case tempo, stage, scenes, customScenes, performance
     public var id: String { rawValue }
 
-    /// The performance panel holds Blackout and the output switch, so it can never be hidden.
+    /// The performance panel holds the output switch, Build → Drop, Flash and Stop, so it can never be hidden.
+    /// Blackout itself lives in the top bar, outside the grid.
     public var canHide: Bool { self != .performance }
 
     /// Panels that take the free height of the window (the stage) instead of their natural height.

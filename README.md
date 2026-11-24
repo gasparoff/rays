@@ -66,7 +66,7 @@ Requirements: macOS 14+, Xcode 16 or a Swift 6 toolchain.
 git clone --recursive https://github.com/gasparoff/rays.git
 cd rays
 make bootstrap   # Ableton Link submodule (+ Beat Link helper if Beat Link Trigger is installed)
-make test        # 240+ tests, no hardware needed
+make test        # 300+ tests, no hardware needed
 make build       # builds dist/RAYS.app (without Beat Link Trigger: no Pro DJ Link)
 open dist/RAYS.app
 ```

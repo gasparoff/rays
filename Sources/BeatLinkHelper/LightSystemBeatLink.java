@@ -109,7 +109,7 @@ public final class LightSystemBeatLink {
         }
         Runtime.getRuntime().addShutdownHook(new Thread(LightSystemBeatLink::stop, "LightSystem-shutdown"));
         watchParent();
-        player.setDeviceName("Light System");
+        player.setDeviceName("RAYS");
         if (args.length > 0 && args[0].equals("--memory-check")) {
             emit("\"type\":\"ready\",\"state\":\"self-test\",\"version\":\"Beat Link 7.4.0 Java adapter\"");
             while (alive.get()) Thread.sleep(250);

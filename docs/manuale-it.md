@@ -91,7 +91,7 @@ Swift 6.2 / Xcode, linguaggio Swift 5.10. Il bundle firmato ad hoc viene creato 
 
 I moduli `RaysOutput` (Art-Net), `RaysTempo` (tempo), `RaysCore` (patch, DMX, coreografie, sequencer, scene personali), `RaysControl` (MIDI router e layout controller) e `RaysEngine` (motore e configurazione) sono solo Foundation e coperti da test. `LightEngine` lavora su coda seriale a 30 Hz. La preview decodifica gli stessi universi composti per l’uscita; blackout e master zero includono tutti i COB. Il sequencer gestisce fasi negative, salti della timeline, cambi scena e dissolvenze. `LinkBridge` usa l’SDK ufficiale Ableton. `Sources/BeatLinkHelper/LightSystemBeatLink.java` è l’adattatore headless al Beat Link reale; non carica Clojure durante l’uso. Il compilatore Java incluso nel runtime viene usato solo durante la build.
 
-Configurazioni JSON atomiche in `~/Library/Application Support/Light System/`: patch, preferenze, show, MIDI e scene personali. Un file scene personali illeggibile non viene sovrascritto automaticamente.
+Configurazioni JSON atomiche in `~/Library/Application Support/RAYS/`: patch, preferenze, show, MIDI e scene personali. Un file scene personali illeggibile non viene sovrascritto automaticamente.
 
 ## Fonti e licenze
 

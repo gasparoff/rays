@@ -93,7 +93,7 @@ struct ControllerSetup: View {
                                 "Off: RAYS listens only to the Xone K2 and the controllers described in Controllers/. On: every other MIDI input too, so you can assign functions with “Learn”."
                         )
                     )
-                    Text("Layouts live in Controllers/ inside the app and in Application Support/Light System/Controllers.")
+                    Text("Layouts live in Controllers/ inside the app and in Application Support/RAYS/Controllers.")
                         .font(note).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
                 }
             }

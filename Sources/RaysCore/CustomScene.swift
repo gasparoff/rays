@@ -57,9 +57,22 @@ public struct CustomScene: Codable, Equatable, Identifiable, Sendable {
     public var subdivision: Subdivision
     /// Warm COB amount, 0 = off, 1 = the choreography's normal level. Applied by the engine to COBs before the master.
     public var warmth: Double
-    public var leftLevel: Double
-    public var centerLevel: Double
-    public var rightLevel: Double
+    /// Per-group intensity masters, 0…1 after `sanitized` (ADR 0005). The classic groups are always
+    /// present; a group without an entry plays at 1.
+    public var masters: [RigGroupID: Double]
+    /// The classic groups' masters, kept as views over `masters` (and as their own keys on disk).
+    public var leftLevel: Double {
+        get { masters[.left] ?? 1 }
+        set { masters[.left] = newValue }
+    }
+    public var centerLevel: Double {
+        get { masters[.center] ?? 1 }
+        set { masters[.center] = newValue }
+    }
+    public var rightLevel: Double {
+        get { masters[.right] ?? 1 }
+        set { masters[.right] = newValue }
+    }
     /// Optional animation structure (tracks on the beat grid). nil = the base choreography as it always was.
     public var program: SceneProgram?
 
@@ -76,6 +89,7 @@ public struct CustomScene: Codable, Equatable, Identifiable, Sendable {
         leftLevel: Double = 1,
         centerLevel: Double = 1,
         rightLevel: Double = 1,
+        masters: [RigGroupID: Double] = [:],
         program: SceneProgram? = nil
     ) {
         self.id = id
@@ -87,9 +101,8 @@ public struct CustomScene: Codable, Equatable, Identifiable, Sendable {
         self.energy = energy
         self.subdivision = subdivision
         self.warmth = warmth
-        self.leftLevel = leftLevel
-        self.centerLevel = centerLevel
-        self.rightLevel = rightLevel
+        // Entries in `masters` win over the classic arguments.
+        self.masters = [.left: leftLevel, .center: centerLevel, .right: rightLevel].merging(masters) { $1 }
         self.program = program
     }
 
@@ -122,9 +135,7 @@ public struct CustomScene: Codable, Equatable, Identifiable, Sendable {
         }
         s.energy = bounded(energy, fallback: 0.5)
         s.warmth = bounded(warmth, fallback: 1)
-        s.leftLevel = bounded(leftLevel, fallback: 1)
-        s.centerLevel = bounded(centerLevel, fallback: 1)
-        s.rightLevel = bounded(rightLevel, fallback: 1)
+        s.masters = CustomScene.cleanMasters(masters)
         s.program = program?.sanitized
         return s
     }
@@ -153,6 +164,17 @@ public struct CustomScene: Codable, Equatable, Identifiable, Sendable {
         }
     }
 
+    /// Master of group `id`, 0…1; 1 for a group the scene has no master for.
+    public func level(group id: RigGroupID) -> Double { bounded(masters[id] ?? 1, fallback: 1) }
+
+    /// Finite masters clamped to 0…1, with the three classic groups always present.
+    static func cleanMasters(_ raw: [RigGroupID: Double]) -> [RigGroupID: Double] {
+        var out: [RigGroupID: Double] = [:]
+        for (id, v) in raw { out[id] = bounded(v, fallback: 1) }
+        for id in [RigGroupID.left, .center, .right] where out[id] == nil { out[id] = 1 }
+        return out
+    }
+
     /// COB value after the warm-white amount, before the global master.
     public func warmCOB(_ value: Double) -> Double { unit(value) * bounded(warmth, fallback: 1) }
 
@@ -171,16 +193,48 @@ public struct CustomScene: Codable, Equatable, Identifiable, Sendable {
         let sub = try? c.decodeIfPresent(Double.self, forKey: .subdivision)
         subdivision = sub.flatMap(Subdivision.init(rawValue:)) ?? d.subdivision
         warmth = (try? c.decodeIfPresent(Double.self, forKey: .warmth)) ?? d.warmth
-        leftLevel = (try? c.decodeIfPresent(Double.self, forKey: .leftLevel)) ?? d.leftLevel
-        centerLevel = (try? c.decodeIfPresent(Double.self, forKey: .centerLevel)) ?? d.centerLevel
-        rightLevel = (try? c.decodeIfPresent(Double.self, forKey: .rightLevel)) ?? d.rightLevel
+        // Old files carry the classic keys only; the `masters` map, when present, wins over them.
+        var masters = d.masters
+        masters[.left] = (try? c.decodeIfPresent(Double.self, forKey: .leftLevel)) ?? d.leftLevel
+        masters[.center] = (try? c.decodeIfPresent(Double.self, forKey: .centerLevel)) ?? d.centerLevel
+        masters[.right] = (try? c.decodeIfPresent(Double.self, forKey: .rightLevel)) ?? d.rightLevel
+        if let saved = try? c.decodeIfPresent([String: Double].self, forKey: .masters) {
+            for (id, v) in saved { masters[RigGroupID(id)] = v }
+        }
+        self.masters = masters
         // A missing or unreadable program keeps the scene and its historical behaviour.
         program = try? c.decodeIfPresent(SceneProgram.self, forKey: .program)
         self = sanitized
     }
 
+    /// Writes the keys every earlier version wrote, `leftLevel/centerLevel/rightLevel` included, so an
+    /// older build still opens the file. `masters` is added only when it holds a group beyond the
+    /// classic three, so a classic scene is saved exactly as before.
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encodeIfPresent(presetSlot, forKey: .presetSlot)
+        try c.encode(presetBank, forKey: .presetBank)
+        try c.encode(name, forKey: .name)
+        try c.encode(base, forKey: .base)
+        try c.encode(colors, forKey: .colors)
+        try c.encode(energy, forKey: .energy)
+        try c.encode(subdivision, forKey: .subdivision)
+        try c.encode(warmth, forKey: .warmth)
+        try c.encode(leftLevel, forKey: .leftLevel)
+        try c.encode(centerLevel, forKey: .centerLevel)
+        try c.encode(rightLevel, forKey: .rightLevel)
+        if masters.keys.contains(where: { FixtureRole(groupID: $0) == nil }) {
+            var map: [String: Double] = [:]
+            for (id, v) in masters { map[id.rawValue] = v }
+            try c.encode(map, forKey: .masters)
+        }
+        try c.encodeIfPresent(program, forKey: .program)
+    }
+
     private enum CodingKeys: String, CodingKey {
-        case id, presetSlot, presetBank, name, base, colors, energy, subdivision, warmth, leftLevel, centerLevel, rightLevel, program
+        case id, presetSlot, presetBank, name, base, colors, energy, subdivision, warmth, leftLevel, centerLevel, rightLevel, masters
+        case program
     }
 }
 

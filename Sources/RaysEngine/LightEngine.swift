@@ -54,7 +54,16 @@ public final class LightEngine: @unchecked Sendable {
     private var smoothedEnergy = 0.5
     private var lastTick: TimeInterval?
     private var master = 0.8
-    private var levels = ShowSettings()
+    private var levels = ShowSettings() {
+        didSet { rebuildMixLocked() }
+    }
+    /// Live direct commands on groups (colour, flash, solo, mute). Never saved.
+    private var overrides = GroupOverrides() {
+        didSet { rebuildMixLocked() }
+    }
+    /// `levels.masters` and `overrides` by group position, rebuilt when either changes, so the frame
+    /// reads arrays instead of looking group ids up.
+    private var mix = GroupMix(ids: LightEngine.frameGroups, masters: ShowSettings().masters)
     private var lastSocketAttempt: TimeInterval = -.infinity
     private var patch = Patch.empty
     private var patchIssues: [PatchIssue] = []
@@ -259,9 +268,7 @@ public final class LightEngine: @unchecked Sendable {
             guard restore else { return }
             let now = self.clock(), tempo = self.tempo.capture()
             var from = self.rigFrame(now: now, beat: self.musicalBeat(tempo), tempo: tempo)
-            if !self.previewBlendActive {
-                for role in FixtureRole.allCases { from[role] = from[role].scaled(self.levels.level(role)) }
-            }
+            if !self.previewBlendActive { self.scaleByGroupMasters(&from) }
             self.sequencer = before.sequencer
             self.params = before.params
             self.smoothedEnergy = before.energy
@@ -307,6 +314,8 @@ public final class LightEngine: @unchecked Sendable {
     }
 
     public func setLevel(_ role: FixtureRole, _ v: Double) { queue.async { self.levels.setLevel(role, v) } }
+    /// Master of any rig group (ADR 0005).
+    public func setLevel(group id: RigGroupID, _ v: Double) { queue.async { self.levels.setLevel(group: id, v) } }
     public func setShowSettings(_ show: ShowSettings) { queue.async { self.levels = show } }
     public func setWhiteLevel(_ v: Double) { queue.async { self.levels.whiteLevel = clamp01(v) } }
 
@@ -328,6 +337,45 @@ public final class LightEngine: @unchecked Sendable {
             }
         }
     }
+
+    // MARK: Group direct commands (ADR 0005)
+    //
+    // Performance state layered on the scene in a fixed order (see `GroupMix`); blackout always wins
+    // over every one of them, and none of them arms the output or touches strobe/program channels.
+
+    /// Replaces the group's colour, keeping the scene's intensity shape; nil gives the scene's colour back.
+    public func setGroupColor(_ color: LightColor?, for id: RigGroupID) {
+        queue.async { self.overrides.colors[id] = color.map { LightColor($0.r, $0.g, $0.b).clamped } }
+    }
+
+    /// Momentary full-on of a group: `true` on press, `false` on release. Ignored during blackout,
+    /// and released by blackout, so leaving blackout never flashes.
+    public func setGroupFlash(_ on: Bool, for id: RigGroupID) {
+        queue.async {
+            if on {
+                guard !self.gate.blackout else { return }
+                self.overrides.flashing.insert(id)
+            } else {
+                self.overrides.flashing.remove(id)
+            }
+        }
+    }
+
+    /// While any group is soloed, every group that is not is dark.
+    public func setGroupSolo(_ on: Bool, for id: RigGroupID) {
+        queue.async {
+            if on { self.overrides.soloed.insert(id) } else { self.overrides.soloed.remove(id) }
+        }
+    }
+
+    public func setGroupMute(_ on: Bool, for id: RigGroupID) {
+        queue.async {
+            if on { self.overrides.muted.insert(id) } else { self.overrides.muted.remove(id) }
+        }
+    }
+
+    /// Drops every colour override, flash, solo and mute.
+    public func clearGroupOverrides() { queue.async { self.overrides = GroupOverrides() } }
 
     /// Set by the beat-source owner while an external grid (XDJ / Beat Link) drives the Link
     /// timeline. With it, or with Link peers, scene changes are quantised.
@@ -496,6 +544,7 @@ public final class LightEngine: @unchecked Sendable {
         if effects.contains(.killAccent) {
             accentOn = false
             accentReleaseFrom = nil
+            if !overrides.flashing.isEmpty { overrides.flashing.removeAll() }
         }
         if effects.contains(.renderNow) { tick() }
     }
@@ -559,7 +608,7 @@ public final class LightEngine: @unchecked Sendable {
             for role in FixtureRole.allCases { rig[role].cob = rig[role].cob.map { max($0, accent) } }
         }
         if let from = restoreFrom {
-            for role in FixtureRole.allCases { rig[role] = rig[role].scaled(levels.level(role)) }
+            scaleByGroupMasters(&rig)
             let progress = min(1, max(0, (now - restoreStart) / 0.3))
             rig = from.mixed(with: rig, progress * progress * (3 - 2 * progress))
             previewBlendActive = true
@@ -568,12 +617,32 @@ public final class LightEngine: @unchecked Sendable {
         return rig
     }
 
-    private func compose(_ p: Patch, roles: [FixtureRole], rig: RigFrame, diagnostic: Bool) -> [PortAddress: [UInt8]] {
+    /// Group order of every frame the engine renders (the classic layout until frames follow the patch layout).
+    static let frameGroups = RigFrame.black.groups.map(\.id)
+
+    private func rebuildMixLocked() {
+        mix = GroupMix(ids: Self.frameGroups, masters: levels.masters, overrides: overrides)
+    }
+
+    /// Multiplies each group of `frame` by its master (preview restore blend).
+    private func scaleByGroupMasters(_ frame: inout RigFrame) {
+        for g in frame.groups.indices {
+            frame.groups[g].light = frame.groups[g].light.scaled(mix.master(of: frame.groups[g].id, at: g))
+        }
+    }
+
+    /// `groups[i]` is fixture i's position in `mix` (see `PatchCache`). The diagnostic ignores group
+    /// masters and overrides; during the restore blend the frames already carry the group masters.
+    private func compose(
+        _ p: Patch, roles: [FixtureRole], groups: [Int], rig: RigFrame, diagnostic: Bool
+    ) -> [PortAddress: [UInt8]] {
         // Apply white brightness after crossfades too, so zero always silences COBs immediately.
         let lv = roles.map { role in
             FixtureLevels(rgb: rig[role].rgb, cob: rig[role].cob.map { $0 * levels.whiteLevel })
         }
-        let scales = roles.map { diagnostic || previewBlendActive ? master : master * levels.level($0) }
+        let scales = groups.map { i in
+            diagnostic ? master : mix.scale(group: i, master: master, groupMaster: !previewBlendActive)
+        }
         return DMXComposer.compose(patch: p, library: baseLibrary, levels: lv, scales: scales, blackout: gate.blackout)
     }
 
@@ -586,8 +655,10 @@ public final class LightEngine: @unchecked Sendable {
         // snapshot all describe the same instant.
         let t = tempo.capture()
         let beat = musicalBeat(t)
-        let rig = rigFrame(now: now, beat: beat, tempo: t)
+        var rig = rigFrame(now: now, beat: beat, tempo: t)
         let diagnostic = gate.isTesting
+        // Colour overrides and flashes, after the scene and before the masters; blackout still wins.
+        if !diagnostic { mix.apply(to: &rig) }
 
         var sending = false
         let target = output.target(now: now, patchUniverses: cache.universes)
@@ -596,12 +667,13 @@ public final class LightEngine: @unchecked Sendable {
             // Stop transmitting until validation passes again, but retain the user's request.
             sendBlackFramesLocked(to: Self.blackFrameTarget(readiness, target))
         }
-        let real = showsRealPatch ? compose(patch, roles: cache.roles, rig: rig, diagnostic: diagnostic) : [:]
+        let real = showsRealPatch ? compose(patch, roles: cache.roles, groups: cache.groups, rig: rig, diagnostic: diagnostic) : [:]
         if gate.armed, let target {
             sending = output.sendDMX(real, to: target)
             if sending { framesSent &+= 1 }
         }
-        let shadowFrames = compose(shadow, roles: cache.shadowRoles, rig: rig, diagnostic: diagnostic)
+        let shadowFrames = compose(
+            shadow, roles: cache.shadowRoles, groups: cache.shadowGroups, rig: rig, diagnostic: diagnostic)
         let visuals = visualsLocked(real: real, shadow: shadowFrames, live: gate.armed && sending)
         publish(
             snapshotLocked(
@@ -624,6 +696,9 @@ public final class LightEngine: @unchecked Sendable {
         }
         var roles: [FixtureRole] = []
         var shadowRoles: [FixtureRole] = []
+        /// Each fixture's group position in `frameGroups` (-1 for none), for the per-group arrays of `mix`.
+        var groups: [Int] = []
+        var shadowGroups: [Int] = []
         var universes: [PortAddress] = []
         /// Real fixtures (when the patch is shown), then shadow fixtures, sorted left, center, right.
         var slots: [Slot] = []
@@ -633,6 +708,8 @@ public final class LightEngine: @unchecked Sendable {
         var c = PatchCache()
         c.roles = patch.roles(library: baseLibrary)
         c.shadowRoles = shadow.roles(library: baseLibrary)
+        c.groups = c.roles.map { Self.frameGroups.firstIndex(of: $0.groupID) ?? -1 }
+        c.shadowGroups = c.shadowRoles.map { Self.frameGroups.firstIndex(of: $0.groupID) ?? -1 }
         c.universes = patch.universes
         func slots(_ p: Patch, roles: [FixtureRole], previewOnly: Bool) -> [PatchCache.Slot] {
             let lib = p.library(base: baseLibrary)

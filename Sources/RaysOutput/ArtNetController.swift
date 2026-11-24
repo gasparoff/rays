@@ -112,7 +112,8 @@ public final class ArtNetController {
                     ip: manualIP, name: node.displayName, universes: node.outputUniverses,
                     verified: true, fresh: now - node.lastSeen <= registry.staleAfter)
             }
-            return OutputTarget(ip: manualIP, name: "IP manuale", universes: patchUniverses, verified: false, fresh: false)
+            return OutputTarget(
+                ip: manualIP, name: String(localized: "Manual IP"), universes: patchUniverses, verified: false, fresh: false)
         }
         guard let node = registry.node(id: preferredIdentity) else { return nil }
         return OutputTarget(

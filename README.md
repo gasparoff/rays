@@ -34,6 +34,11 @@
   <br><sub>No lights connected: the stage preview shows exactly the DMX that RAYS sends.</sub>
 </p>
 
+<p align="center">
+  <img src="docs/images/real-rig.gif" alt="Three LED triangle fixtures on a DJ table changing colour in time with the music, driven by RAYS" width="480">
+  <br><sub>And on a real rig: RAYS driving LED fixtures during a DJ set.</sub>
+</p>
+
 RAYS turns a Mac into a lighting console that **follows the music by itself**. Plug in an
 Art-Net node, sACN receiver or USB DMX interface, start your set, and the lights move with the
 tempo and phase of your DJ software or CDJs. No lighting desk, no timeline to program, no

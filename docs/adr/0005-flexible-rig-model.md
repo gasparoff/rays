@@ -166,7 +166,7 @@ it (steps 7–8).
    patches. Nothing reads them yet.
 3. **`RigFrame` over groups.** Change storage to `[GroupFrame]` with `left/center/right` computed
    accessors and the `FixtureRole` subscript kept. Golden frames unchanged; allocation-free check on the
-   30 Hz path.
+   30 Hz path. Until step 6 a `GroupFrame` holds one `RoleFrame` shared by the group's fixtures.
 4. **Spatial targets.** Generate `SceneLook.rgbX/cobX` from group positions; `TrackTarget` gains role,
    ordering and explicit-group targets with old-key decoding. Golden frames unchanged.
 5. **Group masters and overrides (engine).** `masters: [RigGroupID: Double]` in `CustomScene`,

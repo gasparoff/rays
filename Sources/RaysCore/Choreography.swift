@@ -12,8 +12,9 @@ public struct RoleFrame: Equatable, Sendable {
     }
 
     public func mixed(with o: RoleFrame, _ t: Double) -> RoleFrame {
-        RoleFrame(rgb: zip(rgb, o.rgb).map { $0.mixed(with: $1, t) },
-                  cob: zip(cob, o.cob).map { $0 + ($1 - $0) * clamp01(t) })
+        RoleFrame(
+            rgb: zip(rgb, o.rgb).map { $0.mixed(with: $1, t) },
+            cob: zip(cob, o.cob).map { $0 + ($1 - $0) * clamp01(t) })
     }
 
     public func scaled(_ k: Double) -> RoleFrame {
@@ -21,62 +22,6 @@ public struct RoleFrame: Equatable, Sendable {
     }
 
     public var isFinite: Bool { rgb.allSatisfy(\.isFinite) && cob.allSatisfy(\.isFinite) }
-}
-
-/// One choreography frame for the whole rig: centre TRI 380 (6 RGB segments + 3 COBs) and the
-/// two side TRI 180 (1 RGB group + 1 COB each).
-///
-/// Centre geometry (unverified on hardware, fixed only through the profile's segment order):
-/// segments 0,1 = right edge top→bottom, 2,3 = bottom edge right→left, 4,5 = left edge
-/// bottom→top; COB k sits on the spoke towards the vertex where edge k starts (top, bottom-right,
-/// bottom-left), so 0→1→2 is clockwise.
-public struct RigFrame: Equatable, Sendable {
-    public static let centerSegments = 6, centerCOBs = 3
-
-    public var left: RoleFrame
-    public var center: RoleFrame
-    public var right: RoleFrame
-
-    public init(left: RoleFrame, center: RoleFrame, right: RoleFrame) {
-        self.left = left; self.center = center; self.right = right
-    }
-
-    public static let black = RigFrame(left: .black(rgb: 1, cob: 1),
-                                       center: .black(rgb: centerSegments, cob: centerCOBs),
-                                       right: .black(rgb: 1, cob: 1))
-
-    public subscript(role: FixtureRole) -> RoleFrame {
-        get {
-            switch role {
-            case .left: return left
-            case .center: return center
-            case .right: return right
-            }
-        }
-        set {
-            switch role {
-            case .left: left = newValue
-            case .center: center = newValue
-            case .right: right = newValue
-            }
-        }
-    }
-
-    public func mixed(with o: RigFrame, _ t: Double) -> RigFrame {
-        RigFrame(left: left.mixed(with: o.left, t), center: center.mixed(with: o.center, t), right: right.mixed(with: o.right, t))
-    }
-
-    public func scaled(_ k: Double) -> RigFrame {
-        RigFrame(left: left.scaled(k), center: center.scaled(k), right: right.scaled(k))
-    }
-
-    public var isFinite: Bool { left.isFinite && center.isFinite && right.isFinite }
-
-    /// Replaces anything non-finite with black and clamps to 0...1.
-    public var sanitized: RigFrame {
-        guard isFinite else { return .black }
-        return scaled(1)
-    }
 }
 
 /// Inputs of one scene evaluation. Times are in *scene beats* (Link beats × rate).
@@ -216,8 +161,9 @@ public enum Choreography {
         }
         let sideC = pal(p, b / 32 + 0.5), sideI = c.lvl * (0.45 + 0.25 * brS)
         let sideCob = brS
-        return RigFrame(left: side(sideC, sideI, cob: sideCob), center: RoleFrame(rgb: rgb, cob: cob),
-                        right: side(sideC, sideI, cob: sideCob))
+        return RigFrame(
+            left: side(sideC, sideI, cob: sideCob), center: RoleFrame(rgb: rgb, cob: cob),
+            right: side(sideC, sideI, cob: sideCob))
     }
 
     /// Tramonto (house): vertical dusk gradient, kick strongest at the bottom, offbeat side swell.
@@ -237,8 +183,9 @@ public enum Choreography {
         let sideC = p[1].mixed(with: p[2], 0.5 - 0.5 * cos(tau * b / 16))
         let sideI = c.lvl * (0.30 + 0.45 * oh * (0.4 + 0.6 * e))
         let sideCob = 1.0 * c.on(b, 3.5, 8, 0.2, 2.5)
-        return RigFrame(left: side(sideC, sideI, cob: sideCob), center: RoleFrame(rgb: rgb, cob: cob),
-                        right: side(sideC, sideI, cob: sideCob))
+        return RigFrame(
+            left: side(sideC, sideI, cob: sideCob), center: RoleFrame(rgb: rgb, cob: cob),
+            right: side(sideC, sideI, cob: sideCob))
     }
 
     /// Pulse (tech house): 3+3+2 hits, one centre edge each, rotating clockwise every 8 beats.
@@ -263,8 +210,9 @@ public enum Choreography {
         if j == 0 { cob[edge] = 1.0 * env(x[0], a, 3.0) }
         let sideC = teal.mixed(with: ice, oh), sideI = c.lvl * (0.12 + 0.70 * oh)
         let sideCob = 1.0 * c.on(b, 7.5, 8, 0.15, 2.5)
-        return RigFrame(left: side(sideC, sideI, cob: sideCob), center: RoleFrame(rgb: rgb, cob: cob),
-                        right: side(sideC, sideI, cob: sideCob))
+        return RigFrame(
+            left: side(sideC, sideI, cob: sideCob), center: RoleFrame(rgb: rgb, cob: cob),
+            right: side(sideC, sideI, cob: sideCob))
     }
 
     /// Chase (tech house): eased ping-pong head L → centre (U path) → R and back every bar.
@@ -288,11 +236,10 @@ public enum Choreography {
             return max(ripple, k == 1 ? 0.25 * e * bump(abs(3.5 - pos), 1.0) : 0)
         }
         let sideCob = 1.0
-        return RigFrame(left: side(electric.mixed(with: ch, hd(0)), c.lvl * (0.08 + 0.92 * hd(0)),
-                                   cob: sideCob * c.on(b, 0, 8, 0.12, 3.0)),
-                        center: RoleFrame(rgb: rgb, cob: cob),
-                        right: side(electric.mixed(with: ch, hd(7)), c.lvl * (0.08 + 0.92 * hd(7)),
-                                    cob: sideCob * c.on(b, 6, 8, 0.12, 3.0)))
+        return RigFrame(
+            left: side(electric.mixed(with: ch, hd(0)), c.lvl * (0.08 + 0.92 * hd(0)), cob: sideCob * c.on(b, 0, 8, 0.12, 3.0)),
+            center: RoleFrame(rgb: rgb, cob: cob),
+            right: side(electric.mixed(with: ch, hd(7)), c.lvl * (0.08 + 0.92 * hd(7)), cob: sideCob * c.on(b, 6, 8, 0.12, 3.0)))
     }
 
     /// Segment heights for the centre, 0 = bottom edge, 1 = top vertex.
@@ -335,9 +282,10 @@ public enum Choreography {
         func sideI(_ k: Double) -> Double { c.lvl * (0.20 + 0.26 * u + (0.36 + 0.24 * u) * k) }
         let sideCob = u * u * ce
         let cl = call(0), cr = call(0.5)
-        return RigFrame(left: side(sideC.mixed(with: warm, 0.3 * u * cl), sideI(cl), cob: sideCob * c.on(b, 0, 4, 0.1, 2.5)),
-                        center: RoleFrame(rgb: rgb, cob: cob),
-                        right: side(sideC.mixed(with: warm, 0.3 * u * cr), sideI(cr), cob: sideCob * c.on(b, 2, 4, 0.1, 2.5)))
+        return RigFrame(
+            left: side(sideC.mixed(with: warm, 0.3 * u * cl), sideI(cl), cob: sideCob * c.on(b, 0, 4, 0.1, 2.5)),
+            center: RoleFrame(rgb: rgb, cob: cob),
+            right: side(sideC.mixed(with: warm, 0.3 * u * cr), sideI(cr), cob: sideCob * c.on(b, 2, 4, 0.1, 2.5)))
     }
 
     /// Drop: before the anchored downbeat (the quantised fade window) a near-black dip; on it a big
@@ -346,9 +294,10 @@ public enum Choreography {
     /// and smaller re-impacts every 8 beats. Base colour swaps crimson ↔ UV every 16 beats.
     static func respiro(_ c: Ctx) -> RigFrame {
         let ink = SceneID.respiro.palette[3]
-        let dip = RigFrame(left: .black(rgb: 1, cob: 1),
-                           center: RoleFrame(rgb: Array(repeating: ink.scaled(0.6), count: 6), cob: [0, 0, 0]),
-                           right: .black(rgb: 1, cob: 1))
+        let dip = RigFrame(
+            left: .black(rgb: 1, cob: 1),
+            center: RoleFrame(rgb: Array(repeating: ink.scaled(0.6), count: 6), cob: [0, 0, 0]),
+            right: .black(rgb: 1, cob: 1))
         let a = max(0.06, c.minAttack)
         guard c.rd >= 0 else { return c.rd < -a ? dip : dip.mixed(with: dropState(c, 0), s((c.rd + a) / a)) }
         return dropState(c, c.rd)
@@ -370,8 +319,10 @@ public enum Choreography {
             let h = height[i], wt = i / 2 == edge ? 1.0 : 0.55
             let color = base.mixed(with: bone, 0.8 * imp + 0.25 * k1 * wt)
             let level = c.lvl * (0.06 + 0.72 * k1 * wt * (1 - 0.4 * h) + 0.18 * oh * h) + imp
-            return LightColor(0.4 * ink.r + color.r * clamp01(level), 0.4 * ink.g + color.g * clamp01(level),
-                              0.4 * ink.b + color.b * clamp01(level)).clamped
+            let lit = LightColor(
+                0.4 * ink.r + color.r * clamp01(level), 0.4 * ink.g + color.g * clamp01(level),
+                0.4 * ink.b + color.b * clamp01(level))
+            return lit.clamped
         }
         let cob = (0..<3).map { k -> Double in
             max(imp, k == edge ? 0.45 * (0.5 + 0.5 * e) * c.on(rd, 2, 4, 0.1, 3.0) : 0)
@@ -382,8 +333,9 @@ public enum Choreography {
             c.lvl * (0.04 + 0.18 * k1 + ws * (0.45 * oh + 0.35 * accent)) + imp
         }
         let sideCob = imp
-        return RigFrame(left: side(sideC, sideI(c.on(rd, 0.5, 2, 0.06, 4.0)), cob: sideCob),
-                        center: RoleFrame(rgb: rgb, cob: cob),
-                        right: side(sideC, sideI(c.on(rd, 1.5, 2, 0.06, 4.0)), cob: sideCob))
+        return RigFrame(
+            left: side(sideC, sideI(c.on(rd, 0.5, 2, 0.06, 4.0)), cob: sideCob),
+            center: RoleFrame(rgb: rgb, cob: cob),
+            right: side(sideC, sideI(c.on(rd, 1.5, 2, 0.06, 4.0)), cob: sideCob))
     }
 }

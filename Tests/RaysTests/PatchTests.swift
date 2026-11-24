@@ -91,4 +91,19 @@ final class PatchTests: XCTestCase {
     func testNoDefaultRealPatch() {
         XCTAssertTrue(Patch.empty.fixtures.isEmpty)
     }
+
+    func testPickerOrderPutsVerifiedThenBuiltInThenCommunityByBrand() {
+        let rgb = [ChannelDefinition(.red), ChannelDefinition(.green), ChannelDefinition(.blue)]
+        let library = ProfileLibrary(extra: [
+            FixtureProfile(id: "z.par", name: "Par", manufacturer: "Zeta", isGeneric: false, channels: rgb),
+            FixtureProfile(id: "a.bar", name: "Bar", manufacturer: "alpha", isGeneric: false, channels: rgb),
+            FixtureProfile(id: "a.any", name: "Any", manufacturer: "Alpha", isGeneric: false, channels: rgb),
+        ])
+        let order = library.pickerOrder.map(\.id)
+        XCTAssertEqual(Set(order), Set(library.profiles.map(\.id)), "nothing dropped or duplicated")
+        XCTAssertEqual(order.count, library.profiles.count)
+        XCTAssertEqual(Array(order.suffix(3)), ["a.any", "a.bar", "z.par"])
+        let verified = library.profiles.filter(\.isVerified).map(\.id)
+        XCTAssertEqual(Array(order.prefix(verified.count)), verified)
+    }
 }

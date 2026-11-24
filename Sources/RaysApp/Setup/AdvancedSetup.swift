@@ -28,9 +28,10 @@ struct AdvancedSetup: View {
                             : String(localized: "Unavailable: internal clock")
                     )
                     .font(.system(size: 14, weight: .semibold))
+                    // Beat and phase are left out on purpose: Setup gets change-only snapshots, not 30 Hz frames.
                     Text(
                         String(
-                            format: String(localized: "Tempo %.2f BPM · beat %.2f · phase %.2f / 4 · %@"), t.bpm, t.beat, t.phase,
+                            format: String(localized: "Tempo %.2f BPM · %@"), t.bpm,
                             t.isPlaying ? String(localized: "playing") : String(localized: "stopped"))
                     )
                     .font(.system(size: 12, design: .monospaced)).foregroundStyle(Theme.secondary)

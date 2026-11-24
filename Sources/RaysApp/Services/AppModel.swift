@@ -13,7 +13,10 @@ final class AppModel: ObservableObject {
     private var lastControlState: EngineSnapshot?
     private var previewVisible = true
     private var visibilityObservers: [NSObjectProtocol] = []
-    @Published var showSetup = false
+    /// While Setup covers the window the 30 Hz stage frames stay unpublished; it reopens on the current frame.
+    @Published var showSetup = false {
+        didSet { if !showSetup, oldValue, previewVisible { publishUI(session.snapshot) } }
+    }
     /// True while the full-window scene editor replaces the main content.
     @Published private(set) var showSceneEditor = false
     @Published private(set) var editorSession: SceneEditorSession?
@@ -174,7 +177,7 @@ final class AppModel: ObservableObject {
     }
 
     private func publishUI(_ snapshot: EngineSnapshot) {
-        live.snapshot = snapshot
+        if !showSetup { live.snapshot = snapshot }
         // Keep 30 Hz on the stage/beat indicator, without laying out every
         // button and fader for each lighting frame.
         let stable = snapshot.controlState

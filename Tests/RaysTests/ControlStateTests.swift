@@ -54,4 +54,23 @@ final class ControlStateTests: XCTestCase {
             XCTAssertNotEqual(first.controlState, next.controlState)
         }
     }
+
+    /// Setup observes only `controlState` changes, so everything it shows must invalidate the key.
+    func testSetupStatusReachesControls() {
+        let first = snapshot()
+        let changes: [(inout EngineSnapshot) -> Void] = [
+            { $0.readiness = .ready },
+            { $0.isTesting = true },
+            { $0.blackout = true },
+            { $0.network.selectedID = "node" },
+            { $0.network.diagnosis = ["No ENTTEC"] },
+            { $0.network.sendError = "send failed" },
+            { $0.tempo.bpm = 128 },
+        ]
+        for change in changes {
+            var next = first
+            change(&next)
+            XCTAssertNotEqual(first.controlState, next.controlState)
+        }
+    }
 }

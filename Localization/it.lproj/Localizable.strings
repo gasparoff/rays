@@ -610,7 +610,7 @@
 "Technical details" = "Dettagli tecnici";
 "Tempo" = "Tempo";
 "Tempo %.1f beats per minute, %@" = "Tempo %.1f battiti al minuto, %@";
-"Tempo %.2f BPM · beat %.2f · phase %.2f / 4 · %@" = "Tempo %.2f BPM · battito %.2f · fase %.2f / 4 · %@";
+"Tempo %.2f BPM · %@" = "Tempo %.2f BPM · %@";
 "Tempo is set on the main screen. Tracks follow the beat without listening to the audio." = "Il tempo si regola nella schermata principale. Le tracce seguono il battito, senza ascoltare l’audio.";
 "Test preset loaded at startup: confirm and save to use it." = "Preset di prova caricato all’avvio: conferma e salva per usarlo.";
 "The 192.168.0.x network is already used by %@. RAYS won't change it: connect the ODE to the same LAN or give the ODE a different address." = "La rete 192.168.0.x è già usata da %@. Non modifico la rete: collega l’ODE alla stessa LAN oppure usa un indirizzo diverso per l’ODE.";

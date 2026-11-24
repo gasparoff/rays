@@ -22,20 +22,8 @@ struct PatchEditor: View {
 
     private var library: ProfileLibrary { draft.library(base: model.library) }
 
-    /// Verified manufacturer profiles first, generic ones after.
-    private var orderedProfiles: [FixtureProfile] {
-        // Verified first, then built-in and generic profiles, then community/OFL profiles by brand.
-        let all = library.profiles
-        let builtIn = Set(ProfileLibrary.builtIn.map(\.id))
-        let rest = all.filter { !$0.isVerified }
-        let first = rest.filter { builtIn.contains($0.id) || $0.isGeneric }
-        let others = rest.filter { !builtIn.contains($0.id) && !$0.isGeneric }.sorted {
-            ($0.manufacturer.lowercased(), $0.name.lowercased(), $0.footprint) < (
-                $1.manufacturer.lowercased(), $1.name.lowercased(), $1.footprint
-            )
-        }
-        return all.filter(\.isVerified) + first + others
-    }
+    /// Sorted once per library change, not on every keystroke in the fixture list.
+    @State private var orderedProfiles: [FixtureProfile] = []
 
     /// Universe the ENTTEC in use actually outputs (both ODE ports are on 1 here).
     private var nodeUniverse: Int {
@@ -189,6 +177,9 @@ struct PatchEditor: View {
             }
         }
         .onChange(of: draft) { _, _ in saveMessage = nil }
+        .onAppear { orderedProfiles = library.pickerOrder }
+        .onChange(of: draft.customProfiles.map(\.id)) { _, _ in orderedProfiles = library.pickerOrder }
+        .onChange(of: model.library.profiles.map(\.id)) { _, _ in orderedProfiles = library.pickerOrder }
     }
 }
 

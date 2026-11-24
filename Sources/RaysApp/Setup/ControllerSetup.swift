@@ -12,7 +12,6 @@ private let note = Font.system(size: 11.5)
 struct ControllerSetup: View {
     @EnvironmentObject private var model: AppModel
     @EnvironmentObject private var midi: MIDIService
-    @EnvironmentObject private var xdj: XDJBeatListener
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -124,7 +123,7 @@ struct ControllerSetup: View {
                                 Text("Deck 2").tag(2)
                             }
                             .pickerStyle(.segmented).frame(width: 300)
-                            Text(xdjStatus).font(small).foregroundStyle(xdj.isLive ? Theme.good : Theme.secondary)
+                            XDJStatusText()
                         }
                         Text(
                             String(
@@ -143,8 +142,17 @@ struct ControllerSetup: View {
         .onAppear { midi.rescan() }
         .onDisappear { midi.learn(nil) }
     }
+}
 
-    private var xdjStatus: String {
+/// Console status on its own: it changes on every beat, and only this line should redraw then.
+private struct XDJStatusText: View {
+    @EnvironmentObject private var xdj: XDJBeatListener
+
+    var body: some View {
+        Text(status).font(small).foregroundStyle(xdj.isLive ? Theme.good : Theme.secondary)
+    }
+
+    private var status: String {
         if let error = xdj.error { return error }
         if xdj.isLive, let b = xdj.lastBeat {
             return String(format: String(localized: "%@ · %.1f BPM · beat %d"), b.deviceName, b.bpm, b.beatWithinBar)

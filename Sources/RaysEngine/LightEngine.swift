@@ -669,6 +669,7 @@ public final class LightEngine: @unchecked Sendable {
         s.pendingScene = sequencer.pendingScene
         s.pendingSceneBank = sequencer.pendingSceneBank
         s.pendingIsDownbeat = sequencer.pendingIsDownbeat
+        s.pendingProgress = sequencer.pendingProgress(beat: beat, now: now)
         s.stopped = sequencer.isStopped
         s.stopFading = sequencer.isStopFading(beat: beat, now: now)
         s.isDemo = !showsRealPatch

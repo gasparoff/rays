@@ -7,6 +7,7 @@ project uses [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- User guide in English (`docs/manual.md`), from install to a show, linked from the README.
 - First open-source release under the MIT license.
 - Output drivers: Art-Net (default), sACN / E1.31, ENTTEC DMX USB Pro and compatibles. Chosen in Setup.
 - MIDI Clock as a beat source, next to Ableton Link and Pro DJ Link.

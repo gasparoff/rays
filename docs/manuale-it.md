@@ -1,5 +1,7 @@
 # RAYS 1.5.3
 
+> Questo manuale descrive l’ultima build privata (1.5.x) e non è aggiornato. La guida di riferimento è [docs/manual.md](manual.md), in inglese.
+
 Console luci nativa SwiftUI per macOS 14+, ENTTEC ODE MK3 e Ableton Link. Interfaccia italiana, rig di riferimento già preparato, scene house/tech house, banco Club 130–138 e scene personali.
 
 ## Uso

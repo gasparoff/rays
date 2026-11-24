@@ -23,6 +23,7 @@
 <p align="center">
   <a href="#quick-start">Quick start</a> ·
   <a href="#supported-hardware">Hardware</a> ·
+  <a href="docs/manual.md">User guide</a> ·
   <a href="#faq">FAQ</a> ·
   <a href="docs/architecture.md">Architecture</a> ·
   <a href="CONTRIBUTING.md">Contribute</a>
@@ -69,6 +70,8 @@ make test        # 240+ tests, no hardware needed
 make build       # builds dist/RAYS.app (without Beat Link Trigger: no Pro DJ Link)
 open dist/RAYS.app
 ```
+
+New to RAYS? The [user guide](docs/manual.md) goes from install to your first show.
 
 **No lights yet?** Launch the app anyway: the stage preview runs without any hardware, and the
 internal clock or Tap gives it a tempo.
@@ -141,7 +144,6 @@ possible: open a Discussion if you want to work on it.
 
 **Which languages does the app speak?** English, and Italian when macOS is set to Italian.
 Adding a language takes one translation file: see [Localization/README.md](Localization/README.md).
-The full Italian manual is in [docs/manuale-it.md](docs/manuale-it.md).
 
 ## Contributing
 

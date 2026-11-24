@@ -23,62 +23,6 @@ public struct RoleFrame: Equatable, Sendable {
     public var isFinite: Bool { rgb.allSatisfy(\.isFinite) && cob.allSatisfy(\.isFinite) }
 }
 
-/// One choreography frame for the whole rig: centre TRI 380 (6 RGB segments + 3 COBs) and the
-/// two side TRI 180 (1 RGB group + 1 COB each).
-///
-/// Centre geometry (unverified on hardware, fixed only through the profile's segment order):
-/// segments 0,1 = right edge top→bottom, 2,3 = bottom edge right→left, 4,5 = left edge
-/// bottom→top; COB k sits on the spoke towards the vertex where edge k starts (top, bottom-right,
-/// bottom-left), so 0→1→2 is clockwise.
-public struct RigFrame: Equatable, Sendable {
-    public static let centerSegments = 6, centerCOBs = 3
-
-    public var left: RoleFrame
-    public var center: RoleFrame
-    public var right: RoleFrame
-
-    public init(left: RoleFrame, center: RoleFrame, right: RoleFrame) {
-        self.left = left; self.center = center; self.right = right
-    }
-
-    public static let black = RigFrame(left: .black(rgb: 1, cob: 1),
-                                       center: .black(rgb: centerSegments, cob: centerCOBs),
-                                       right: .black(rgb: 1, cob: 1))
-
-    public subscript(role: FixtureRole) -> RoleFrame {
-        get {
-            switch role {
-            case .left: return left
-            case .center: return center
-            case .right: return right
-            }
-        }
-        set {
-            switch role {
-            case .left: left = newValue
-            case .center: center = newValue
-            case .right: right = newValue
-            }
-        }
-    }
-
-    public func mixed(with o: RigFrame, _ t: Double) -> RigFrame {
-        RigFrame(left: left.mixed(with: o.left, t), center: center.mixed(with: o.center, t), right: right.mixed(with: o.right, t))
-    }
-
-    public func scaled(_ k: Double) -> RigFrame {
-        RigFrame(left: left.scaled(k), center: center.scaled(k), right: right.scaled(k))
-    }
-
-    public var isFinite: Bool { left.isFinite && center.isFinite && right.isFinite }
-
-    /// Replaces anything non-finite with black and clamps to 0...1.
-    public var sanitized: RigFrame {
-        guard isFinite else { return .black }
-        return scaled(1)
-    }
-}
-
 /// Inputs of one scene evaluation. Times are in *scene beats* (Link beats × rate).
 public struct SceneContext: Equatable, Sendable {
     /// Free-running scene time (Link beat × rate), used by the unanchored scenes.

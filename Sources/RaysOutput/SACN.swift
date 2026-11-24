@@ -131,13 +131,11 @@ public final class SACNDriver: OutputDriver {
     public private(set) var interfaces: [NetworkInterface] = []
     public private(set) var socketError: String?
     public private(set) var sendError: String?
-    public var pollError: String? { nil }
     public var preferredIdentity: String?
     public var manualIP: IPv4Address? {
         get { configuration.mode == .unicast ? configuration.unicastIP : nil }
         set { configuration.unicastIP = newValue; configuration.mode = newValue == nil ? .multicast : .unicast }
     }
-    public var onPreferredIdentityChanged: ((String?) -> Void)?
     private var lastInterfaceScan: TimeInterval = -.infinity
 
     public init(
@@ -177,7 +175,6 @@ public final class SACNDriver: OutputDriver {
         pollIfDue(now: now)
     }
 
-    public func nodes(now: TimeInterval) -> [DiscoveredNode] { [] }
     public func select(identity: String?) { preferredIdentity = identity }
 
     public func sacnUniverse(_ portAddress: PortAddress) -> UInt16? {

@@ -5,7 +5,7 @@ import RaysEngine
 /// Owns the Live window arrangement and the Layout mode flag; saves every change to UserDefaults.
 @MainActor
 final class LiveLayoutStore: ObservableObject {
-    static let defaultsKey = "liveLayout"
+    static let defaultsKey = DefaultsKey.liveLayout
 
     @Published private(set) var layout: LiveLayout
     @Published var editing = false

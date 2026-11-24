@@ -21,6 +21,7 @@
 "%@ doesn't answer ArtPoll." = "%@ non risponde all’ArtPoll.";
 "%@ found · choose" = "%@ trovati · scegli";
 "%@ hits" = "%@ colpi";
+"%@ lights" = "%@ luci";
 "%@ percent" = "%@ per cento";
 "%@ responds." = "%@ risponde.";
 "%@ stays unchanged underneath (100%%); you start from a kick in the center." = "%@ resta identica sotto (100%%); parti da una cassa al centro.";
@@ -51,6 +52,9 @@
 "Actions for %@" = "Azioni per %@";
 "Big stage" = "Palco grande";
 "Blackout" = "Blackout";
+"Click a light to control it · ⇧ for more" = "Clicca una luce per comandarla · ⇧ per sceglierne più di una";
+"Deselect the lights" = "Deseleziona le luci";
+"Deselect" = "Deseleziona";
 "Done" = "Fine";
 "Drag onto another panel to move it there" = "Trascinalo su un altro pannello per spostarlo lì";
 "Drag to move %@" = "Trascina per spostare %@";
@@ -71,15 +75,18 @@
 "Performance" = "Performance";
 "Play %@" = "Avvia %@";
 "Presets" = "Preset";
+"Preview only · not in the patch" = "Solo anteprima · non nel patch";
 "Resume from blackout" = "Esci dal blackout";
 "Scene bank: %@" = "Banco scene: %@";
 "Search scenes and actions · ⌘K" = "Cerca scene e azioni · ⌘K";
 "Search scenes and actions" = "Cerca scene e azioni";
+"Selected lights" = "Luci selezionate";
 "Show %@" = "Mostra %@";
 "Show panel: %@" = "Mostra pannello: %@";
 "Stage" = "Palco";
 "Stop and fade out" = "Ferma e sfuma";
 "Tempo on the right" = "Tempo a destra";
+"Universe %@ · DMX %@" = "Universo %@ · DMX %@";
 "active" = "attiva";
 "Adapter" = "Adattatore";
 "Add" = "Aggiungi";
@@ -711,3 +718,4 @@
 "⌘S · Saves to the same key (1–6 and K2, Build → Drop included)." = "⌘S · Salva sullo stesso tasto (1–6 e K2, compreso Build → Drop).";
 "%@ could not be read. RAYS kept a copy as %@ and started with defaults." = "Impossibile leggere %@. RAYS ne ha tenuto una copia come %@ e si è avviato con i valori predefiniti.";
 "%@ could not be read and RAYS started with defaults." = "Impossibile leggere %@: RAYS si è avviato con i valori predefiniti.";
+"RAYS is open source under the MIT license: github.com/gasparoff/rays. The app includes the Ableton Link SDK (© Ableton AG, GNU GPL v2 or later) and standalone ASIO (Boost Software License 1.0), so the app as a whole is distributed under the GPL v2 or later, with its complete source at the address above. Pro DJ Link runs Beat Link (Deep Symmetry, Eclipse Public License 2.0) as a separate process. The license texts are in the app's Resources/Licenses folder." = "RAYS è open source con licenza MIT: github.com/gasparoff/rays. L’app include l’SDK Ableton Link (© Ableton AG, GNU GPL v2 o successiva) e ASIO standalone (Boost Software License 1.0), quindi l’app nel suo insieme è distribuita con licenza GPL v2 o successiva, con il codice sorgente completo all’indirizzo sopra. Pro DJ Link usa Beat Link (Deep Symmetry, Eclipse Public License 2.0) come processo separato. I testi delle licenze sono nella cartella Resources/Licenses dell’app.";

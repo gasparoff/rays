@@ -46,6 +46,37 @@ public struct StageLayout: Equatable, Sendable {
 
     public static func isLarge(profileID: String?) -> Bool { profileID?.contains("tri380") == true }
 
+    /// Index of the fixture under `point` (view coordinates), for clicking a light in the preview.
+    /// The mirror triangle counts, plus a margin of `slop` points around it and its label so small
+    /// fixtures stay easy to hit. When two overlap, the nearest centre wins.
+    public func fixtureIndex(at point: CGPoint, slop: CGFloat = 8) -> Int? {
+        var best: (index: Int, distance: CGFloat)?
+        for (index, fixture) in fixtures.enumerated() {
+            let onFace = Self.distance(point, toTriangle: fixture.top, fixture.left, fixture.right) <= slop
+            let onLabel = abs(point.x - fixture.labelCenter.x) <= fixture.width / 2 && abs(point.y - fixture.labelCenter.y) <= 10 + slop
+            guard onFace || onLabel else { continue }
+            let d = hypot(point.x - fixture.center.x, point.y - fixture.center.y)
+            if best == nil || d < best!.distance { best = (index, d) }
+        }
+        return best?.index
+    }
+
+    /// 0 inside the triangle, otherwise the distance to its nearest edge.
+    static func distance(_ p: CGPoint, toTriangle a: CGPoint, _ b: CGPoint, _ c: CGPoint) -> CGFloat {
+        func cross(_ o: CGPoint, _ u: CGPoint, _ v: CGPoint) -> CGFloat { (u.x - o.x) * (v.y - o.y) - (u.y - o.y) * (v.x - o.x) }
+        let d1 = cross(p, a, b), d2 = cross(p, b, c), d3 = cross(p, c, a)
+        let hasNegative = d1 < 0 || d2 < 0 || d3 < 0
+        let hasPositive = d1 > 0 || d2 > 0 || d3 > 0
+        if !(hasNegative && hasPositive) { return 0 }
+        func segment(_ u: CGPoint, _ v: CGPoint) -> CGFloat {
+            let dx = v.x - u.x, dy = v.y - u.y
+            let length = dx * dx + dy * dy
+            let t = length > 0 ? min(1, max(0, ((p.x - u.x) * dx + (p.y - u.y) * dy) / length)) : 0
+            return hypot(p.x - (u.x + t * dx), p.y - (u.y + t * dy))
+        }
+        return min(segment(a, b), segment(b, c), segment(c, a))
+    }
+
     public init(size: CGSize, large: [Bool]) {
         self.size = size
         self.large = large

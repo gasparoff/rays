@@ -2,6 +2,9 @@ import Darwin
 import Foundation
 
 /// Datagram transport abstraction so the Art-Net logic can be tested without sockets.
+///
+/// Not thread-safe: the engine opens, sends and closes from its serial queue and passes that same
+/// queue to `open`, so `onReceive` runs where the driver that owns the transport lives.
 public protocol DatagramTransport: AnyObject {
     /// Binds the receive/send socket. Received datagrams are delivered on `queue`.
     func open(port: UInt16, queue: DispatchQueue, onReceive: @escaping ([UInt8], IPv4Address) -> Void) throws
@@ -41,6 +44,11 @@ public struct SocketError: Error, LocalizedError, Equatable {
 }
 
 /// BSD UDP socket bound to 0.0.0.0:port with broadcast enabled; replies arrive on the same socket.
+///
+/// `@unchecked Sendable`: confined to the queue passed to `open` (the engine's serial queue).
+/// `fd` and `source` are only touched by `open`, `send` and `close`, which the owner calls on that
+/// queue, and by the read source's handler, which Dispatch runs on that same queue. The source's
+/// cancel handler only closes the descriptor it captured, never `fd`.
 public final class UDPSocket: DatagramTransport, @unchecked Sendable {
     private var fd: Int32 = -1
     private var source: DispatchSourceRead?

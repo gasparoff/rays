@@ -468,6 +468,7 @@ struct SceneGrid: View {
                         shortcut: index + 1,
                         selected: active && !s.stopped && s.pendingScene == nil,
                         pending: active && s.pendingScene == scene,
+                        countdown: model.live,
                         action: { model.selectScene(scene) }, edit: { model.editPreset(scene) }
                     )
                     .contextMenu {
@@ -504,6 +505,8 @@ struct SceneCard: View {
     let shortcut: Int
     let selected: Bool
     let pending: Bool
+    /// 30 Hz state for the countdown ring of a queued scene (the card itself follows the stable controls).
+    let countdown: LiveState
     let action: () -> Void
     let edit: () -> Void
 
@@ -549,6 +552,12 @@ struct SceneCard: View {
             .accessibilityValue(selected ? String(localized: "active") : (pending ? String(localized: "waiting for the beat") : ""))
             .accessibilityHint("Key \(String(describing: shortcut)). Use the pencil to edit the preset.")
 
+            if pending {
+                PendingCountdownRing(state: countdown)
+                    .padding(11)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .allowsHitTesting(false)
+            }
             HStack(spacing: 6) {
                 if customized {
                     Text("EDITED").font(.system(size: 8, weight: .semibold)).tracking(0.5)
@@ -567,6 +576,24 @@ struct SceneCard: View {
             }.padding(8)
         }
         .foregroundStyle(Theme.text)
+    }
+}
+
+/// Fills up while a queued scene waits for its beat; the scene starts when the ring closes.
+struct PendingCountdownRing: View {
+    @ObservedObject var state: LiveState
+
+    var body: some View {
+        let progress = state.snapshot.pendingProgress ?? 0
+        ZStack {
+            Circle().stroke(Color.white.opacity(0.22), lineWidth: 3)
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(Theme.amber, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+        }
+        .frame(width: 22, height: 22)
+        .accessibilityHidden(true)
     }
 }
 

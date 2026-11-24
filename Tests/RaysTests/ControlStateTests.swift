@@ -5,8 +5,11 @@ import XCTest
 final class ControlStateTests: XCTestCase {
     private func snapshot() -> EngineSnapshot {
         var value = EngineSnapshot()
-        value.fixtures = [FixtureVisual(id: "c", label: "Centro", profileID: "varytec-tri380-25ch", role: .center,
-            universe: 0, address: 24, rgb: [LightColor(1, 0, 0)], cob: [1], status: .off)]
+        value.fixtures = [
+            FixtureVisual(
+                id: "c", label: "Centro", profileID: "varytec-tri380-25ch", role: .center,
+                universe: 0, address: 24, rgb: [LightColor(1, 0, 0)], cob: [1], status: .off)
+        ]
         return value
     }
 
@@ -46,7 +49,7 @@ final class ControlStateTests: XCTestCase {
             { $0.tempo.bpm = 138 }, { $0.tempo.peers = 1 }, { $0.scene = .respiro },
             { $0.sceneLook = ClubSceneBank.scene(for: .ambra) }, { $0.pendingScene = .chase },
             { $0.master = 0 }, { $0.stopped = true }, { $0.accentActive = true },
-            { $0.network.socketError = "offline" }
+            { $0.network.socketError = "offline" },
         ]
         for change in changes {
             var next = first

@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import RaysCore
+import RaysEngine
 
 /// One editing session of a scene: the draft, its bounded undo history, the selected track and the
 /// visible span of the rhythm matrix.
@@ -362,7 +363,7 @@ final class SceneEditorSession: ObservableObject {
 }
 
 extension Notification.Name {
-    static let sceneEditorCommitNumbers = Notification.Name("LightSystem.sceneEditor.commitNumbers")
+    static let sceneEditorCommitNumbers = Notification.Name(AppNotificationName.sceneEditorCommitNumbers)
 }
 
 extension SceneProgram {

@@ -226,7 +226,8 @@ struct CompiledProgram: Sendable {
             guard unit.index < role.rgb.count else { return }
             let c = Choreography.lit(track.colors[colorIndex], value)
             let old = role.rgb[unit.index]
-            role.rgb[unit.index] = track.add
+            role.rgb[unit.index] =
+                track.add
                 ? LightColor(min(1, old.r + c.r), min(1, old.g + c.g), min(1, old.b + c.b), old.w)
                 : LightColor(max(old.r, c.r), max(old.g, c.g), max(old.b, c.b), old.w)
         }

@@ -532,7 +532,10 @@ struct SceneGrid: View {
                         .accessibilityValue(model.sceneBank == bank.id ? String(localized: "selected") : "")
                         .contextMenu {
                             if !bank.id.isBuiltIn {
-                                Button("Rename bank…") { bankName = bank.name; bankEditor = .rename(bank.id) }
+                                Button("Rename bank…") {
+                                    bankName = bank.name
+                                    bankEditor = .rename(bank.id)
+                                }
                                 Button("Delete bank…", role: .destructive) { bankToDelete = bank }
                             }
                         }

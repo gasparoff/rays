@@ -48,13 +48,33 @@ Rules:
 
 Set `"isVerified": true` **only** if you tested the profile on the physical light.
 
+## 3b. Optional: how the preview draws it
+
+The stage preview draws each light from its profile. By default RAYS infers the shape from
+the channels: several repeated `red/green/blue` groups are a **bar** with its zones left to
+right in channel order, a single colour group is a **PAR**, white/blinder channels alone are a
+**blinder**. When that is not what your light looks like, add an optional `visual` key:
+
+```json
+"visual": { "kind": "bar", "zones": "horizontal" }
+```
+
+| Key | Values |
+|---|---|
+| `kind` | `triangle`, `par`, `bar`, `wash`, `spot`, `movingHead`, `strip`, `blinder`, `generic` |
+| `zones` | Optional order of the RGB zones: `horizontal` (left → right), `vertical` (top → bottom), `radial` (around the centre, clockwise from the top), `grid` |
+| `columns` | Only with `"zones": "grid"`: zones per row (1 or more) |
+
+`visual` only changes the drawing: it never changes a DMX value, and it is not part of the
+patch fingerprint, so adding it never un-confirms a patch. `CommunityProfilesTests` checks it.
+
 ## 4. Test it
 
 ```sh
 swift test --filter CommunityProfilesTests
 ```
 
-The test checks JSON validity, unique ids and channel sanity. Then try it in the app:
+The test checks JSON validity, unique ids, channel sanity and the `visual` key. Then try it in the app:
 **Configurazione → Luci**, pick your profile, use the red/white 5-second test.
 
 ## 5. Open a PR

@@ -92,7 +92,6 @@
 "Show panel: %@" = "Mostra pannello: %@";
 "Speed" = "Velocità";
 "Stage" = "Palco";
-"Stop and fade out" = "Ferma e sfuma";
 "Tempo on the right" = "Tempo a destra";
 "Universe %@ · DMX %@" = "Universo %@ · DMX %@";
 "active" = "attiva";
@@ -281,7 +280,12 @@
 "Every quarter, in the center" = "Tutti i quarti, al centro";
 "excluded" = "escluso";
 "fade" = "sfuma";
-"Fades to dark in one beat. Select a scene to start again." = "Sfuma al buio in un battito. Seleziona una scena per ripartire.";
+"Pauses the show: fades to dark in one beat. Play starts the same scene again." = "Mette in pausa lo show: sfuma al buio in un battito. Play riavvia la stessa scena.";
+"Pause" = "Pausa";
+"Pause and fade out" = "Pausa e sfuma";
+"Starts the selected scene on the beat. A scene pad starts that scene." = "Avvia la scena selezionata a tempo. Un pad avvia quella scena.";
+"Play" = "Play";
+"start" = "avvia";
 "Fill: %@, %@" = "Riempi: %@, %@";
 "Fills the draft: check it on the lights, confirm and save." = "Riempie la bozza: verifica sulle luci, conferma e salva.";
 "Fix the errors before saving." = "Correggi gli errori prima di salvare.";

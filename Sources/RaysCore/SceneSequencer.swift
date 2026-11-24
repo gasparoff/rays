@@ -161,6 +161,17 @@ public struct SceneSequencer: Sendable {
         return true
     }
 
+    /// Dark at once, with no fade and nothing queued: the show waits for Play. The look is kept, so
+    /// relaunching the scene brings it back as it was.
+    public mutating func stopNow() {
+        pendingLayer = nil
+        layers = [
+            Layer(
+                scene: nil, rate: rate, anchor: 0, fadeStart: -.infinity, fadeBeats: 0,
+                startTime: -.infinity, maxSeconds: 0)
+        ]
+    }
+
     /// Fades everything to black over one beat (0.5 s without a trusted grid) and clears the scene.
     public mutating func stop(beat rawBeat: Double, now: TimeInterval, gridTrusted: Bool) {
         let beat = sanitize(rawBeat)

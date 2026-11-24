@@ -190,6 +190,26 @@ public final class ShowSession {
         }
     }
 
+    /// At launch the show stays dark until Play: the saved scene and look are loaded but not started.
+    public func holdUntilPlay() {
+        sceneCommandID = UUID()
+        buildIsHeld = false
+        engine.stopNow()
+    }
+
+    /// Starts the current scene (with its look) again after launch or Stop, on the beat like a pad.
+    /// Does nothing while a scene is playing or queued.
+    public func play() {
+        guard snapshot.stopped, snapshot.pendingScene == nil else { return }
+        if let look = previewedCustom {
+            sceneCommandID = UUID()
+            buildIsHeld = false
+            engine.setScene(look.base, look: look, immediate: false)
+        } else {
+            selectScene(prefs.scene)
+        }
+    }
+
     public func stopShow() {
         sceneCommandID = UUID()
         buildIsHeld = false

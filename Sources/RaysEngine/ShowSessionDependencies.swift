@@ -11,6 +11,7 @@ public protocol ShowEngine: AnyObject {
     func cancelPendingScene(onCancel: @escaping @MainActor @Sendable (SceneID, CustomScene?) -> Void)
     func setBuildDropGesture(_ held: Bool, look: CustomScene?)
     func stop()
+    func stopNow()
     func beginScenePreview()
     func finishScenePreview(restore: Bool)
     func setMaster(_ v: Double)

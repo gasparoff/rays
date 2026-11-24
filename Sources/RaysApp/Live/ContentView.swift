@@ -130,6 +130,18 @@ struct TopBar: View {
             .keyboardShortcut("k", modifiers: .command)
             .help("Search scenes and actions · ⌘K")
             .accessibilityLabel("Search scenes and actions")
+            Button {
+                s.stopped ? model.play() : model.stopShow()
+            } label: {
+                Label(
+                    s.stopped ? String(localized: "Play") : String(localized: "Pause"),
+                    systemImage: s.stopped ? "play.fill" : "pause.fill")
+            }
+            .buttonStyle(BarButtonStyle(tint: Theme.lavender, prominent: s.stopped))
+            .help(
+                s.stopped
+                    ? String(localized: "Starts the selected scene on the beat. A scene pad starts that scene.")
+                    : String(localized: "Pauses the show: fades to dark in one beat. Play starts the same scene again."))
             TopBlackoutButton(blackout: s.blackout, action: model.toggleBlackout)
         }
     }
@@ -763,9 +775,9 @@ struct ControlBar: View {
             state: PerformanceControlState(
                 master: model.prefs.master, energy: model.prefs.energy,
                 show: model.showSettings, blackout: s.blackout, armed: s.armed, outputRequested: s.outputRequested,
-                live: s.isLive, readiness: s.readiness),
+                live: s.isLive, readiness: s.readiness, stopped: s.stopped),
             onMaster: model.setMaster, onWhite: model.setWhiteLevel, onEnergy: model.setEnergy,
             onLevel: model.setLevel, onOutput: model.toggleOutput,
-            onBuild: model.setBuildDropHeld, onFlash: model.engine.setAccent, onStop: model.stopShow)
+            onBuild: model.setBuildDropHeld, onFlash: model.engine.setAccent, onStop: model.stopShow, onPlay: model.play)
     }
 }

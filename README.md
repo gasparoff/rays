@@ -151,7 +151,7 @@ ENTTEC Open DMX USB is not, [and here is why](docs/hardware.md#dmx-outputs).
 **Windows or Linux?** Not today. The engine modules are Foundation-only Swift, so a port is
 possible: open a Discussion if you want to work on it.
 
-**Which languages does the app speak?** English, and Italian when macOS is set to Italian.
+**Which languages does the app speak?** English and Italian. RAYS follows the macOS language; you can pick another one in Setup › Advanced › Language.
 Adding a language takes one translation file: see [Localization/README.md](Localization/README.md).
 
 ## Contributing

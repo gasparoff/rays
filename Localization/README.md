@@ -18,8 +18,13 @@ loses or adds a placeholder.
 
 1. Copy `it.lproj` to `<code>.lproj` (for example `de.lproj`, `es.lproj`, `pt-BR.lproj`).
 2. Translate the right-hand side of every line. Keep the keys exactly as they are.
-3. Add the language code to `CFBundleLocalizations` in `Scripts/build-app.sh`.
-4. Run `make test`, build, and check the app with your Mac set to that language.
+3. Run `make test`, then build with `Scripts/build-app.sh`: the new folder is picked up on its own.
+4. Open the app, choose your language in Setup › Advanced › Language, restart, and check every window.
+
+## Choosing the language
+
+RAYS follows the macOS language by default. Setup › Advanced › Language overrides it for RAYS only (the
+same setting as System Settings › General › Language & Region › Applications) and applies after a restart.
 
 Fixture profile data (names, modes, notes) is not translated: it is part of the patch fingerprint
 that confirms a rig is wired correctly.

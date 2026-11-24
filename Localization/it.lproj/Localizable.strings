@@ -736,3 +736,8 @@
 "The scenes of the bank stay as they are." = "Le scene del banco restano come sono.";
 "Delete the bank “%@”?" = "Eliminare il banco “%@”?";
 "Its six pads and their edits will be removed. Your personal scenes stay." = "I suoi sei pad e le loro modifiche verranno rimossi. Le tue scene personali restano.";
+"Language" = "Lingua";
+"Same as macOS" = "Come macOS";
+"RAYS will switch language after a restart." = "RAYS cambierà lingua dopo il riavvio.";
+"Restart now" = "Riavvia ora";
+"To add a language, see Localization/README.md on GitHub: a translation is one file and needs no code." = "Per aggiungere una lingua, vedi Localization/README.md su GitHub: una traduzione è un solo file e non richiede codice.";

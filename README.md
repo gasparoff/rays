@@ -65,11 +65,15 @@ Requirements: macOS 14+, Xcode 16 or a Swift 6 toolchain.
 ```sh
 git clone --recursive https://github.com/gasparoff/rays.git
 cd rays
-make bootstrap   # Ableton Link submodule (+ Beat Link helper if Beat Link Trigger is installed)
+make bootstrap   # Ableton Link submodule (+ Beat Link helper, see below)
 make test        # 300+ tests, no hardware needed
 make build       # builds dist/RAYS.app (without Beat Link Trigger: no Pro DJ Link)
 open dist/RAYS.app
 ```
+
+Building from source needs Beat Link Trigger installed only for Pro DJ Link: `make bootstrap` takes
+its runtime to make the helper. Without it the app builds and runs, with Ableton Link and MIDI Clock.
+Users of the released app never need it.
 
 New to RAYS? The [user guide](docs/manual.md) goes from install to your first show.
 
@@ -78,8 +82,8 @@ internal clock or Tap gives it a tempo.
 
 **Just want the app?** Download `RAYS-<version>-macOS-arm64.zip` from the
 [latest release](../../releases/latest) (Apple silicon, macOS 14+), unzip it and move RAYS.app to
-Applications. The build is not notarized yet: the first time, open System Settings → Privacy &
-Security and click **Open Anyway**.
+Applications. From 0.2.0 the app is signed with a Developer ID and notarized by Apple, so it opens
+with a double click, and Pro DJ Link is built in: you don't need Beat Link Trigger or anything else.
 
 ## Supported hardware
 

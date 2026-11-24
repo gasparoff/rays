@@ -64,5 +64,6 @@ builds also look in `Vendor/BeatLinkHelper` of the source checkout.
   submodule up to date.
 - The release workflow pins the Beat Link Trigger version and checks the SHA-256 of its DMG
   before using it, and publishes a build provenance attestation for the zip.
-- Release builds are not yet signed with a Developer ID or notarized by Apple. Until they
-  are, check the SHA-256 and the attestation as shown in [SECURITY.md](../SECURITY.md).
+- Release builds are signed with a Developer ID, with the hardened runtime, and notarized by Apple
+  once the maintainer's signing secrets are set ([releasing](releasing.md)); earlier releases were
+  signed ad hoc. Either way, check the SHA-256 and the attestation as shown in [SECURITY.md](../SECURITY.md).

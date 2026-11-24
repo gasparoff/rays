@@ -6,6 +6,10 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-24
+
+Signed and notarized app, composable Live window, user guide.
+
 ### Added
 - User guide in English (`docs/manual.md`), from install to a show, linked from the README.
 - Live window layout: press Layout to reorder, resize and hide panels on a 12-column grid, or pick a preset (Classic, Tempo on the right, Big stage, Minimal). The layout is saved; the performance panel can't be hidden.
@@ -18,6 +22,7 @@ project uses [Semantic Versioning](https://semver.org/).
 ### Changed
 - Saved files now live in `~/Library/Application Support/RAYS`. An existing `Light System` folder is moved there on first launch and a link is left at the old path, so nothing is lost and older builds still find it.
 - RAYS appears as "RAYS" on the Pro DJ Link network and in macOS MIDI, instead of the old project name.
+- The app is signed with a Developer ID and notarized by Apple: it opens with a double click, no more Open Anyway ([docs/releasing.md](docs/releasing.md)).
 
 ### Fixed
 - A damaged `midi.json` or `preferences.json` is copied aside and reported in Setup instead of being overwritten by the next save.
@@ -61,5 +66,6 @@ Private builds were numbered 1.x; the public project restarted at 0.1.0. The las
 2026-10-31) had: House and Club 130–138 scene banks, full-screen scene editor
 with shared rhythm grid, Xone:K2 Classic and Live v2 layouts, auto-reconnect, display-sleep protection.
 
-[Unreleased]: https://github.com/gasparoff/rays/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/gasparoff/rays/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/gasparoff/rays/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/gasparoff/rays/releases/tag/v0.1.0

@@ -23,9 +23,11 @@ Download `RAYS-<version>-macOS-arm64.zip` from the
 [latest release](https://github.com/gasparoff/rays/releases/latest), unzip it and move **RAYS.app** to
 Applications. RAYS needs macOS 14 or later on Apple silicon.
 
-If macOS says it can't check the app for malicious software (builds that are not notarized), open
-System Settings → Privacy & Security once and click **Open Anyway**. You can check any download against
-its SHA-256 file and build attestation, as described in [SECURITY.md](../SECURITY.md).
+From 0.2.0 releases are signed with a Developer ID and notarized by Apple: RAYS opens with a double
+click, and Pro DJ Link is built in, with nothing else to install. With 0.1.0, which is not notarized,
+macOS says it can't check the app: open System Settings → Privacy & Security once and click
+**Open Anyway**. You can check any download against its SHA-256 file and build attestation, as
+described in [SECURITY.md](../SECURITY.md).
 
 The first time RAYS looks for lights or consoles, macOS asks for permission to use the **local network**.
 Allow it: Art-Net, sACN, Pro DJ Link and Ableton Link all need it.
@@ -233,7 +235,7 @@ or connect the Mac directly to the node.
 
 **Pro DJ Link sees no console.** Mac and consoles must be on the same network (a switch is enough).
 Close other apps that use Pro DJ Link ports, such as Beat Link Trigger or rekordbox's Link features;
-RAYS reports a port conflict. Builds made from source without the Beat Link helper have no Pro DJ Link.
+RAYS reports a port conflict. Only builds made from source without the Beat Link helper lack Pro DJ Link.
 
 **The lights are a beat late or early.** Press **R** on the downbeat. If they are consistently late,
 check the latency compensation of your DJ software's Link settings.

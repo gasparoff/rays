@@ -695,3 +695,5 @@
 "⌘. · Discards the draft and restores everything as it was before you opened the editor: scene, tracks, energy, speed and zones." = "⌘. · Scarta la bozza e ripristina tutto come prima di aprire l’editor: scena, tracce, energia, velocità e zone.";
 "⌘S · Adds or updates the scene in My scenes." = "⌘S · Aggiunge o aggiorna la scena in Le mie scene.";
 "⌘S · Saves to the same key (1–6 and K2, Build → Drop included)." = "⌘S · Salva sullo stesso tasto (1–6 e K2, compreso Build → Drop).";
+"%@ could not be read. RAYS kept a copy as %@ and started with defaults." = "Impossibile leggere %@. RAYS ne ha tenuto una copia come %@ e si è avviato con i valori predefiniti.";
+"%@ could not be read and RAYS started with defaults." = "Impossibile leggere %@: RAYS si è avviato con i valori predefiniti.";

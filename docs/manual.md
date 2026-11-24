@@ -129,7 +129,9 @@ The Live window holds everything you touch during a set.
 | 5 | Build | Build · 8 beats |
 | 6 | Drop | Impact · long tail |
 
-Pick the bank above the scene buttons. Changing bank doesn't start a scene or change the tempo. A new
+Pick the bank above the scene buttons. The **+** next to them adds a bank of your own that starts from
+the House or Club scenes; edit its pads like any other, and right-click it to rename or delete it.
+Changing bank doesn't start a scene or change the tempo. A new
 scene starts on the beat, so changes always land in time: a ring on the queued button fills until it
 starts.
 

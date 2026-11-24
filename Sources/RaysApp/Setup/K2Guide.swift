@@ -34,7 +34,7 @@ struct K2Guide: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("Bank \(String(describing: model.sceneBank.title))").foregroundStyle(Theme.lavender)
+                Text("Bank \(String(describing: model.sceneBankInfo.name))").foregroundStyle(Theme.lavender)
                 Spacer()
                 Text(midi.map.k2Layout.label).foregroundStyle(Theme.tertiary)
             }.font(.system(size: 11, weight: .semibold))

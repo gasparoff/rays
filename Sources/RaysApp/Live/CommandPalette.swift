@@ -150,11 +150,11 @@ struct CommandPalette: View {
             PaletteCommand(
                 id: "firstBeat", title: String(localized: "Restart from the scene's first beat"), shortcut: "R",
                 symbol: "arrow.counterclockwise", run: { model.setFirstBeat() }))
-        for bank in SceneBank.allCases {
+        for bank in scenes.sceneBanks {
             list.append(
                 PaletteCommand(
-                    id: "bank.\(bank.rawValue)", title: String(localized: "Scene bank: \(bank.title)"), symbol: "square.stack",
-                    run: { model.setSceneBank(bank) }))
+                    id: "bank.\(bank.id.rawValue)", title: String(localized: "Scene bank: \(bank.name)"), symbol: "square.stack",
+                    run: { model.setSceneBank(bank.id) }))
         }
         list.append(
             PaletteCommand(

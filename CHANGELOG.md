@@ -9,7 +9,11 @@ project uses [Semantic Versioning](https://semver.org/).
 ### Added
 - Performance faders follow the rig: one level fader per group of lights in the patch, named after the group, and Warm light only when a light has a white channel. The classic three-position rig keeps today's six faders.
 - Customize faders: right-click the faders, or use the slider button in Layout mode, to hide faders or change their order. Master brightness always stays; hidden faders keep their level.
+- Your own scene banks: the **+** beside the bank picker adds one that starts from the House or Club scenes; right-click it to rename or delete it. Keys 1–6, the Xone pads and the Build → Drop gesture play the bank you pick; each pad is edited, restored and copied like the built-in ones.
 - Interface language in Setup › Advanced › Language: follow macOS, or pick English or Italian. It applies after a restart, with a Restart now button. New translations in `Localization/` appear there without code changes.
+
+### Changed
+- House pads now have the same scene model as Club pads: they open in the editor with their name and colors, and Restore original brings back both. An untouched House pad still plays exactly as before. Existing scenes and edits are kept; `custom-scenes.json` gains a `banks` key only once you add a bank.
 
 ### Fixed
 - Section titles (Shortcuts, Tempo, Scenes…) are now translated like the rest of the interface.

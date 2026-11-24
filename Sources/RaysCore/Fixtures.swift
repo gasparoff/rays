@@ -168,6 +168,20 @@ public struct ProfileLibrary: Sendable {
 
     public func profile(id: String) -> FixtureProfile? { profiles.first { $0.id == id } }
 
+    /// Order for profile pickers: verified profiles, then built-in and generic ones, then the
+    /// community/OFL profiles by manufacturer, name and footprint.
+    public var pickerOrder: [FixtureProfile] {
+        let builtIn = Set(Self.builtIn.map(\.id))
+        let rest = profiles.filter { !$0.isVerified }
+        let first = rest.filter { builtIn.contains($0.id) || $0.isGeneric }
+        let others = rest.filter { !builtIn.contains($0.id) && !$0.isGeneric }.sorted {
+            ($0.manufacturer.lowercased(), $0.name.lowercased(), $0.footprint) < (
+                $1.manufacturer.lowercased(), $1.name.lowercased(), $1.footprint
+            )
+        }
+        return profiles.filter(\.isVerified) + first + others
+    }
+
     public func adding(_ more: [FixtureProfile]) -> ProfileLibrary {
         ProfileLibrary(extra: Array(profiles.dropFirst(Self.builtIn.count)) + more)
     }

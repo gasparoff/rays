@@ -41,7 +41,9 @@ struct ContentView: View {
             SetupView(initialDraft: model.patch)
                 .interactiveDismissDisabled()
                 .environmentObject(model)
-                .environmentObject(model.live)
+                // Setup reads only status (network, readiness, tests): the change-only snapshot keeps
+                // its forms from re-rendering 30 times a second.
+                .environmentObject(model.controls)
                 .environmentObject(model.cable)
                 .environmentObject(model.midi)
                 .environmentObject(model.xdj)
@@ -511,6 +513,9 @@ struct SceneGrid: View {
     @ObservedObject var store: CustomScenesStore
     @State private var presetToReset: SceneID?
     @State private var showResetConfirmation = false
+    @State private var bankEditor: BankEditorRequest?
+    @State private var bankName = ""
+    @State private var bankToDelete: SceneBankInfo?
 
     var body: some View {
         let s = live.snapshot
@@ -518,22 +523,45 @@ struct SceneGrid: View {
             HStack(spacing: 10) {
                 SectionLabel("Scenes")
                 HStack(spacing: 3) {
-                    ForEach(SceneBank.allCases) { bank in
+                    ForEach(store.sceneBanks) { bank in
                         Button {
-                            model.setSceneBank(bank)
+                            model.setSceneBank(bank.id)
                         } label: {
-                            Text(bank.title)
+                            Text(bank.name)
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(model.sceneBank == bank ? Theme.text : Theme.secondary)
+                                .foregroundStyle(model.sceneBank == bank.id ? Theme.text : Theme.secondary)
                                 .padding(.horizontal, 12).padding(.vertical, 5)
                                 .background(
                                     RoundedRectangle(cornerRadius: Theme.Radius.control)
-                                        .fill(model.sceneBank == bank ? Theme.lavender.opacity(0.22) : .clear))
+                                        .fill(model.sceneBank == bank.id ? Theme.lavender.opacity(0.22) : .clear))
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("Bank \(String(describing: bank.title))")
-                        .accessibilityValue(model.sceneBank == bank ? String(localized: "selected") : "")
+                        .accessibilityLabel("Bank \(String(describing: bank.name))")
+                        .accessibilityValue(model.sceneBank == bank.id ? String(localized: "selected") : "")
+                        .contextMenu {
+                            if !bank.id.isBuiltIn {
+                                Button("Rename bank…") {
+                                    bankName = bank.name
+                                    bankEditor = .rename(bank.id)
+                                }
+                                Button("Delete bank…", role: .destructive) { bankToDelete = bank }
+                            }
+                        }
                     }
+                    Menu {
+                        ForEach(SceneBankInfo.builtIn) { origin in
+                            Button(String(localized: "Start from \(origin.name)")) {
+                                bankName = ""; bankEditor = .create(origin.id)
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "plus").font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Theme.secondary).padding(.horizontal, 7).padding(.vertical, 5)
+                    }
+                    .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+                    .disabled(!store.canAddSceneBank)
+                    .help("New bank: its six pads start from the House or Club scenes and you edit them as you like.")
+                    .accessibilityLabel("New bank")
                 }
                 .padding(3)
                 .background(RoundedRectangle(cornerRadius: Theme.Radius.control).fill(Theme.panel))
@@ -547,13 +575,12 @@ struct SceneGrid: View {
             HStack(spacing: 12) {
                 ForEach(Array(SceneID.allCases.enumerated()), id: \.element) { index, scene in
                     let saved = store.preset(scene, bank: model.sceneBank)
-                    let look = saved ?? model.factoryScene(scene)
                     let active =
-                        look.map { model.activeCustomSceneID == $0.id }
+                        model.presetLook(scene).map { model.activeCustomSceneID == $0.id }
                         ?? (model.activeCustomSceneID == nil && s.scene == scene)
                     SceneCard(
-                        scene: scene, modified: look, customized: saved != nil,
-                        subtitle: model.sceneBank == .club ? ClubSceneBank.subtitle(for: scene) : scene.subtitle,
+                        scene: scene, modified: model.presetScene(scene), customized: saved != nil,
+                        subtitle: FactoryScenes.subtitle(for: scene, in: model.sceneBankInfo),
                         shortcut: index + 1,
                         selected: active && !s.stopped && s.pendingScene == nil,
                         pending: active && s.pendingScene == scene,
@@ -583,7 +610,47 @@ struct SceneGrid: View {
         } message: {
             Text("Your changes to this preset will be removed. You can keep them first with Make a personal copy.")
         }
+        .alert(
+            bankEditor?.isCreate == true ? String(localized: "New bank") : String(localized: "Rename bank"),
+            isPresented: Binding(get: { bankEditor != nil }, set: { if !$0 { bankEditor = nil } })
+        ) {
+            TextField("Name", text: $bankName)
+            Button(bankEditor?.isCreate == true ? String(localized: "Create") : String(localized: "Rename")) {
+                switch bankEditor {
+                case .create(let origin): model.addSceneBank(name: bankName, origin: origin)
+                case .rename(let id): model.renameSceneBank(id, to: bankName)
+                case nil: break
+                }
+                bankEditor = nil
+            }
+            Button("Cancel", role: .cancel) { bankEditor = nil }
+        } message: {
+            Text(
+                bankEditor?.isCreate == true
+                    ? String(localized: "Keys 1–6 and the Xone pads play its six scenes. Edit each pad with the pencil.")
+                    : String(localized: "The scenes of the bank stay as they are."))
+        }
+        .confirmationDialog(
+            "Delete the bank “\(String(describing: bankToDelete?.name ?? ""))”?",
+            isPresented: Binding(get: { bankToDelete != nil }, set: { if !$0 { bankToDelete = nil } })
+        ) {
+            Button("Delete", role: .destructive) {
+                if let bank = bankToDelete { model.deleteSceneBank(bank.id) }
+                bankToDelete = nil
+            }
+            Button("Cancel", role: .cancel) { bankToDelete = nil }
+        } message: {
+            Text("Its six pads and their edits will be removed. Your personal scenes stay.")
+        }
     }
+}
+
+/// What the bank name alert is for.
+private enum BankEditorRequest: Equatable {
+    case create(SceneBank)
+    case rename(SceneBank)
+
+    var isCreate: Bool { if case .create = self { return true } else { return false } }
 }
 
 struct SceneCard: View {

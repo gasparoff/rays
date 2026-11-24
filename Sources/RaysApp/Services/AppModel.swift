@@ -13,7 +13,10 @@ final class AppModel: ObservableObject {
     private var lastControlState: EngineSnapshot?
     private var previewVisible = true
     private var visibilityObservers: [NSObjectProtocol] = []
-    @Published var showSetup = false
+    /// While Setup covers the window the 30 Hz stage frames stay unpublished; it reopens on the current frame.
+    @Published var showSetup = false {
+        didSet { if !showSetup, oldValue, previewVisible { publishUI(session.snapshot) } }
+    }
     /// True while the full-window scene editor replaces the main content.
     @Published private(set) var showSceneEditor = false
     @Published private(set) var editorSession: SceneEditorSession?
@@ -177,7 +180,7 @@ final class AppModel: ObservableObject {
     }
 
     private func publishUI(_ snapshot: EngineSnapshot) {
-        live.snapshot = snapshot
+        if !showSetup { live.snapshot = snapshot }
         // Keep 30 Hz on the stage/beat indicator, without laying out every
         // button and fader for each lighting frame.
         let stable = snapshot.controlState
@@ -270,7 +273,22 @@ final class AppModel: ObservableObject {
     /// Browsing banks never launches a scene or changes the shared Link tempo.
     func setSceneBank(_ bank: SceneBank) { session.setSceneBank(bank) }
 
-    func factoryScene(_ slot: SceneID) -> CustomScene? { session.factoryScene(slot) }
+    func factoryScene(_ slot: SceneID) -> CustomScene { session.factoryScene(slot) }
+
+    /// What a pad of the selected bank shows: the user's edit or the original.
+    func presetScene(_ slot: SceneID) -> CustomScene { session.presetScene(slot) }
+
+    /// What a pad launches; nil for an untouched House pad (it plays with the live controls).
+    func presetLook(_ slot: SceneID) -> CustomScene? { session.presetLook(slot) }
+
+    var sceneBankInfo: SceneBankInfo { session.sceneBankInfo }
+
+    /// Adds a bank starting from `origin`'s scenes and shows it.
+    func addSceneBank(name: String, origin: SceneBank) { session.addSceneBank(name: name, origin: origin) }
+
+    func renameSceneBank(_ id: SceneBank, to name: String) { session.renameSceneBank(id, to: name) }
+
+    func deleteSceneBank(_ id: SceneBank) { session.deleteSceneBank(id) }
 
     func sceneTitle(_ slot: SceneID) -> String { session.sceneTitle(slot) }
 
@@ -394,8 +412,11 @@ final class AppModel: ObservableObject {
         guard session.beginEditing() else { return }
         let window = editorWindow
         window.prepareEnter(NSApp.windows.first { $0.isVisible && $0.isMainWindow } ?? NSApp.mainWindow)
+        let bank = initial.flatMap { scene in
+            scene.presetSlot == nil ? nil : customScenes.sceneBanks.first { $0.id == scene.presetBank }
+        }
         editorSession = SceneEditorSession(
-            initial: initial,
+            initial: initial, bank: bank,
             onPreview: { [weak self] in self?.previewCustomScene($0) },
             onSave: { [weak self] in self?.finishSceneEditing($0) },
             onCancel: { [weak self] in self?.cancelSceneEditing() },

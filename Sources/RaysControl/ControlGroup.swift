@@ -16,11 +16,11 @@ public enum ControlGroup: String, CaseIterable, Identifiable, Sendable {
     }
 
     /// The group's functions in `ControlAction.allCases` order.
-    public var actions: [ControlAction] { ControlAction.allCases.filter { $0.group == self } }
+    public var actions: [ControlAction] { ControlAction.allCases.filter { $0.setupGroup == self } }
 }
 
 extension ControlAction {
-    public var group: ControlGroup {
+    public var setupGroup: ControlGroup {
         switch self {
         case .scene1, .scene2, .scene3, .scene4, .scene5, .scene6, .bankHouse, .bankClub, .sceneFirstBeat, .cancelPending:
             return .scenes

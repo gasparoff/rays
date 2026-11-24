@@ -10,9 +10,9 @@ final class SetupLayoutTests: XCTestCase {
         XCTAssertEqual(Set(grouped), Set(ControlAction.allCases))
         XCTAssertTrue(ControlGroup.allCases.allSatisfy { !$0.actions.isEmpty })
         XCTAssertEqual(ControlGroup.scenes.actions.prefix(6), [.scene1, .scene2, .scene3, .scene4, .scene5, .scene6])
-        XCTAssertEqual(ControlAction.master.group, .levels)
-        XCTAssertEqual(ControlAction.blackout.group, .show)
-        XCTAssertEqual(ControlAction.rateDouble.group, .speed)
+        XCTAssertEqual(ControlAction.master.setupGroup, .levels)
+        XCTAssertEqual(ControlAction.blackout.setupGroup, .show)
+        XCTAssertEqual(ControlAction.rateDouble.setupGroup, .speed)
     }
 
     private func target(verified: Bool, fresh: Bool) -> OutputTarget {

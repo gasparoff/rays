@@ -65,6 +65,10 @@ right in channel order, a single colour group is a **PAR**, white/blinder channe
 | `zones` | Optional order of the RGB zones: `horizontal` (left → right), `vertical` (top → bottom), `radial` (around the centre, clockwise from the top), `grid` |
 | `columns` | Only with `"zones": "grid"`: zones per row (1 or more) |
 
+The preview then draws a PAR as a round can with its LED array, a bar or strip as a row of pixels, a
+`wash` as an LED panel, a `spot` or `movingHead` as a head on its yoke and a `blinder` as round COB
+cells, each zone and white emitter coloured from the DMX values.
+
 `visual` only changes the drawing: it never changes a DMX value, and it is not part of the
 patch fingerprint, so adding it never un-confirms a patch. `CommunityProfilesTests` checks it.
 

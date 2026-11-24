@@ -13,6 +13,7 @@ project uses [Semantic Versioning](https://semver.org/).
 - Command search (⌘K): type a few letters of a scene or an action (blackout, lights, banks, layouts, Setup) and press Return.
 - Countdown ring on a queued scene button: it fills until the scene starts on its beat or downbeat.
 - Click a light in the stage preview (Shift for more) to select it: a bar shows where it is patched and the brightness of its position.
+- The stage preview draws every light as it looks, from its profile: PARs with their LED array, bars and pixel strips, LED panels, spots and moving heads on their yoke, blinder cells, besides the Varytec mirrors. Each zone and white emitter is coloured from the DMX values, in the order the profile declares.
 
 ### Changed
 - Saved files now live in `~/Library/Application Support/RAYS`. An existing `Light System` folder is moved there on first launch and a link is left at the old path, so nothing is lost and older builds still find it.

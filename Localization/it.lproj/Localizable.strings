@@ -477,7 +477,7 @@
 "Press a button…" = "Premi un tasto…";
 "Preview" = "Anteprima";
 "PREVIEW" = "ANTEPRIMA";
-"Preview of the %@ lights: mirrored triangles, RGB zones and warm COB strips" = "Anteprima delle %@ luci: triangoli a specchio, zone RGB e strisce COB calde";
+"Preview of the %@ lights, drawn as the real fixtures with their colours" = "Anteprima delle %@ luci, disegnate come le fixture reali con i loro colori";
 "Preview only" = "Solo anteprima";
 "Previous bars" = "Battute precedenti";
 "Priority %@" = "Priorità %@";

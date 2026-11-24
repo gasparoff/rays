@@ -388,7 +388,7 @@ struct StagePanel: View {
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(LinearGradient(colors: [Color(white: 0.03), Color(white: 0.055)], startPoint: .top, endPoint: .bottom))
-            LiveStageView(state: model.live, selection: selection) { id, extend in
+            LiveStageView(state: model.live, library: model.library, selection: selection) { id, extend in
                 select(id, extend: extend)
             }
             .padding(.horizontal, 12)

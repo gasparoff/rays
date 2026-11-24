@@ -30,8 +30,6 @@ struct PerformanceControlState: Equatable {
     var outputRequested: Bool
     var live: Bool
     var readiness: OutputReadiness
-    /// No scene playing (at launch, or after Stop): the Stop button becomes Play.
-    var stopped = false
 
     func value(_ fader: LiveFader) -> Double {
         switch fader {
@@ -53,8 +51,6 @@ struct PerformanceControls: View {
     let onOutput: () -> Void
     let onBuild: (Bool) -> Void
     let onFlash: (Bool) -> Void
-    let onStop: () -> Void
-    let onPlay: () -> Void
 
     var body: some View {
         let columns = LiveFaderLayout.columns(for: state.faders.count)
@@ -113,33 +109,6 @@ struct PerformanceControls: View {
                         .help("Hold for the build, release on the drop. The musical grid stays locked to the console.")
                         HoldControl(title: "Flash", subtitle: String(localized: "hold"), color: Theme.amber, onHold: onFlash)
                             .help("A burst of warm light while you hold, 2 seconds at most.")
-                        Button(action: state.stopped ? onPlay : onStop) {
-                            VStack(spacing: 3) {
-                                if state.stopped {
-                                    Label("Play", systemImage: "play.fill").font(.system(size: 12, weight: .semibold))
-                                    Text("start").font(.system(size: 10)).opacity(0.7)
-                                } else {
-                                    Label("Pause", systemImage: "pause.fill").font(.system(size: 12, weight: .semibold))
-                                    Text("fade").font(.system(size: 10)).foregroundStyle(Theme.secondary)
-                                }
-                            }
-                            .frame(maxWidth: .infinity).frame(height: Theme.Height.performance)
-                            .background(
-                                RoundedRectangle(cornerRadius: Theme.Radius.control)
-                                    .fill(state.stopped ? Theme.lavender.opacity(0.85) : Theme.panelRaised)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: Theme.Radius.control)
-                                    .strokeBorder(state.stopped ? Theme.lavender : Theme.stroke)
-                            )
-                            .foregroundStyle(state.stopped ? Color.black : Theme.text)
-                            .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.control))
-                        }
-                        .buttonStyle(.plain)
-                        .help(
-                            state.stopped
-                                ? String(localized: "Starts the selected scene on the beat. A scene pad starts that scene.")
-                                : String(localized: "Pauses the show: fades to dark in one beat. Play starts the same scene again."))
                     }
                 }
                 .frame(width: 326)

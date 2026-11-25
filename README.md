@@ -31,7 +31,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/hero.gif" alt="RAYS following the beat: scenes switch on the downbeat while the stage preview plays them" width="960">
+  <img src="docs/images/hero.gif" alt="RAYS opens paused; Play starts the show and the stage preview follows the beat as scenes change" width="800">
   <br><sub>No lights connected: the stage preview shows exactly the DMX that RAYS sends.</sub>
 </p>
 

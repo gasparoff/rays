@@ -58,7 +58,7 @@ public struct OSCMessage: Equatable, Sendable {
         return read([UInt8](packet)[...], depth: 0, into: &out) ? out : []
     }
 
-    private static let bundleHeader = Array("#bundle".utf8) + [0]
+    private static let bundleHeader: [UInt8] = Array("#bundle".utf8) + [0]
     private static let maxBundleDepth = 8
 
     private static func read(_ bytes: ArraySlice<UInt8>, depth: Int, into out: inout [OSCMessage]) -> Bool {

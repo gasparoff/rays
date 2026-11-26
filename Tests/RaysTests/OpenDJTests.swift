@@ -2,37 +2,41 @@ import XCTest
 @testable import RaysTempo
 @testable import RaysEngine
 
+/// Text as OSC puts it on the wire, without the zero bytes that end and pad it.
+private func ascii(_ text: String) -> [UInt8] { Array(text.utf8) }
+
+/// The parts of a packet one after the other. A function, because long chains of `+` on array
+/// literals take the compiler too long to type-check.
+private func bytes(_ parts: [UInt8]...) -> [UInt8] { parts.flatMap { $0 } }
+
 final class OSCMessageTests: XCTestCase {
     /// `/beat 1 3 128.0` as openDJ puts it on the wire.
-    private static let beat: [UInt8] =
-        Array("/beat".utf8) + [0, 0, 0] + Array(",iif".utf8) + [0, 0, 0, 0]
-        + [0, 0, 0, 1] + [0, 0, 0, 3] + [0x43, 0, 0, 0]
+    private static let beat = bytes(
+        ascii("/beat"), [0, 0, 0], ascii(",iif"), [0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 3], [0x43, 0, 0, 0])
+    private static let bundleHeader = bytes(ascii("#bundle"), [0], [0, 0, 0, 0, 0, 0, 0, 1])
 
-    private static func element(_ bytes: [UInt8]) -> [UInt8] {
-        [0, 0, UInt8(bytes.count >> 8), UInt8(bytes.count & 0xFF)] + bytes
+    private static func element(_ element: [UInt8]) -> [UInt8] {
+        bytes([0, 0, UInt8(element.count >> 8), UInt8(element.count & 0xFF)], element)
     }
 
     func testEncodingPadsEveryPartToFourBytes() {
         let subscribe = OSCMessage("/subscribe", [.string("/beat")]).encoded()
-        XCTAssertEqual(
-            Array(subscribe),
-            Array("/subscribe".utf8) + [0, 0] + Array(",s".utf8) + [0, 0] + Array("/beat".utf8) + [0, 0, 0])
+        XCTAssertEqual(Array(subscribe), bytes(ascii("/subscribe"), [0, 0], ascii(",s"), [0, 0], ascii("/beat"), [0, 0, 0]))
         XCTAssertEqual(Array(OSCMessage("/beat", [.int(1), .int(3), .float(128)]).encoded()), Self.beat)
         // A string whose length is a multiple of four still ends with four zero bytes.
-        XCTAssertEqual(Array(OSCMessage("/abc").encoded()), Array("/abc".utf8) + [0, 0, 0, 0] + [0x2C, 0, 0, 0])
+        XCTAssertEqual(Array(OSCMessage("/abc").encoded()), bytes(ascii("/abc"), [0, 0, 0, 0], [0x2C, 0, 0, 0]))
     }
 
     func testDecodingMessagesAndNestedBundles() {
         let beat = OSCMessage("/beat", [.int(1), .int(3), .float(128)])
         XCTAssertEqual(OSCMessage.decode(Data(Self.beat)), [beat])
         let phrase = OSCMessage("/phrase", [.string("Drop"), .int(16)])
-        let header = Array("#bundle".utf8) + [0] + [0, 0, 0, 0, 0, 0, 0, 1]
-        let inner = header + Self.element(Array(phrase.encoded()))
-        let outer = header + Self.element(Self.beat) + Self.element(inner)
+        let inner = bytes(Self.bundleHeader, Self.element(Array(phrase.encoded())))
+        let outer = bytes(Self.bundleHeader, Self.element(Self.beat), Self.element(inner))
         XCTAssertEqual(OSCMessage.decode(Data(outer)), [beat, phrase])
         XCTAssertEqual(OSCMessage.decode(OSCMessage.bundle([phrase, beat])), [phrase, beat])
         // A slice of a larger buffer decodes like its own data.
-        let padded = Data([9, 9, 9] + Self.beat)
+        let padded = Data(bytes([9, 9, 9], Self.beat))
         XCTAssertEqual(OSCMessage.decode(padded.dropFirst(3)), [beat])
     }
 
@@ -40,16 +44,17 @@ final class OSCMessageTests: XCTestCase {
         XCTAssertEqual(OSCMessage.decode(Data()), [])
         XCTAssertEqual(OSCMessage.decode(Data("hello".utf8)), [])
         XCTAssertEqual(OSCMessage.decode(Data(Self.beat.dropLast(2))), [], "argument cut short")
-        XCTAssertEqual(OSCMessage.decode(Data(Array("/beat".utf8) + [0, 0, 0])), [], "no type tags")
-        let unterminated = Array("/beat".utf8) + [0, 0, 0] + Array(",s".utf8) + [0, 0] + Array("Drop".utf8)
+        XCTAssertEqual(OSCMessage.decode(Data(bytes(ascii("/beat"), [0, 0, 0]))), [], "no type tags")
+        let unterminated = bytes(ascii("/beat"), [0, 0, 0], ascii(",s"), [0, 0], ascii("Drop"))
         XCTAssertEqual(OSCMessage.decode(Data(unterminated)), [])
-        let blob = Array("/x".utf8) + [0, 0] + Array(",b".utf8) + [0, 0] + [0, 0, 0, 0]
+        let blob = bytes(ascii("/x"), [0, 0], ascii(",b"), [0, 0], [0, 0, 0, 0])
         XCTAssertEqual(OSCMessage.decode(Data(blob)), [], "argument types RAYS doesn't read")
-        let header = Array("#bundle".utf8) + [0] + [0, 0, 0, 0, 0, 0, 0, 1]
-        XCTAssertEqual(OSCMessage.decode(Data(header + [0, 0, 0, 200] + Self.beat)), [], "element longer than the packet")
-        XCTAssertEqual(OSCMessage.decode(Data(header + [0xFF, 0xFF, 0xFF, 0xF0] + Self.beat)), [], "negative element size")
+        let tooLong = bytes(Self.bundleHeader, [0, 0, 0, 200], Self.beat)
+        XCTAssertEqual(OSCMessage.decode(Data(tooLong)), [], "element longer than the packet")
+        let negative = bytes(Self.bundleHeader, [0xFF, 0xFF, 0xFF, 0xF0], Self.beat)
+        XCTAssertEqual(OSCMessage.decode(Data(negative)), [], "negative element size")
         var nested = Self.beat
-        for _ in 0..<20 { nested = header + Self.element(nested) }
+        for _ in 0..<20 { nested = bytes(Self.bundleHeader, Self.element(nested)) }
         XCTAssertEqual(OSCMessage.decode(Data(nested)), [], "bundles nested too deep")
     }
 }

@@ -71,4 +71,5 @@ Not shipped yet, and why (contributions with a hardware test are welcome):
 | Ableton Link | ✅ Verified | Always on |
 | Pioneer Pro DJ Link (CDJ / XDJ) | ✅ Verified | Via the bundled Beat Link helper; beats feed the Link timeline |
 | MIDI Clock (24 ppqn, Start/Stop/Continue, Song Position) | 🟡 Unverified | Opt-in beat source; listens to every MIDI input; beats feed the Link timeline |
+| openDJ (OSC `/beat` and `/phrase`) | 🟡 Unverified | Opt-in beat source; openDJ on the same Mac with OSC on, port 9000; beats feed the Link timeline. Tested against openDJ's OSC server, not yet with a DJ set |
 | Internal clock / tap tempo | ✅ | |

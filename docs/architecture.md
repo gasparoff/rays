@@ -37,7 +37,7 @@ RaysApp  ◄── LinkBridge       SwiftUI app, executable "LightSystem"
 | Target | Depends on | Responsibility |
 |---|---|---|
 | `RaysOutput` | Foundation | Art-Net packets, `ArtNetController`, sACN, DMX USB Pro + serial port, `NodeRegistry`, UDP transport, direct-cable policy, `OutputActivity`, `LatestMailbox`, `OutputDriver` + registry |
-| `RaysTempo` | Foundation | `TempoSource`, `TempoSnapshot`, internal clock, downbeat alignment, tap tempo, Pro DJ Link beat types, MIDI Clock, `TempoSourceRegistry` |
+| `RaysTempo` | Foundation | `TempoSource`, `TempoSnapshot`, internal clock, downbeat alignment, tap tempo, Pro DJ Link beat types, MIDI Clock, OSC messages and openDJ events, `TempoSourceRegistry` |
 | `RaysCore` | RaysOutput | Fixtures, patch, profiles, Varytec rig, scenes, choreography, scene programs and editing, custom scenes, sequencer, DMX composer, stage geometry |
 | `RaysControl` | RaysCore | MIDI decoder, `ControlAction`, `MIDIRouter` (Learn, soft takeover, relative encoders), `XoneK2`, LED feedback, `ControllerProfile` |
 | `RaysEngine` | all of the above | `LightEngine` (30 Hz), `OutputGate` (output safety rules), `ShowSession` (show decisions behind the controls, tested with fakes), `ConfigStore`, `Preferences`, `ShowSettings`, `DefaultsKey` |
@@ -91,6 +91,14 @@ fed into the Link timeline (`followBeat`) so the lights, Ableton Live and other 
 one grid. `MIDIClockParser` / `MIDIClockTempoSource` (RaysTempo) decode 24 ppqn clock; the app's
 `MIDIClockListener` runs only when the beat source is MIDI Clock.
 
+openDJ is followed over OSC. `OSCMessage` encodes and decodes the packets, `OpenDJEvent` reads
+openDJ's `/beat` and `/phrase` events and `OpenDJTimeline` keeps the bar and the phrase (all in
+RaysTempo). The app's `OpenDJListener` runs only when the beat source is openDJ: it subscribes on
+`127.0.0.1:9000`, renews every 3 seconds so an openDJ started later is found, and feeds each beat
+into the Link timeline from its own queue. openDJ's beats arrive a few milliseconds late and
+unevenly, so a beat within 0.05 beats of the Link timeline, at the same tempo, leaves it alone
+(`TempoSnapshot.agrees`).
+
 ### Controllers
 
 Layouts are data: `Controllers/*.json` is bundled into `Resources/Controllers`, and
@@ -116,6 +124,7 @@ Contributions welcome on any of these. Open an issue to coordinate before large 
 - [ ] sACN universe discovery and synchronization; DMX USB Pro Mk2 second universe
 - [x] `TempoSource` registry (internal clock, Ableton Link)
 - [x] MIDI Clock beat source
+- [x] openDJ beat source over OSC (same Mac)
 - [ ] Audio onset as fallback
 - [ ] Scene sharing: export/import a `.rays-scene` file, community scene gallery
 - [ ] Larger rigs: more than three positions, multiple universes, pixel bars

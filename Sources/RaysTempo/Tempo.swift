@@ -31,6 +31,20 @@ public struct TempoSnapshot: Equatable, Sendable {
     }
 }
 
+extension TempoSnapshot {
+    /// How far the bar is past the start of `beatInBar` (1...4), in beats: -2..<2, negative when it is still to come.
+    public func offset(fromBeatInBar beatInBar: Int) -> Double {
+        let offset = (phase - Double(beatInBar - 1)).truncatingRemainder(dividingBy: 4)
+        return offset >= 2 ? offset - 4 : offset < -2 ? offset + 4 : offset
+    }
+
+    /// True when a beat heard now, `beatInBar` (1...4) at `bpm`, is where this snapshot already is:
+    /// the same tempo and less than `tolerance` beats apart.
+    public func agrees(bpm: Double, beatInBar: Int, tolerance: Double) -> Bool {
+        abs(self.bpm - bpm) < 0.005 && abs(offset(fromBeatInBar: beatInBar)) < tolerance
+    }
+}
+
 /// Anything that provides tempo and beat position to the engine (Ableton Link, internal clock, MIDI clock).
 ///
 /// The engine calls a source on its serial queue while the app calls it on the main thread (tap,

@@ -114,3 +114,38 @@ private struct MIDIClockStatusBody: View {
         return String(localized: "Waiting for Start + clock · inputs: \(String(describing: clock.sourceNames.joined(separator: ", ")))")
     }
 }
+
+struct OpenDJStatus: View {
+    @EnvironmentObject private var model: AppModel
+
+    var body: some View {
+        OpenDJStatusBody(openDJ: model.openDJ)
+    }
+}
+
+private struct OpenDJStatusBody: View {
+    @ObservedObject var openDJ: OpenDJListener
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(statusText).font(.system(size: 12)).foregroundStyle(openDJ.isLive ? Theme.good : Theme.secondary)
+            Text(
+                String(
+                    localized:
+                        "RAYS follows the tempo and the bar of openDJ's master deck on this Mac and passes them to Ableton Link, as it does with the console. In openDJ, turn on OSC in Settings › Controllers › OSC and leave the port at 9000. Experimental."
+                )
+            )
+            .font(.system(size: 11.5)).foregroundStyle(Theme.tertiary).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var statusText: String {
+        let t = openDJ.timeline
+        if openDJ.isLive, let bpm = t.bpm, let bar = t.barInPhrase, let beat = t.beatInBar {
+            let place = String(format: String(localized: "openDJ · %.1f BPM · bar %d · beat %d"), bpm, bar, beat)
+            return t.phrase.map { "\(place) · \($0)" } ?? place
+        }
+        if openDJ.isAnswering { return String(localized: "openDJ found · waiting for a deck to play") }
+        return String(localized: "Looking for openDJ on this Mac…")
+    }
+}

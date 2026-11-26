@@ -111,6 +111,7 @@ Users of the released app never need it.
 | Controllers | Any MIDI controller | ✅ via MIDI Learn |
 | Tempo | Ableton Link, Pioneer Pro DJ Link (CDJ/XDJ) | ✅ |
 | Tempo | MIDI Clock (opt-in) | 🟡 |
+| Tempo | openDJ over OSC (opt-in, same Mac) | 🟡 |
 
 🟡 means implemented from public specifications and covered by tests, but not yet confirmed on
 the device. Full matrix, including what is not supported and why: [docs/hardware.md](docs/hardware.md).
@@ -134,7 +135,7 @@ target is Foundation-only and fully unit-tested without hardware.
 | Module | What lives there |
 |---|---|
 | `Sources/RaysOutput` | Art-Net, sACN and DMX USB Pro drivers, node discovery, the `OutputDriver` protocol. |
-| `Sources/RaysTempo` | Tempo snapshots, internal clock, tap tempo, Pro DJ Link beats, MIDI Clock, the `TempoSource` registry. |
+| `Sources/RaysTempo` | Tempo snapshots, internal clock, tap tempo, Pro DJ Link beats, MIDI Clock, openDJ events over OSC, the `TempoSource` registry. |
 | `Sources/RaysCore` | Fixtures, patch, profiles, scenes, choreography, sequencer, DMX composer, stage geometry. |
 | `Sources/RaysControl` | MIDI decoding, controller layouts, the router (Learn, soft takeover). |
 | `Sources/RaysEngine` | The 30 Hz `LightEngine` and the JSON config store. |

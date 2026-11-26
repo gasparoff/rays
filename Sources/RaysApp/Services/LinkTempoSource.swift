@@ -39,10 +39,16 @@ final class LinkTempoSource: TempoSource, @unchecked Sendable {
     }
 
     /// Feeds one validated console-master beat into the real Link session (`beatInBar` 1...4).
-    func followBeat(bpm: Double, beatInBar: Int) {
+    /// With a `tolerance` in beats, a session already at that tempo and that close to the beat is left as it is.
+    func followBeat(bpm: Double, beatInBar: Int, tolerance: Double = 0) {
         lock.lock(); defer { lock.unlock() }
         guard let link, bpm.isFinite, (20...400).contains(bpm), (1...4).contains(beatInBar) else { return }
         lastExternalBeat = ProcessInfo.processInfo.systemUptime
+        if tolerance > 0 {
+            let s = ls_link_capture(link, Self.quantum)
+            let session = TempoSnapshot(bpm: s.tempo, beat: s.beat, phase: s.phase)
+            if session.agrees(bpm: TempoRange.clamp(bpm), beatInBar: beatInBar, tolerance: tolerance) { return }
+        }
         ls_link_follow_beat(link, TempoRange.clamp(bpm), Int32(beatInBar - 1))
     }
 

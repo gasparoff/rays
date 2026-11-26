@@ -45,6 +45,7 @@ final class AppModel: ObservableObject {
     let midi: MIDIService
     let xdj = XDJBeatListener()
     let midiClock = MIDIClockListener()
+    let openDJ = OpenDJListener()
 
     let store = ConfigStore(directory: ConfigStore.defaultDirectory)
     private let link: LinkTempoSource
@@ -146,6 +147,9 @@ final class AppModel: ObservableObject {
         let link = self.link
         xdj.onBeat = { beat in link.followBeat(bpm: beat.bpm, beatInBar: beat.beatWithinBar) }
         midiClock.onBeat = { bpm, beatInBar in link.followBeat(bpm: bpm, beatInBar: beatInBar) }
+        openDJ.onBeat = { bpm, beatInBar in
+            link.followBeat(bpm: bpm, beatInBar: beatInBar, tolerance: OpenDJListener.beatTolerance)
+        }
         xdj.deck = p.xdjDeck
         session.onChange = { [weak self] in self?.publishSession() }
         session.onResetTakeover = { [weak self] action in self?.midi.resetTakeover(action) }
@@ -223,6 +227,7 @@ final class AppModel: ObservableObject {
         midi.start()
         if prefs.beatSource.usesProDJLink { xdj.start() }
         if prefs.beatSource == .midiClock { midiClock.start() }
+        if prefs.beatSource == .openDJ { openDJ.start() }
         // Cheap local check (getifaddrs); never changes settings by itself.
         cableTimer = Timer.scheduledTimer(withTimeInterval: 4, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated {
@@ -259,6 +264,7 @@ final class AppModel: ObservableObject {
         midi.stop()
         xdj.stop()
         midiClock.stop()
+        openDJ.stop()
         engine.shutdown()  // synchronous zero frames + close
         let tempo = link.capture()
         if tempo.peers == 0 && !tempo.externalClock {
@@ -347,7 +353,8 @@ final class AppModel: ObservableObject {
     func setBeatSource(_ source: BeatSource) {
         if source.usesProDJLink { xdj.start() } else { xdj.stop() }
         if source == .midiClock { midiClock.start() } else { midiClock.stop() }
-        if !source.usesProDJLink && source != .midiClock { link.clearExternalClock() }
+        if source == .openDJ { openDJ.start() } else { openDJ.stop() }
+        if source == .link { link.clearExternalClock() }
         session.updatePreferences { $0.beatSource = source }
     }
 

@@ -108,6 +108,10 @@ Open **Setup → Controller** and choose the **Beat source**:
 - **Console**: Pro DJ Link only.
 - **MIDI Clock** (experimental): RAYS listens to MIDI Clock on every MIDI input; Start marks the first
   beat of the bar.
+- **openDJ** (experimental): RAYS follows the tempo and the bar of the master deck of
+  [openDJ](https://github.com/openwave-studio/opendj) running on the same Mac. In openDJ, turn on OSC
+  in **Settings › Controllers › OSC** and leave the port at 9000. Setup shows the bar, the beat and
+  the phrase openDJ is playing.
 
 With no source at all, the internal clock runs. Set it with **TAP**, the arrows next to the BPM, or by
 typing a value.

@@ -382,6 +382,7 @@
 "Load" = "Carica";
 "Long" = "Lungo";
 "Long 3+3+2 rhythm" = "Ritmo lungo 3+3+2";
+"Looking for openDJ on this Mac…" = "Cerco openDJ su questo Mac…";
 "Mac → ENTTEC cable" = "Cavo Mac → ENTTEC";
 "Make a personal copy…" = "Crea copia personale…";
 "Manual" = "Personalizzato";
@@ -462,6 +463,9 @@
 "One of the scene's three colors, or 1→2→3 in turn hit after hit. Warm white doesn't use the colors." = "Uno dei tre colori della scena, o 1→2→3 a turno colpo dopo colpo. Il bianco caldo non usa i colori.";
 "Only how much time you see in the grid. It doesn't change the steps: use Step and Cycle below for that." = "Solo quanto tempo vedi nella matrice. Non cambia i passi: per quello usa Passo e Ciclo sotto.";
 "Open the full-screen editor" = "Apri l’editor a schermo intero";
+"openDJ found · waiting for a deck to play" = "openDJ trovato · in attesa che un deck suoni";
+"openDJ · %.1f BPM · bar %d · beat %d" = "openDJ · %.1f BPM · battuta %d · battito %d";
+"openDJ · waiting" = "openDJ · in attesa";
 "Opens http://%@/ in the browser" = "Apre http://%@/ nel browser";
 "Opens the %@ tab" = "Apre la scheda %@";
 "Opens the setup for the DMX interface, lights and Link" = "Apre la configurazione di ENTTEC, luci e Link";
@@ -505,6 +509,7 @@
 "R → L" = "Dx → Sx";
 "Rave · chase 136–138" = "Rave · corsa 136–138";
 "RAYS adds a temporary address to the lights' Ethernet cable only. Wi-Fi, DHCP and the Internet are not changed." = "RAYS aggiunge un indirizzo temporaneo al solo cavo Ethernet delle luci. Wi-Fi, DHCP e Internet non vengono modificati.";
+"RAYS follows the tempo and the bar of openDJ's master deck on this Mac and passes them to Ableton Link, as it does with the console. In openDJ, turn on OSC in Settings › Controllers › OSC and leave the port at 9000. Experimental." = "RAYS segue il tempo e la battuta del deck master di openDJ su questo Mac e li passa ad Ableton Link, come fa con la console. In openDJ attiva OSC in Settings › Controllers › OSC e lascia la porta 9000. Sperimentale.";
 "RAYS listens to MIDI Clock (24 pulses per beat, Start/Stop) on every MIDI input and passes it to Ableton Link, as it does with the console. The first beat after Start is the one of the bar. Experimental." = "RAYS ascolta il MIDI Clock (24 impulsi per battito, Start/Stop) da tutti gli ingressi MIDI e lo passa ad Ableton Link, come fa con la console. Il primo battito dopo Start è l'uno della battuta. Sperimentale.";
 "RAYS removes only the temporary address it added to the lights' cable." = "RAYS rimuove solo l’indirizzo temporaneo che ha aggiunto al cavo delle luci.";
 "RAYS — sending light data and reconnecting automatically" = "RAYS — invio luci e riconnessione automatica";

@@ -107,7 +107,7 @@ struct ControllerSetup: View {
                 VStack(alignment: .leading, spacing: 10) {
                     SectionLabel("Beat source")
                     SegmentedChoice(
-                        options: [BeatSource.auto, .link, .xdj, .midiClock],
+                        options: [BeatSource.auto, .link, .xdj, .midiClock, .openDJ],
                         selection: Binding(get: { model.prefs.beatSource }, set: { model.setBeatSource($0) })
                     ) { source in
                         switch source {
@@ -115,9 +115,10 @@ struct ControllerSetup: View {
                         case .link: return String(localized: "Link only")
                         case .xdj: return String(localized: "Console")
                         case .midiClock: return String(localized: "MIDI Clock")
+                        case .openDJ: return "openDJ"
                         }
                     }
-                    .frame(width: 360)
+                    .frame(width: 450)
                     .help(
                         String(
                             localized:
@@ -126,6 +127,8 @@ struct ControllerSetup: View {
                     )
                     if model.prefs.beatSource == .midiClock {
                         MIDIClockStatus()
+                    } else if model.prefs.beatSource == .openDJ {
+                        OpenDJStatus()
                     } else if model.prefs.beatSource != .link {
                         HStack(spacing: 14) {
                             SegmentedChoice(

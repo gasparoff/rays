@@ -10,6 +10,7 @@ project uses [Semantic Versioning](https://semver.org/).
 - Performance faders follow the rig: one level fader per group of lights in the patch, named after the group, and Warm light only when a light has a white channel. The classic three-position rig keeps today's six faders.
 - Customize faders: right-click the faders, or use the slider button in Layout mode, to hide faders or change their order. Master brightness always stays; hidden faders keep their level.
 - Your own scene banks: the **+** beside the bank picker adds one that starts from the House or Club scenes; right-click it to rename or delete it. Keys 1–6, the Xone pads and the Build → Drop gesture play the bank you pick; each pad is edited, restored and copied like the built-in ones.
+- openDJ beat source (experimental): in Setup › Controller, choose openDJ to follow the tempo and the bar of the master deck of openDJ running on the same Mac, over OSC (turn OSC on in openDJ, port 9000). Setup shows the bar, the beat and the phrase. Like the console and MIDI Clock, its beats feed Ableton Link.
 - Interface language in Setup › Advanced › Language: follow macOS, or pick English or Italian. It applies after a restart, with a Restart now button. New translations in `Localization/` appear there without code changes.
 
 ### Changed

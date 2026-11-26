@@ -33,9 +33,10 @@ public struct OutputSettings: Codable, Equatable, Sendable {
 }
 
 /// Ableton Link is always active. Auto/xdj adds the bundled Beat Link master follower;
-/// midiClock follows MIDI beat clock from any MIDI input (off unless chosen).
+/// midiClock follows MIDI beat clock from any MIDI input and openDJ follows openDJ's OSC beats
+/// (both off unless chosen).
 public enum BeatSource: String, Codable, CaseIterable, Sendable {
-    case auto, link, xdj, midiClock
+    case auto, link, xdj, midiClock, openDJ
 
     /// Sources that run the Pro DJ Link (Beat Link) listener.
     public var usesProDJLink: Bool { self == .auto || self == .xdj }
